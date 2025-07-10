@@ -6,7 +6,8 @@
         Title="SELLCT" 
         Height="600" Width="800"
         WindowStartupLocation="CenterScreen"
-        ResizeMode="CanMinimize"
+        ResizeMode="NoResize"
+        WindowStyle="ToolWindow"
         Background="LightGray"
         Closing="Window_Closing">
 
@@ -22,7 +23,7 @@
                             From="1" To="0" Duration="0:0:0.5"/>
         </Storyboard>
 
-        
+
 
         <!-- スタイル定義 -->
         <Style x:Key="PixelButtonStyle" TargetType="Button">
@@ -56,15 +57,10 @@
         </Style>
 
         <Style x:Key="DialogWindowStyle" TargetType="Border">
-            <Setter Property="Background" Value="White"/>
-            <Setter Property="BorderBrush" Value="Black"/>
-            <Setter Property="BorderThickness" Value="2"/>
+            <Setter Property="Background" Value="Black"/>
+            <Setter Property="BorderBrush" Value="White"/>
+            <Setter Property="BorderThickness" Value="5"/>
             <Setter Property="CornerRadius" Value="0"/>
-            <Setter Property="Effect">
-                <Setter.Value>
-                    <DropShadowEffect Color="Black" BlurRadius="5" ShadowDepth="3" Opacity="0.3"/>
-                </Setter.Value>
-            </Setter>
         </Style>
     </Window.Resources>
 
@@ -76,16 +72,16 @@
                Panel.ZIndex="0"/>
 
         <!-- メインゲーム領域 -->
-        <Canvas Name="GameCanvas" Panel.ZIndex="1">
+        <Canvas Name="GameCanvas" Panel.ZIndex="1" Margin="0,-50,0,0">
 
             <!-- G-1,G-2,G-3状態時表示、G-4時非表示：メインボタン -->
             <Button Name="MainButton" 
                     Content="?" 
                     Style="{StaticResource PixelButtonStyle}"
-                    Width="200" Height="50"
-                    Canvas.Left="50" Canvas.Top="495"
+                    Width="200" Height="59"
+                    Canvas.Left="34" Canvas.Top="532"
                     Click="MainButton_Click"
-                    Visibility="Visible"/>
+                    Visibility="Visible" HorizontalAlignment="Left" VerticalAlignment="Top"/>
 
             <!-- G-2状態時のみ表示：手紙画像 -->
             <Image Name="LetterImage" 
@@ -110,7 +106,7 @@
             <Image Name="KeyImage" 
                    Source="/Resources/KEY.png"
                    Width="60" Height="60"
-                   Canvas.Left="365" Canvas.Top="285"
+                   Canvas.Left="124" Canvas.Top="470"
                    Visibility="Collapsed"
                    MouseLeftButtonDown="Key_Click"
                    Cursor="Hand"
@@ -119,56 +115,57 @@
             <!-- G-3状態時のみ表示：対話ウィンドウ -->
             <Border Name="DialogWindow" 
                     Style="{StaticResource DialogWindowStyle}"
-                    Width="350" Height="180"
-                    Canvas.Left="420" Canvas.Top="50"
+                    Width="527" Height="100"
+                    Canvas.Left="273" Canvas.Top="516"
                     Visibility="Collapsed"
-                    Panel.ZIndex="3">
-                <StackPanel Margin="15">
+                    Panel.ZIndex="3" HorizontalAlignment="Left" VerticalAlignment="Top">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="28*"/>
+                        <ColumnDefinition Width="489*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="11*"/>
+                        <RowDefinition Height="48*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
                     <!-- SELLCT アバター -->
-                    <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                        <Border Background="#3498DB" 
-                                Width="30" Height="30" 
-                                CornerRadius="15"
-                                Margin="0,0,10,0">
-                            <TextBlock Text="S" 
-                                       FontWeight="Bold" 
-                                       FontSize="16"
-                                       Foreground="White"
-                                       HorizontalAlignment="Center"
-                                       VerticalAlignment="Center"/>
-                        </Border>
-                        <TextBlock Text="SELLCT" 
-                                   FontWeight="Bold" 
-                                   FontSize="14"
-                                   VerticalAlignment="Center"/>
-                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="15,0,15,11" Grid.Row="1" Grid.ColumnSpan="2"/>
 
                     <!-- メッセージテキスト -->
                     <TextBlock Name="DialogText" 
                                TextWrapping="Wrap"
-                               FontSize="12"
-                               LineHeight="18"
-                               Margin="0,0,0,15"
-                               Text="ありがとうございます！直接お話できるようになりました。"/>
+                               FontSize="18"
+                               LineHeight="24"
+                               Margin="15,5,15,5"
+                               Foreground="White" Grid.RowSpan="4" Grid.ColumnSpan="2"/>
 
                     <!-- 選択肢ボタン -->
                     <StackPanel Orientation="Horizontal" 
-                                HorizontalAlignment="Right">
+                                HorizontalAlignment="Right"
+                                Margin="15,0,15,15"
+                                Grid.Row="2">
                         <Button Name="YesButton" 
-                                Content="YES" 
+                                Content="はい" 
                                 Style="{StaticResource PixelButtonStyle}"
                                 Width="60" Height="30"
                                 Margin="5,0"
+                                Visibility="Collapsed"
                                 Click="YesButton_Click"/>
                         <Button Name="NoButton" 
-                                Content="NO" 
+                                Content="いいえ" 
                                 Style="{StaticResource PixelButtonStyle}"
                                 Width="60" Height="30"
                                 Margin="5,0"
                                 Visibility="Collapsed"
                                 Click="NoButton_Click"/>
                     </StackPanel>
-                </StackPanel>
+
+                    <!-- クリックイベントを捕捉するための透明なボタン -->
+                    <!-- GlobalClickCatcherが全体をカバーするため、ここでは不要 -->
+                </Grid>
             </Border>
         </Canvas>
 
@@ -239,5 +236,15 @@
                              IsIndeterminate="True"/>
             </StackPanel>
         </Grid>
+
+        <!-- グローバルクリックキャッチャー -->
+        <Button Name="GlobalClickCatcher" 
+                Background="Transparent" 
+                BorderBrush="Transparent"
+                Click="GlobalClickCatcher_Click"
+                Panel.ZIndex="999" 
+                Visibility="Collapsed"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch"/>
     </Grid>
 </Window>

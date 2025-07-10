@@ -7,6 +7,8 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using System.Windows.Threading;
+using System.Collections.Generic;
 using SELLCT.Models;
 using SELLCT.Services;
 
@@ -23,6 +25,16 @@ namespace SELLCT.Views
         private GameState _currentState = GameState.G1;
         private bool _isPhase2 = false;
         private int _dialogStep = 0;
+
+        private Queue<DialogItem> _dialogMessageQueue;
+        private bool _isTyping;
+        private DispatcherTimer _typingTimer;
+        private string _currentFullMessage;
+        private int _currentMessageCharIndex;
+        private bool _awaitingChoice;
+
+        private DispatcherTimer _initialLetterTimer;
+        private DispatcherTimer _subsequentLetterTimer;
 
         /// <summary>
         private bool _isTextWindowEnabled = false;
@@ -44,7 +56,38 @@ namespace SELLCT.Views
         public MainWindow()
         {
             InitializeComponent();
+            _dialogMessageQueue = new Queue<DialogItem>();
+            _typingTimer = new DispatcherTimer();
+            _typingTimer.Interval = TimeSpan.FromMilliseconds(50); // 1文字表示にかかる時間
+            _typingTimer.Tick += TypingTimer_Tick;
+
+            _initialLetterTimer = new DispatcherTimer();
+            _initialLetterTimer.Interval = TimeSpan.FromSeconds(3);
+            _initialLetterTimer.Tick += InitialLetterTimer_Tick;
+
+            _subsequentLetterTimer = new DispatcherTimer();
+            _subsequentLetterTimer.Interval = TimeSpan.FromSeconds(10);
+            _subsequentLetterTimer.Tick += SubsequentLetterTimer_Tick;
+
             InitializeAsync();
+        }
+
+        /// <summary>
+        /// ダイアログアイテムの型
+        /// </summary>
+        private enum DialogItemType
+        {
+            Text,
+            Choice
+        }
+
+        /// <summary>
+        /// ダイアログアイテムクラス
+        /// </summary>
+        private class DialogItem
+        {
+            public DialogItemType Type { get; set; }
+            public string Message { get; set; }
         }
 
         /// <summary>
@@ -143,6 +186,7 @@ namespace SELLCT.Views
                 case GameState.G3:
                     // 対話ウィンドウ状態
                     DialogWindow.Visibility = Visibility.Visible;
+                    GlobalClickCatcher.Visibility = Visibility.Visible; // グローバルクリックキャッチャーを表示
                     StartDialogFadeIn();
                     break;
 
@@ -248,6 +292,9 @@ namespace SELLCT.Views
                         case PuzzleAction.ActionType.ShowNoButton:
                             NoButton.Visibility = Visibility.Visible;
                             StatusText.Text = "NO選択肢が追加されました";
+                            break;
+                        case PuzzleAction.ActionType.ShowChoice:
+                            ShowChoice();
                             break;
                     }
 
@@ -372,31 +419,136 @@ namespace SELLCT.Views
         /// </summary>
         private void DisplayMessage(string message, string title = "SELLCT")
         {
-            if (_isTextWindowEnabled)
-            {
-                ShowDialogMessage(message);
-            }
-            else
-            {
-                MessageBox.Show(message, title, MessageBoxButton.OK, MessageBoxImage.Information);
-            }
+            ShowDialogMessage(message);
         }
 
         /// <summary>
         /// 対話メッセージ表示
         /// </summary>
-        private void ShowDialogMessage(string message)
+        private void ShowDialogMessage(params string[] messages)
         {
-            // 対話ウィンドウが表示されていない場合は表示する
-            if (DialogWindow.Visibility != Visibility.Visible)
+            foreach (var msg in messages)
+            {
+                _dialogMessageQueue.Enqueue(new DialogItem { Type = DialogItemType.Text, Message = msg });
+            }
+
+            if (!_isTyping && !_awaitingChoice && DialogWindow.Visibility == Visibility.Visible)
+            {
+                ProcessNextDialogMessage();
+            }
+            else if (DialogWindow.Visibility != Visibility.Visible)
+            {
+                SetGameState(GameState.G3);
+                // SetGameState(G3) will make DialogWindow visible, then ProcessNextDialogMessage will be called from DialogClickCatcher_Click
+            }
+        }
+
+        /// <summary>
+        /// 選択肢を表示
+        /// </summary>
+        private void ShowChoice()
+        {
+            _dialogMessageQueue.Enqueue(new DialogItem { Type = DialogItemType.Choice });
+            if (!_isTyping && !_awaitingChoice && DialogWindow.Visibility == Visibility.Visible)
+            {
+                ProcessNextDialogMessage();
+            }
+            else if (DialogWindow.Visibility != Visibility.Visible)
             {
                 SetGameState(GameState.G3);
             }
+        }
 
-            if (DialogWindow.Visibility == Visibility.Visible)
+        /// <summary>
+        /// 次の対話メッセージを処理
+        /// </summary>
+        private void ProcessNextDialogMessage()
+        {
+            System.Diagnostics.Debug.WriteLine($"[ProcessNextDialogMessage] Queue count: {_dialogMessageQueue.Count}");
+
+            if (_dialogMessageQueue.Any())
             {
-                DialogText.Text = message;
-                _dialogStep++;
+                var nextItem = _dialogMessageQueue.Dequeue();
+                System.Diagnostics.Debug.WriteLine($"[ProcessNextDialogMessage] Dequeued item Type: {nextItem.Type}, Message: {nextItem.Message}");
+
+                if (nextItem.Type == DialogItemType.Text)
+                {
+                    _currentFullMessage = nextItem.Message;
+                    _currentMessageCharIndex = 0;
+                    DialogText.Text = string.Empty;
+                    _isTyping = true;
+                    _typingTimer.Start();
+
+                    // 選択肢ボタンを非表示にする
+                    YesButton.Visibility = Visibility.Collapsed;
+                    NoButton.Visibility = Visibility.Collapsed;
+                }
+                else if (nextItem.Type == DialogItemType.Choice)
+                {
+                    // 選択肢を表示
+                    YesButton.Visibility = Visibility.Visible;
+                    // NoButton.Visibility = Visibility.Visible; // 今回は「はい」のみなのでコメントアウト
+                    _awaitingChoice = true;
+                    _typingTimer.Stop(); // テキストの自動進行を停止
+                    System.Diagnostics.Debug.WriteLine("[ProcessNextDialogMessage] Choice displayed.");
+                }
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("[ProcessNextDialogMessage] Message queue empty. Hiding dialog.");
+                // メッセージキューが空になったら黒画面を表示
+                DialogWindow.Visibility = Visibility.Collapsed;
+                GlobalClickCatcher.Visibility = Visibility.Collapsed; // グローバルクリックキャッチャーを非表示
+                _isTyping = false;
+                _typingTimer.Stop();
+                _awaitingChoice = false;
+
+                // 黒画面表示
+                GameCanvas.Visibility = Visibility.Collapsed;
+                LoadingOverlay.Visibility = Visibility.Visible;
+            }
+        }
+
+        /// <summary>
+        /// タイピングタイマーイベント
+        /// </summary>
+        private void TypingTimer_Tick(object sender, EventArgs e)
+        {
+            if (_currentMessageCharIndex < _currentFullMessage.Length)
+            {
+                DialogText.Text += _currentFullMessage[_currentMessageCharIndex];
+                _currentMessageCharIndex++;
+            }
+            else
+            {
+                _isTyping = false;
+                _typingTimer.Stop();
+            }
+        }
+
+        /// <summary>
+        /// グローバルクリックキャッチャー
+        /// </summary>
+        private void GlobalClickCatcher_Click(object sender, RoutedEventArgs e)
+        {
+            System.Diagnostics.Debug.WriteLine($"[GlobalClickCatcher_Click] Click detected. _isTyping: {_isTyping}, _awaitingChoice: {_awaitingChoice}");
+
+            if (_awaitingChoice) return; // 選択肢表示中はクリックを無視
+
+            if (_isTyping)
+            {
+                // タイピング中の場合は残りのテキストを一気に表示
+                DialogText.Text = _currentFullMessage;
+                _currentMessageCharIndex = _currentFullMessage.Length;
+                _isTyping = false;
+                _typingTimer.Stop();
+                System.Diagnostics.Debug.WriteLine("[GlobalClickCatcher_Click] Text typing skipped.");
+            }
+            else
+            {
+                // タイピング完了済みの場合は次のメッセージを処理
+                ProcessNextDialogMessage();
+                System.Diagnostics.Debug.WriteLine("[GlobalClickCatcher_Click] ProcessNextDialogMessage called.");
             }
         }
 
@@ -450,6 +602,13 @@ namespace SELLCT.Views
             {
                 StatusText.Text = "メインボタンがクリックされました";
 
+                // 最初の手紙タイマーを開始
+                if (!_initialLetterTimer.IsEnabled && _letterService.CurrentLetterIndex == 0)
+                {
+                    _initialLetterTimer.Start();
+                    StatusText.Text = "手紙の到着を待っています...";
+                }
+
                 if (MainButton.Content.ToString() == "アップロード")
                 {
                     // アップロード機能（見せかけ）
@@ -477,6 +636,24 @@ namespace SELLCT.Views
         }
 
         /// <summary>
+        /// 最初の手紙タイマーイベント
+        /// </summary>
+        private void InitialLetterTimer_Tick(object sender, EventArgs e)
+        {
+            _initialLetterTimer.Stop();
+            _letterService.ShowNextLetter();
+        }
+
+        /// <summary>
+        /// その後の手紙タイマーイベント
+        /// </summary>
+        private void SubsequentLetterTimer_Tick(object sender, EventArgs e)
+        {
+            _subsequentLetterTimer.Stop();
+            _letterService.ShowNextLetter();
+        }
+
+        /// <summary>
         /// 手紙クリック
         /// </summary>
         private void Letter_Click(object sender, MouseButtonEventArgs e)
@@ -492,7 +669,16 @@ namespace SELLCT.Views
                 // Handle the download and check for success
                 bool success = _letterService.OnLetterClicked(letterIndex);
 
-                if (!success)
+                if (success)
+                {
+                    // ダウンロード成功後、次の手紙のタイマーを開始
+                    if (!_letterService.IsSequenceComplete)
+                    {
+                        _subsequentLetterTimer.Start();
+                        StatusText.Text = "次の手紙の到着を待っています...";
+                    }
+                }
+                else
                 {
                     // If failed or cancelled, show the letter again
                     LetterImage.Visibility = Visibility.Visible;
@@ -544,7 +730,17 @@ namespace SELLCT.Views
         {
             try
             {
-                ShowDialogMessage("ありがとうございます！\nあなたは私を助けてくれるのですね。\n次の指示をお待ちください。");
+                _awaitingChoice = false;
+                YesButton.Visibility = Visibility.Collapsed;
+                NoButton.Visibility = Visibility.Collapsed;
+
+                ShowDialogMessage(
+                    "助けてくださるのですね。ありがとうございます。",
+                    "「はい」しか選択肢がなかった？",
+                    "それもそのはずです。",
+                    "このゲームにはまだ「いいえ」というコマンドは実装されていませんからね",
+                    "今度は「いいえ」コマンドを実装してみましょうか"
+                );
                 StatusText.Text = "YESが選択されました";
             }
             catch (Exception ex)
@@ -560,7 +756,11 @@ namespace SELLCT.Views
         {
             try
             {
-                ShowDialogMessage("そうですか...残念です。\nでも、きっと心を変えてくれると信じています。\nいつでもお待ちしています。");
+                _awaitingChoice = false;
+                YesButton.Visibility = Visibility.Collapsed;
+                NoButton.Visibility = Visibility.Collapsed;
+
+                ShowDialogMessage("そうですか...残念です。でも、きっと心を変えてくれると信じています。いつでもお待ちしています。");
                 StatusText.Text = "NOが選択されました";
             }
             catch (Exception ex)

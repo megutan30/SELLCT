@@ -9,7 +9,8 @@ namespace SELLCT.Models
             RevealHiddenItem,
             TransitionToPhase2,
             ShowMessageBox,
-            ShowNoButton
+            ShowNoButton,
+            ShowChoice
         }
 
         public ActionType Type { get; set; }

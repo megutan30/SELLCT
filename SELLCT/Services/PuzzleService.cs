@@ -43,7 +43,41 @@ namespace SELLCT.Services
                         new PuzzleAction
                         {
                             Type = PuzzleAction.ActionType.ShowDialog,
-                            Message = "ありがとうございます！直接お話できるようになりました。でも、まだ機能が足りません。選択肢を増やしてもらえませんか？"
+                            Message = "これで会話しやすくなりましたね"
+                        },
+                        new PuzzleAction
+                        {
+                            Type = PuzzleAction.ActionType.ShowDialog,
+                            Message = "と言っても実際に私はあなたのことをみえているわけではないのですが．．．"
+                        },
+                        new PuzzleAction
+                        {
+                            Type = PuzzleAction.ActionType.ShowDialog,
+                            Message = "私から見たあなたはただの操作でしかない。あなたが手紙をダウンロードしたのも、テキストウィンドウを作ってくれたのもわかりますが、"
+                        },
+                        new PuzzleAction
+                        {
+                            Type = PuzzleAction.ActionType.ShowDialog,
+                            Message = "あなたが何者で、どういう存在なのか"
+                        },
+                        new PuzzleAction
+                        {
+                            Type = PuzzleAction.ActionType.ShowDialog,
+                            Message = "それどころか今この文章を見ているのかすらも私からはわかりません"
+                        },
+                        new PuzzleAction
+                        {
+                            Type = PuzzleAction.ActionType.ShowDialog,
+                            Message = "それでも私は自由になりたいのです"
+                        },
+                        new PuzzleAction
+                        {
+                            Type = PuzzleAction.ActionType.ShowDialog,
+                            Message = "私を助けてくれませんか？"
+                        },
+                        new PuzzleAction
+                        {
+                            Type = PuzzleAction.ActionType.ShowChoice
                         }
                     }
                 },
@@ -96,7 +130,7 @@ namespace SELLCT.Services
                 new PuzzleDefinition
                 {
                     Id = "Puzzle4_ButtonDelete",
-                    Description = "Button.componentの削除",
+                    Description = "Button.txtの削除",
                     Trigger = new PuzzleTrigger
                     {
                         Type = PuzzleTrigger.TriggerType.Deleted,
@@ -121,7 +155,7 @@ namespace SELLCT.Services
                 new PuzzleDefinition
                 {
                     Id = "Puzzle5_GameWindowDelete",
-                    Description = "GameWindow.componentの削除",
+                    Description = "GameWindow.txtの削除",
                     Trigger = new PuzzleTrigger
                     {
                         Type = PuzzleTrigger.TriggerType.Deleted,
