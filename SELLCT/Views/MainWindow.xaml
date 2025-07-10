@@ -1,0 +1,243 @@
+﻿<Window x:Class="SELLCT.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ui="http://schemas.modernwpf.com/2019"
+        ui:WindowHelper.UseModernWindowStyle="True"
+        Title="SELLCT" 
+        Height="600" Width="800"
+        WindowStartupLocation="CenterScreen"
+        ResizeMode="CanMinimize"
+        Background="LightGray"
+        Closing="Window_Closing">
+
+    <Window.Resources>
+        <!-- アニメーション用ストーリーボード -->
+        <Storyboard x:Key="FadeInAnimation">
+            <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                            From="0" To="1" Duration="0:0:1"/>
+        </Storyboard>
+
+        <Storyboard x:Key="FadeOutAnimation">
+            <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                            From="1" To="0" Duration="0:0:0.5"/>
+        </Storyboard>
+
+        
+
+        <!-- スタイル定義 -->
+        <Style x:Key="PixelButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="Black"/>
+            <Setter Property="BorderThickness" Value="2"/>
+            <Setter Property="FontFamily" Value="Consolas"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Padding" Value="10,5"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="LightGray"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="DarkGray"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="DialogWindowStyle" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="Black"/>
+            <Setter Property="BorderThickness" Value="2"/>
+            <Setter Property="CornerRadius" Value="0"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect Color="Black" BlurRadius="5" ShadowDepth="3" Opacity="0.3"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <!-- 背景画像（常時表示） -->
+        <Image Name="BackgroundImage" 
+               Source="/Resources/Background.png" 
+               Stretch="Fill"
+               Panel.ZIndex="0"/>
+
+        <!-- メインゲーム領域 -->
+        <Canvas Name="GameCanvas" Panel.ZIndex="1">
+
+            <!-- G-1,G-2,G-3状態時表示、G-4時非表示：メインボタン -->
+            <Button Name="MainButton" 
+                    Content="?" 
+                    Style="{StaticResource PixelButtonStyle}"
+                    Width="100" Height="50"
+                    Canvas.Left="350" Canvas.Top="275"
+                    Click="MainButton_Click"
+                    Visibility="Visible"/>
+
+            <!-- G-2状態時のみ表示：手紙画像 -->
+            <Image Name="LetterImage" 
+                   Source="/Resources/Letter.png"
+                   Width="60" Height="80"
+                   Canvas.Left="100" Canvas.Top="350"
+                   Visibility="Collapsed"
+                   MouseLeftButtonDown="Letter_Click"
+                   Cursor="Hand"
+                   Panel.ZIndex="2">
+                <Image.RenderTransform>
+                    <TransformGroup>
+                        <ScaleTransform/>
+                        <SkewTransform/>
+                        <RotateTransform/>
+                        <TranslateTransform/>
+                    </TransformGroup>
+                </Image.RenderTransform>
+            </Image>
+
+            <!-- G-4状態時のみ表示：KEY画像 -->
+            <Image Name="KeyImage" 
+                   Source="/Resources/KEY.png"
+                   Width="60" Height="60"
+                   Canvas.Left="365" Canvas.Top="285"
+                   Visibility="Collapsed"
+                   MouseLeftButtonDown="Key_Click"
+                   Cursor="Hand"
+                   Panel.ZIndex="2"/>
+
+            <!-- G-3状態時のみ表示：対話ウィンドウ -->
+            <Border Name="DialogWindow" 
+                    Style="{StaticResource DialogWindowStyle}"
+                    Width="350" Height="180"
+                    Canvas.Left="420" Canvas.Top="50"
+                    Visibility="Collapsed"
+                    Panel.ZIndex="3">
+                <StackPanel Margin="15">
+                    <!-- SELLCT アバター -->
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                        <Border Background="#3498DB" 
+                                Width="30" Height="30" 
+                                CornerRadius="15"
+                                Margin="0,0,10,0">
+                            <TextBlock Text="S" 
+                                       FontWeight="Bold" 
+                                       FontSize="16"
+                                       Foreground="White"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"/>
+                        </Border>
+                        <TextBlock Text="SELLCT" 
+                                   FontWeight="Bold" 
+                                   FontSize="14"
+                                   VerticalAlignment="Center"/>
+                    </StackPanel>
+
+                    <!-- メッセージテキスト -->
+                    <TextBlock Name="DialogText" 
+                               TextWrapping="Wrap"
+                               FontSize="12"
+                               LineHeight="18"
+                               Margin="0,0,0,15"
+                               Text="ありがとうございます！直接お話できるようになりました。"/>
+
+                    <!-- 選択肢ボタン -->
+                    <StackPanel Orientation="Horizontal" 
+                                HorizontalAlignment="Right">
+                        <Button Name="YesButton" 
+                                Content="YES" 
+                                Style="{StaticResource PixelButtonStyle}"
+                                Width="60" Height="30"
+                                Margin="5,0"
+                                Click="YesButton_Click"/>
+                        <Button Name="NoButton" 
+                                Content="NO" 
+                                Style="{StaticResource PixelButtonStyle}"
+                                Width="60" Height="30"
+                                Margin="5,0"
+                                Visibility="Collapsed"
+                                Click="NoButton_Click"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Canvas>
+
+        <!-- デバッグ情報パネル（開発時のみ表示） -->
+        <Border Background="Black" 
+                Opacity="0.8"
+                Width="250" Height="120"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Bottom"
+                Margin="10"
+                Panel.ZIndex="10"
+                Visibility="Collapsed"
+                Name="DebugPanel">
+            <StackPanel Margin="10">
+                <TextBlock Text="SELLCT Debug Info" 
+                           Foreground="Lime" 
+                           FontWeight="Bold"
+                           FontFamily="Consolas"
+                           FontSize="12"/>
+                <TextBlock Name="DebugText" 
+                           Foreground="Lime" 
+                           FontFamily="Consolas"
+                           FontSize="10"
+                           Text="State: G-1&#x0a;Components: 5&#x0a;Letters: 0/6&#x0a;Phase: 1"/>
+            </StackPanel>
+        </Border>
+
+        <!-- 状態表示（右下） -->
+        <StackPanel HorizontalAlignment="Right" 
+                    VerticalAlignment="Bottom" 
+                    Margin="10"
+                    Panel.ZIndex="5">
+            <TextBlock Name="StatusText" 
+                       Text="SELLCT 起動中..."
+                       FontFamily="Consolas"
+                       FontSize="10"
+                       Foreground="DarkGray"
+                       HorizontalAlignment="Right"/>
+            <TextBlock Name="ComponentCountText" 
+                       Text="構成要素: 5"
+                       FontFamily="Consolas"
+                       FontSize="10"
+                       Foreground="DarkGray"
+                       HorizontalAlignment="Right"/>
+        </StackPanel>
+
+        <!-- ローディングオーバーレイ -->
+        <Grid Name="LoadingOverlay" 
+              Background="Black" 
+              Opacity="0.8"
+              Panel.ZIndex="1000"
+              Visibility="Collapsed">
+            <StackPanel HorizontalAlignment="Center" 
+                        VerticalAlignment="Center">
+                <TextBlock Text="SELLCT" 
+                           Foreground="White"
+                           FontSize="48"
+                           FontWeight="Bold"
+                           HorizontalAlignment="Center"
+                           Margin="0,0,0,20"/>
+                <TextBlock Text="システム初期化中..." 
+                           Foreground="White"
+                           FontSize="16"
+                           HorizontalAlignment="Center"/>
+                <ProgressBar Width="200" 
+                             Height="10"
+                             Margin="0,20,0,0"
+                             IsIndeterminate="True"/>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Window>
