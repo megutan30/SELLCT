@@ -32,7 +32,7 @@ namespace SELLCT.Services
                 new PuzzleDefinition
                 {
                     Id = "Puzzle1_TextWindow",
-                    Description = "TextWindow.componentの存在",
+                    Description = "TextWindow.txtの存在",
                     Trigger = new PuzzleTrigger
                     {
                         Type = PuzzleTrigger.TriggerType.Exists,
@@ -72,7 +72,7 @@ namespace SELLCT.Services
                 new PuzzleDefinition
                 {
                     Id = "Puzzle3_UploadRename",
-                    Description = "Button.componentをUpload.componentにリネーム",
+                    Description = "Button.txtをUpload.txtにリネーム",
                     Trigger = new PuzzleTrigger
                     {
                         Type = PuzzleTrigger.TriggerType.Renamed,
@@ -140,6 +140,8 @@ namespace SELLCT.Services
 
         private void CheckPuzzlesOnComponentCreated(object sender, GameComponent component)
         {
+            System.Diagnostics.Debug.WriteLine($"[PuzzleService] ComponentCreated event received: Name={component.Name}, Type={component.Type}");
+
             // Createdトリガーのパズルをチェック
             CheckPuzzles(p => p.Trigger.Type == PuzzleTrigger.TriggerType.Created &&
                                p.Trigger.ComponentName.Equals(component.Name, StringComparison.OrdinalIgnoreCase));
@@ -171,11 +173,12 @@ namespace SELLCT.Services
 
         private void CheckPuzzles(Func<PuzzleDefinition, bool> predicate)
         {
+            System.Diagnostics.Debug.WriteLine($"[PuzzleService] Checking puzzles...");
             foreach (var puzzle in _puzzles.Where(predicate).ToList())
             {
                 if (!puzzle.IsCompleted)
                 {
-                    System.Diagnostics.Debug.WriteLine($"Puzzle triggered: {puzzle.Id}");
+                    System.Diagnostics.Debug.WriteLine($"[PuzzleService] Puzzle triggered: {puzzle.Id}");
                     ExecutePuzzleActions(puzzle);
                     puzzle.IsCompleted = true; // 一度完了した謎解きは再度トリガーしない
                 }

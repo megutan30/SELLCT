@@ -93,19 +93,19 @@ namespace SELLCT.Services
             try
             {
                 // 表示される初期構成要素
-                CreateComponentFile("UI/Button.component", "");
-                CreateComponentFile("UI/GameWindow.component", "");
-                CreateComponentFile("Text/Hiragana.component", "");
-                CreateComponentFile("Text/YES.component", "");
-                CreateComponentFile("Visual/Background.component", "");
+                CreateComponentFile("UI/Button.txt", "");
+                CreateComponentFile("UI/GameWindow.txt", "");
+                CreateComponentFile("Text/Hiragana.txt", "");
+                CreateComponentFile("Text/YES.txt", "");
+                CreateComponentFile("Visual/Background.txt", "");
 
                 // 隠しファイル（.hidden拡張子）
-                CreateHiddenFile("UI/KEY.hidden", "");
-                CreateHiddenFile("Text/SecretMessage.hidden", "");
-                CreateHiddenFile("System/Mouse.hidden", "");
-                CreateHiddenFile("System/Keyboard.hidden", "");
-                CreateHiddenFile("System/Explorer.hidden", "");
-                CreateHiddenFile("System/WindowsShell.hidden", "");
+                CreateHiddenFile("UI/KEY.txt", "");
+                CreateHiddenFile("Text/SecretMessage.txt", "");
+                CreateHiddenFile("System/Mouse.txt", "");
+                CreateHiddenFile("System/Keyboard.txt", "");
+                CreateHiddenFile("System/Explorer.txt", "");
+                CreateHiddenFile("System/WindowsShell.txt", "");
 
                 System.Diagnostics.Debug.WriteLine("Initial components created");
             }
@@ -167,7 +167,7 @@ namespace SELLCT.Services
                 _watcher = new FileSystemWatcher(_componentsPath)
                 {
                     IncludeSubdirectories = true,
-                    Filter = "*.*",
+                    Filter = "*.txt",
                     NotifyFilter = NotifyFilters.FileName | NotifyFilters.LastWrite | NotifyFilters.Size
                 };
 
@@ -194,7 +194,7 @@ namespace SELLCT.Services
         {
             try
             {
-                var componentFiles = Directory.GetFiles(_componentsPath, "*.component", SearchOption.AllDirectories);
+                var componentFiles = Directory.GetFiles(_componentsPath, "*.txt", SearchOption.AllDirectories);
 
                 foreach (var filePath in componentFiles)
                 {
@@ -223,9 +223,9 @@ namespace SELLCT.Services
 
             try
             {
-                System.Diagnostics.Debug.WriteLine($"File created: {e.FullPath}");
+                System.Diagnostics.Debug.WriteLine($"[ComponentManager] File created: {e.FullPath}");
 
-                if (e.Name.EndsWith(".component"))
+                if (e.Name.EndsWith(".txt"))
                 {
                     var component = ParseComponentFile(e.FullPath);
                     if (component != null)
@@ -240,7 +240,7 @@ namespace SELLCT.Services
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error in OnFileCreated: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[ComponentManager] Error in OnFileCreated: {ex.Message}");
             }
         }
 
@@ -255,7 +255,7 @@ namespace SELLCT.Services
             {
                 System.Diagnostics.Debug.WriteLine($"File deleted: {e.FullPath}");
 
-                if (e.Name.EndsWith(".component"))
+                if (e.Name.EndsWith(".txt"))
                 {
                     var componentName = Path.GetFileNameWithoutExtension(e.Name);
                     if (_components.TryGetValue(componentName, out var component))
@@ -313,7 +313,7 @@ namespace SELLCT.Services
             {
                 System.Diagnostics.Debug.WriteLine($"File renamed: {e.OldFullPath} -> {e.FullPath}");
 
-                if (e.OldName.EndsWith(".component") && e.Name.EndsWith(".component"))
+                if (e.OldName.EndsWith(".txt") && e.Name.EndsWith(".txt"))
                 {
                     var oldName = Path.GetFileNameWithoutExtension(e.OldName);
                     var newName = Path.GetFileNameWithoutExtension(e.Name);
@@ -373,7 +373,7 @@ namespace SELLCT.Services
                     FilePath = filePath,
                     LastModified = File.GetLastWriteTime(filePath),
                     Content = "", // Content will no longer be read from file
-                    IsVisible = true // Default to true for .component files
+                    IsVisible = !File.GetAttributes(filePath).HasFlag(FileAttributes.Hidden) // Determine visibility based on file attributes
                 };
 
                 // Determine ComponentType from directory name
@@ -388,11 +388,12 @@ namespace SELLCT.Services
                     component.Type = ComponentType.UI; // Or some other default
                 }
 
+                System.Diagnostics.Debug.WriteLine($"[ComponentManager] Parsed component: Name={component.Name}, Type={component.Type}");
                 return component;
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error parsing component file {filePath}: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[ComponentManager] Error parsing component file {filePath}: {ex.Message}");
                 return null;
             }
         }
@@ -448,8 +449,8 @@ namespace SELLCT.Services
         {
             try
             {
-                var hiddenPath = Path.Combine(_componentsPath, folder, itemName + ".hidden");
-                var componentPath = Path.Combine(_componentsPath, folder, itemName + ".component");
+                var hiddenPath = Path.Combine(_componentsPath, folder, itemName + ".txt");
+                var componentPath = Path.Combine(_componentsPath, folder, itemName + ".txt");
 
                 if (File.Exists(hiddenPath) && !File.Exists(componentPath))
                 {
