@@ -82,8 +82,8 @@
             <Button Name="MainButton" 
                     Content="?" 
                     Style="{StaticResource PixelButtonStyle}"
-                    Width="100" Height="50"
-                    Canvas.Left="350" Canvas.Top="275"
+                    Width="200" Height="50"
+                    Canvas.Left="50" Canvas.Top="495"
                     Click="MainButton_Click"
                     Visibility="Visible"/>
 

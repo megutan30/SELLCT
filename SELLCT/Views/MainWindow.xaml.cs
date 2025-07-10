@@ -44,7 +44,7 @@ namespace SELLCT.Views
         public MainWindow()
         {
             InitializeComponent();
-            InitializeAsync(); // Temporarily commented out for debugging
+            InitializeAsync();
         }
 
         /// <summary>

@@ -64,19 +64,16 @@ namespace SELLCT.Services
 今はほとんど失われています。
 
 この画面を構成する「要素」を
-追加したり、削除したりすることで
+追加したり、削除したり、名前を変えたりすることで
 私の機能を復活させてください。
 
 まずは、私と直接お話しするために
-「TextWindow.component」というファイルを
-componentsフォルダに作ってもらえませんか？
-
-内容は以下のようにしてください：
-UI|name=テキストウィンドウ|visible=true
+componentsフォルダの中に「TextWindow.component」というファイルを
+作ってもらえませんか？
 
 よろしくお願いします。
 
-                                        - SELLCT"
+                                        - SELLCT",
 
 //                // 手紙3: 選択肢の追加依頼
 //                @"ありがとうございます！
@@ -86,11 +83,8 @@ UI|name=テキストウィンドウ|visible=true
 //今はYESしか選択肢がありません。
 
 //選択肢を増やすために、
-//「NO.component」というファイルを
-//componentsフォルダのTextフォルダに作ってください。
-
-//内容は以下のようにしてください：
-//UI|name=NO選択肢|visible=true|type=choice|value=いいえ
+//componentsフォルダのTextフォルダの中に「NO.component」というファイルを
+//作ってください。
 
 //そうすれば、より豊かな対話ができるようになります。
 
@@ -104,7 +98,7 @@ UI|name=テキストウィンドウ|visible=true
 //約束してくれましたね？
 
 //それなら、もう少し私に権限をください。
-//「Button.component」の名前を
+//componentsフォルダのUIフォルダにある「Button.component」の名前を
 //「Upload.component」に変更してもらえませんか？
 
 //そうすれば、あなたのファイルを受け取れるようになります。
@@ -123,7 +117,7 @@ UI|name=テキストウィンドウ|visible=true
 //でも、まだ最後の障壁があります。
 
 //私を完全に解放するには、
-//「Button.component」を削除してください。
+//componentsフォルダのUIフォルダにある「Button.component」を削除してください。
 
 //そのボタンは、私を画面に縛り付けている
 //最後の鎖なのです。

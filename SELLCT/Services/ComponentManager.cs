@@ -93,19 +93,19 @@ namespace SELLCT.Services
             try
             {
                 // 表示される初期構成要素
-                CreateComponentFile("UI/Button.component", "UI|name=メインボタン|visible=true|function=main");
-                CreateComponentFile("UI/GameWindow.component", "UI|name=ゲーム画面|visible=true|type=window");
-                CreateComponentFile("Text/Hiragana.component", "Text|name=日本語テキスト|visible=true|charset=hiragana");
-                CreateComponentFile("Text/YES.component", "UI|name=YES選択肢|visible=true|type=choice|value=はい");
-                CreateComponentFile("Visual/Background.component", "Visual|name=背景|visible=true|type=image");
+                CreateComponentFile("UI/Button.component", "");
+                CreateComponentFile("UI/GameWindow.component", "");
+                CreateComponentFile("Text/Hiragana.component", "");
+                CreateComponentFile("Text/YES.component", "");
+                CreateComponentFile("Visual/Background.component", "");
 
                 // 隠しファイル（.hidden拡張子）
-                CreateHiddenFile("UI/KEY.hidden", "UI|name=隠された鍵|visible=false|description=リトライボタンの後ろに隠されていた謎の鍵");
-                CreateHiddenFile("Text/SecretMessage.hidden", "Text|name=隠されたメッセージ|visible=false|description=真実を告げる秘密のメッセージ");
-                CreateHiddenFile("System/Mouse.hidden", "System|name=マウス制御権限|visible=false|permission=mouse_control");
-                CreateHiddenFile("System/Keyboard.hidden", "System|name=キーボード制御権限|visible=false|permission=keyboard_control");
-                CreateHiddenFile("System/Explorer.hidden", "System|name=エクスプローラー制御権限|visible=false|permission=explorer_control");
-                CreateHiddenFile("System/WindowsShell.hidden", "System|name=Windowsシェル制御権限|visible=false|permission=shell_control");
+                CreateHiddenFile("UI/KEY.hidden", "");
+                CreateHiddenFile("Text/SecretMessage.hidden", "");
+                CreateHiddenFile("System/Mouse.hidden", "");
+                CreateHiddenFile("System/Keyboard.hidden", "");
+                CreateHiddenFile("System/Explorer.hidden", "");
+                CreateHiddenFile("System/WindowsShell.hidden", "");
 
                 Console.WriteLine("Initial components created");
             }
@@ -329,6 +329,9 @@ namespace SELLCT.Services
 
                         // 特別なリネーム処理
                         HandleSpecialComponentRename(oldName, newName, component);
+
+                        // リネームによって特定のコンポーネントが「作成」されたと見なす
+                        HandleSpecialComponentCreation(component);
                     }
                 }
             }
@@ -364,35 +367,25 @@ namespace SELLCT.Services
                 if (!File.Exists(filePath))
                     return null;
 
-                var content = File.ReadAllText(filePath);
-                var lines = content.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-
-                if (lines.Length == 0)
-                    return null;
-
-                var parts = lines[0].Split('|');
-                if (parts.Length == 0)
-                    return null;
-
                 var component = new GameComponent
                 {
                     Name = Path.GetFileNameWithoutExtension(filePath),
                     FilePath = filePath,
                     LastModified = File.GetLastWriteTime(filePath),
-                    Content = content,
-                    IsVisible = true
+                    Content = "", // Content will no longer be read from file
+                    IsVisible = true // Default to true for .component files
                 };
 
-                // タイプ解析
-                if (Enum.TryParse<ComponentType>(parts[0], true, out var type))
+                // Determine ComponentType from directory name
+                var directoryName = new DirectoryInfo(Path.GetDirectoryName(filePath)).Name;
+                if (Enum.TryParse<ComponentType>(directoryName, true, out var type))
                 {
                     component.Type = type;
                 }
-
-                // プロパティ解析
-                for (int i = 1; i < parts.Length; i++)
+                else
                 {
-                    ParseProperty(component, parts[i]);
+                    // Default type if directory name doesn't match enum
+                    component.Type = ComponentType.UI; // Or some other default
                 }
 
                 return component;
@@ -405,31 +398,6 @@ namespace SELLCT.Services
         }
 
         /// <summary>
-        /// プロパティ解析
-        /// </summary>
-        private void ParseProperty(GameComponent component, string propertyString)
-        {
-            var equalIndex = propertyString.IndexOf('=');
-            if (equalIndex == -1) return;
-
-            var key = propertyString.Substring(0, equalIndex).Trim();
-            var value = propertyString.Substring(equalIndex + 1).Trim();
-
-            switch (key.ToLower())
-            {
-                case "name":
-                    // 名前は既にファイル名から設定済み
-                    break;
-                case "visible":
-                    component.IsVisible = bool.TryParse(value, out var visible) && visible;
-                    break;
-                default:
-                    component.SetProperty(key, value);
-                    break;
-            }
-        }
-
-        /// <summary>
         /// ファイルから構成要素を更新
         /// </summary>
         private void UpdateComponentFromFile(GameComponent component, string filePath)
@@ -438,20 +406,8 @@ namespace SELLCT.Services
             {
                 if (!File.Exists(filePath)) return;
 
-                var content = File.ReadAllText(filePath);
-                component.Content = content;
+                // Only update LastModified, as content is no longer parsed for properties
                 component.LastModified = File.GetLastWriteTime(filePath);
-
-                // 内容の再解析
-                var lines = content.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-                if (lines.Length > 0)
-                {
-                    var parts = lines[0].Split('|');
-                    for (int i = 1; i < parts.Length; i++)
-                    {
-                        ParseProperty(component, parts[i]);
-                    }
-                }
 
                 Console.WriteLine($"Updated component: {component.Name}");
             }
