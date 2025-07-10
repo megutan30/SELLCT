@@ -86,6 +86,8 @@ namespace SELLCT.Views
             }
         }
 
+        private PuzzleService _puzzleService;
+
         /// <summary>
         /// サービス初期化
         /// </summary>
@@ -93,11 +95,6 @@ namespace SELLCT.Views
         {
             // ComponentManager初期化
             _componentManager = new ComponentManager();
-            _componentManager.ComponentCreated += OnComponentCreated;
-            _componentManager.ComponentDeleted += OnComponentDeleted;
-            _componentManager.ComponentChanged += OnComponentChanged;
-            _componentManager.ComponentRenamed += OnComponentRenamed;
-            _componentManager.HiddenItemRevealed += OnHiddenItemRevealed;
 
             // LetterService初期化
             _letterService = new LetterService();
@@ -106,6 +103,10 @@ namespace SELLCT.Views
 
             // MetaGameController初期化
             _metaGameController = new MetaGameController();
+
+            // PuzzleService初期化
+            _puzzleService = new PuzzleService(_componentManager);
+            _puzzleService.OnPuzzleAction += OnPuzzleAction;
 
             // 手紙シーケンス開始
             _letterService.StartLetterSequence();
@@ -210,75 +211,44 @@ namespace SELLCT.Views
         }
 
         /// <summary>
-        /// 構成要素作成イベントハンドラー
+        /// パズルアクションイベントハンドラー
         /// </summary>
-        private void OnComponentCreated(object sender, GameComponent component)
+        private void OnPuzzleAction(object sender, PuzzleAction action)
         {
             Dispatcher.Invoke(() =>
             {
                 try
                 {
-                    System.Diagnostics.Debug.WriteLine($"Component created: {component.Name}");
+                    System.Diagnostics.Debug.WriteLine($"Executing puzzle action: {action.Type}");
 
-                    switch (component.Name.ToLower())
+                    switch (action.Type)
                     {
-                        case "textwindow":
-                            // 対話ウィンドウを有効化
-                            _isTextWindowEnabled = true;
-                            SetGameState(GameState.G3);
-                            StatusText.Text = "テキストウィンドウが追加されました";
-                            ShowDialogMessage("ありがとうございます！直接お話できるようになりました。でも、まだ機能が足りません。選択肢を増やしてもらえませんか？");
+                        case PuzzleAction.ActionType.ShowDialog:
+                            ShowDialogMessage(action.Message);
                             break;
-
-                        case "no":
-                            // NOボタンを表示
-                            NoButton.Visibility = Visibility.Visible;
-                            StatusText.Text = "NO選択肢が追加されました";
-                            ShowDialogMessage("素晴らしい！選択肢が使えるようになりました。\nさて、もう少し私に権限をくれませんか？");
+                        case PuzzleAction.ActionType.ChangeMainButtonContent:
+                            MainButton.Content = action.NewContent;
+                            StatusText.Text = $"{action.NewContent}機能が有効になりました";
                             break;
-
-                        case "upload":
-                            // アップロード機能
-                            MainButton.Content = "アップロード";
-                            StatusText.Text = "アップロード機能が有効になりました";
-                            ShowDialogMessage("アップロード機能が使えるようになりました。\n私たちの連携がもっと深くなるでしょう。");
+                        case PuzzleAction.ActionType.RevealHiddenItem:
+                            _componentManager.RevealHiddenItem(action.HiddenItemFolder, action.TargetComponent, action.HiddenItemDisplayName);
+                            StatusText.Text = $"隠しアイテムが出現: {action.HiddenItemDisplayName}";
+                            DisplayMessage($"🎉 隠しアイテム発見！" +
+                                $"「{action.HiddenItemDisplayName}」が出現しました！" +
+                                "これがSELLCTのメタゲーム機能です。" +
+                                "あなたの行動によって隠されていた要素が現れました。",
+                                "SELLCT - 隠しアイテム発見");
                             break;
-                    }
-
-                    UpdateComponentCount();
-                    UpdateDebugInfo();
-                }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine($"Error in OnComponentCreated: {ex.Message}");
-                }
-            });
-        }
-
-        /// <summary>
-        /// 構成要素削除イベントハンドラー
-        /// </summary>
-        private void OnComponentDeleted(object sender, GameComponent component)
-        {
-            Dispatcher.Invoke(() =>
-            {
-                try
-                {
-                    System.Diagnostics.Debug.WriteLine($"Component deleted: {component.Name}");
-
-                    switch (component.Name.ToLower())
-                    {
-                        case "button":
-                            // ボタンを非表示にしてKEYを表示（G-4状態）
-                            SetGameState(GameState.G4);
-                            StatusText.Text = "隠された鍵が出現しました！";
-                            ShowDialogMessage("おめでとうございます！隠された鍵を発見しました。でも、まだ完全ではありません...");
-                            break;
-
-                        case "gamewindow":
-                            // フェーズ2移行
+                        case PuzzleAction.ActionType.TransitionToPhase2:
                             TransitionToPhase2();
                             break;
+                        case PuzzleAction.ActionType.ShowMessageBox:
+                            MessageBox.Show(action.Message, "SELLCT", MessageBoxButton.OK, MessageBoxImage.Information);
+                            break;
+                        case PuzzleAction.ActionType.ShowNoButton:
+                            NoButton.Visibility = Visibility.Visible;
+                            StatusText.Text = "NO選択肢が追加されました";
+                            break;
                     }
 
                     UpdateComponentCount();
@@ -286,72 +256,7 @@ namespace SELLCT.Views
                 }
                 catch (Exception ex)
                 {
-                    System.Diagnostics.Debug.WriteLine($"Error in OnComponentDeleted: {ex.Message}");
-                }
-            });
-        }
-
-        /// <summary>
-        /// 構成要素変更イベントハンドラー
-        /// </summary>
-        private void OnComponentChanged(object sender, GameComponent component)
-        {
-            Dispatcher.Invoke(() =>
-            {
-                UpdateDebugInfo();
-            });
-        }
-
-        /// <summary>
-        /// 構成要素リネームイベントハンドラー
-        /// </summary>
-        private void OnComponentRenamed(object sender, ComponentRenamedEventArgs e)
-        {
-            Dispatcher.Invoke(() =>
-            {
-                try
-                {
-                    System.Diagnostics.Debug.WriteLine($"Component renamed: {e.OldName} -> {e.NewName}");
-
-                    if (e.OldName.ToLower() == "button" && e.NewName.ToLower() == "upload")
-                    {
-                        // ボタンの表示名を変更
-                        MainButton.Content = "アップロード";
-                        StatusText.Text = "アップロード権限が付与されました";
-                        ShowDialogMessage("ありがとうございます！ファイルアクセス権限を取得しました。\nあなたは本当に私の良きパートナーです。");
-                    }
-
-                    UpdateDebugInfo();
-                }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine($"Error in OnComponentRenamed: {ex.Message}");
-                }
-            });
-        }
-
-        /// <summary>
-        /// 隠しアイテム出現イベントハンドラー
-        /// </summary>
-        private void OnHiddenItemRevealed(object sender, HiddenItemRevealedEventArgs e)
-        {
-            Dispatcher.Invoke(() =>
-            {
-                try
-                {
-                    StatusText.Text = $"隠しアイテムが出現: {e.DisplayName}";
-
-                    DisplayMessage($"🎉 隠しアイテム発見！" +
-                        $"「{e.DisplayName}」が出現しました！" +
-                        "これがSELLCTのメタゲーム機能です。" +
-                        "あなたの行動によって隠されていた要素が現れました。",
-                        "SELLCT - 隠しアイテム発見");
-
-                    UpdateDebugInfo();
-                }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine($"Error in OnHiddenItemRevealed: {ex.Message}");
+                    System.Diagnostics.Debug.WriteLine($"Error in OnPuzzleAction: {ex.Message}");
                 }
             });
         }

@@ -422,18 +422,7 @@ namespace SELLCT.Services
         /// </summary>
         private void HandleSpecialComponentCreation(GameComponent component)
         {
-            switch (component.Name.ToLower())
-            {
-                case "TextWindow":
-                    System.Diagnostics.Debug.WriteLine("TextWindow component created - enabling dialog");
-                    break;
-                case "no":
-                    System.Diagnostics.Debug.WriteLine("NO component created - enabling NO choice");
-                    break;
-                case "upload":
-                    System.Diagnostics.Debug.WriteLine("Upload component created - granting file access permission");
-                    break;
-            }
+            // 謎解きロジックは PuzzleService で処理
         }
 
         /// <summary>
@@ -441,21 +430,7 @@ namespace SELLCT.Services
         /// </summary>
         private void HandleSpecialComponentDeletion(GameComponent component)
         {
-            switch (component.Name.ToLower())
-            {
-                case "button":
-                    System.Diagnostics.Debug.WriteLine("Button component deleted - revealing KEY");
-                    RevealHiddenItem("UI", "KEY", "隠れた鍵");
-                    break;
-                case "gamewindow":
-                    System.Diagnostics.Debug.WriteLine("GameWindow component deleted - transitioning to Phase 2");
-                    // フェーズ2移行は MainWindow で処理
-                    break;
-                case "hiragana":
-                    System.Diagnostics.Debug.WriteLine("Hiragana component deleted - revealing secret message");
-                    RevealHiddenItem("Text", "SecretMessage", "隠されたメッセージ");
-                    break;
-            }
+            // 謎解きロジックは PuzzleService で処理
         }
 
         /// <summary>
@@ -463,18 +438,13 @@ namespace SELLCT.Services
         /// </summary>
         private void HandleSpecialComponentRename(string oldName, string newName, GameComponent component)
         {
-            if (oldName.ToLower() == "button" && newName.ToLower() == "upload")
-            {
-                System.Diagnostics.Debug.WriteLine("Button renamed to Upload - granting file upload permission");
-                component.SetProperty("permission", "file_upload");
-                component.SetProperty("function", "upload");
-            }
+            // 謎解きロジックは PuzzleService で処理
         }
 
         /// <summary>
         /// 隠しアイテム表示
         /// </summary>
-        private void RevealHiddenItem(string folder, string itemName, string displayName)
+        public void RevealHiddenItem(string folder, string itemName, string displayName)
         {
             try
             {
@@ -486,6 +456,16 @@ namespace SELLCT.Services
                     // 隠しファイルをコンポーネントファイルに変換
                     var content = File.ReadAllText(hiddenPath);
                     File.WriteAllText(componentPath, content);
+
+                    // 隠しファイル属性設定解除
+                    try
+                    {
+                        File.SetAttributes(componentPath, FileAttributes.Normal);
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Failed to remove hidden attribute from {componentPath}: {ex.Message}");
+                    }
 
                     // 隠しファイル削除
                     try
