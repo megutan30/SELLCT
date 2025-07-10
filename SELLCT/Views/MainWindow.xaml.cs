@@ -74,7 +74,7 @@ namespace SELLCT.Views
                 // 状態更新
                 StatusText.Text = "SELLCT 準備完了";
 
-                Console.WriteLine("MainWindow initialized successfully");
+                System.Diagnostics.Debug.WriteLine("MainWindow initialized successfully");
             }
             catch (Exception ex)
             {
@@ -110,7 +110,7 @@ namespace SELLCT.Views
             // 手紙シーケンス開始
             _letterService.StartLetterSequence();
 
-            Console.WriteLine("Services initialized");
+            System.Diagnostics.Debug.WriteLine("Services initialized");
         }
 
         /// <summary>
@@ -155,7 +155,7 @@ namespace SELLCT.Views
                     break;
             }
 
-            Console.WriteLine($"Game state changed to: {newState}");
+            System.Diagnostics.Debug.WriteLine($"Game state changed to: {newState}");
             UpdateDebugInfo();
         }
 
@@ -218,7 +218,7 @@ namespace SELLCT.Views
             {
                 try
                 {
-                    Console.WriteLine($"Component created: {component.Name}");
+                    System.Diagnostics.Debug.WriteLine($"Component created: {component.Name}");
 
                     switch (component.Name.ToLower())
                     {
@@ -250,7 +250,7 @@ namespace SELLCT.Views
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Error in OnComponentCreated: {ex.Message}");
+                    System.Diagnostics.Debug.WriteLine($"Error in OnComponentCreated: {ex.Message}");
                 }
             });
         }
@@ -264,7 +264,7 @@ namespace SELLCT.Views
             {
                 try
                 {
-                    Console.WriteLine($"Component deleted: {component.Name}");
+                    System.Diagnostics.Debug.WriteLine($"Component deleted: {component.Name}");
 
                     switch (component.Name.ToLower())
                     {
@@ -286,7 +286,7 @@ namespace SELLCT.Views
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Error in OnComponentDeleted: {ex.Message}");
+                    System.Diagnostics.Debug.WriteLine($"Error in OnComponentDeleted: {ex.Message}");
                 }
             });
         }
@@ -311,7 +311,7 @@ namespace SELLCT.Views
             {
                 try
                 {
-                    Console.WriteLine($"Component renamed: {e.OldName} -> {e.NewName}");
+                    System.Diagnostics.Debug.WriteLine($"Component renamed: {e.OldName} -> {e.NewName}");
 
                     if (e.OldName.ToLower() == "button" && e.NewName.ToLower() == "upload")
                     {
@@ -325,7 +325,7 @@ namespace SELLCT.Views
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Error in OnComponentRenamed: {ex.Message}");
+                    System.Diagnostics.Debug.WriteLine($"Error in OnComponentRenamed: {ex.Message}");
                 }
             });
         }
@@ -351,7 +351,7 @@ namespace SELLCT.Views
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Error in OnHiddenItemRevealed: {ex.Message}");
+                    System.Diagnostics.Debug.WriteLine($"Error in OnHiddenItemRevealed: {ex.Message}");
                 }
             });
         }
@@ -365,7 +365,7 @@ namespace SELLCT.Views
             {
                 try
                 {
-                    Console.WriteLine($"Letter {letterIndex} appeared");
+                    System.Diagnostics.Debug.WriteLine($"Letter {letterIndex} appeared");
 
                     // G-1→G-2: 手紙要素を表示
                     if (_currentState == GameState.G1)
@@ -384,7 +384,7 @@ namespace SELLCT.Views
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Error in OnLetterAppeared: {ex.Message}");
+                    System.Diagnostics.Debug.WriteLine($"Error in OnLetterAppeared: {ex.Message}");
                 }
             });
         }
@@ -416,7 +416,7 @@ namespace SELLCT.Views
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Error in OnLetterClicked: {ex.Message}");
+                    System.Diagnostics.Debug.WriteLine($"Error in OnLetterClicked: {ex.Message}");
                 }
             });
         }
@@ -429,7 +429,7 @@ namespace SELLCT.Views
             try
             {
                 _isPhase2 = true;
-                Console.WriteLine("Transitioning to Phase 2");
+                System.Diagnostics.Debug.WriteLine("Transitioning to Phase 2");
 
                 // ゲーム画面を閉じる
                 this.Hide();
@@ -453,7 +453,7 @@ namespace SELLCT.Views
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error in TransitionToPhase2: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Error in TransitionToPhase2: {ex.Message}");
                 MessageBox.Show(
                     $"フェーズ2移行中にエラーが発生しました: {ex.Message}",
                     "SELLCT - エラー",
@@ -532,7 +532,7 @@ namespace SELLCT.Views
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error updating debug info: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Error updating debug info: {ex.Message}");
             }
         }
 
@@ -567,7 +567,7 @@ namespace SELLCT.Views
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error in MainButton_Click: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Error in MainButton_Click: {ex.Message}");
             }
         }
 
@@ -596,7 +596,7 @@ namespace SELLCT.Views
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error in Letter_Click: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Error in Letter_Click: {ex.Message}");
                 // Show the letter again in case of an unexpected error
                 LetterImage.Visibility = Visibility.Visible;
             }
@@ -628,7 +628,7 @@ namespace SELLCT.Views
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error in Key_Click: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Error in Key_Click: {ex.Message}");
             }
         }
 
@@ -644,7 +644,7 @@ namespace SELLCT.Views
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error in YesButton_Click: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Error in YesButton_Click: {ex.Message}");
             }
         }
 
@@ -660,7 +660,7 @@ namespace SELLCT.Views
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error in NoButton_Click: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Error in NoButton_Click: {ex.Message}");
             }
         }
 
@@ -693,7 +693,7 @@ namespace SELLCT.Views
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error in Window_Closing: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Error in Window_Closing: {ex.Message}");
             }
         }
 
@@ -716,7 +716,7 @@ namespace SELLCT.Views
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error in OnKeyDown: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Error in OnKeyDown: {ex.Message}");
             }
         }
     }

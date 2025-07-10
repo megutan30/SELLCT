@@ -59,7 +59,7 @@ namespace SELLCT
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error during cleanup: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Error during cleanup: {ex.Message}");
             }
 
             base.OnExit(e);

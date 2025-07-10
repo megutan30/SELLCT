@@ -161,7 +161,7 @@ componentsフォルダの中に「TextWindow.component」というファイル�
 
             // 最初の手紙は10秒後、以降は30秒間隔
             _letterTimer = new Timer(ShowNextLetter, null, 10000, 30000);
-            Console.WriteLine("Letter sequence started");
+            System.Diagnostics.Debug.WriteLine("Letter sequence started");
         }
 
         /// <summary>
@@ -178,12 +178,12 @@ componentsフォルダの中に「TextWindow.component」というファイル�
             {
                 try
                 {
-                    Console.WriteLine($"Showing letter {_currentLetterIndex}");
+                    System.Diagnostics.Debug.WriteLine($"Showing letter {_currentLetterIndex}");
                     LetterAppeared?.Invoke(this, _currentLetterIndex);
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Error showing letter: {ex.Message}");
+                    System.Diagnostics.Debug.WriteLine($"Error showing letter: {ex.Message}");
                 }
             });
 
@@ -220,7 +220,7 @@ componentsフォルダの中に「TextWindow.component」というファイル�
                         try
                         {
                             File.WriteAllText(dialog.FileName, letterContent, Encoding.UTF8);
-                            Console.WriteLine($"Letter {letterIndex} downloaded as {dialog.FileName}");
+                            System.Diagnostics.Debug.WriteLine($"Letter {letterIndex} downloaded as {dialog.FileName}");
 
                             // メッセージボックスは不要のため削除
 
@@ -229,7 +229,7 @@ componentsフォルダの中に「TextWindow.component」というファイル�
                         }
                         catch (Exception ex)
                         {
-                            Console.WriteLine($"Error saving letter {letterIndex}: {ex.Message}");
+                            System.Diagnostics.Debug.WriteLine($"Error saving letter {letterIndex}: {ex.Message}");
                             MessageBox.Show(
                                 $"手紙の保存に失敗しました。\n\nエラー: {ex.Message}",
                                 "SELLCT - エラー",
@@ -247,7 +247,7 @@ componentsフォルダの中に「TextWindow.component」というファイル�
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error preparing to download letter {letterIndex}: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Error preparing to download letter {letterIndex}: {ex.Message}");
                 Application.Current?.Dispatcher.Invoke(() =>
                 {
                     MessageBox.Show(
@@ -280,7 +280,7 @@ componentsフォルダの中に「TextWindow.component」というファイル�
         {
             _letterTimer?.Dispose();
             _letterTimer = null;
-            Console.WriteLine("Letter sequence stopped");
+            System.Diagnostics.Debug.WriteLine("Letter sequence stopped");
         }
 
         /// <summary>
@@ -317,7 +317,7 @@ componentsフォルダの中に「TextWindow.component」というファイル�
             {
                 _disposed = true;
                 StopLetterSequence();
-                Console.WriteLine("LetterService disposed");
+                System.Diagnostics.Debug.WriteLine("LetterService disposed");
             }
         }
     }

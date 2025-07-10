@@ -77,11 +77,11 @@ namespace SELLCT.Services
                 Directory.CreateDirectory(Path.Combine(_componentsPath, "Visual"));
                 Directory.CreateDirectory(Path.Combine(_componentsPath, "System"));
 
-                Console.WriteLine("Components folder structure created");
+                System.Diagnostics.Debug.WriteLine("Components folder structure created");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error creating components folder: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Error creating components folder: {ex.Message}");
             }
         }
 
@@ -107,11 +107,11 @@ namespace SELLCT.Services
                 CreateHiddenFile("System/Explorer.hidden", "");
                 CreateHiddenFile("System/WindowsShell.hidden", "");
 
-                Console.WriteLine("Initial components created");
+                System.Diagnostics.Debug.WriteLine("Initial components created");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error creating initial components: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Error creating initial components: {ex.Message}");
             }
         }
 
@@ -153,7 +153,7 @@ namespace SELLCT.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Failed to set hidden attribute: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Failed to set hidden attribute: {ex.Message}");
             }
         }
 
@@ -179,11 +179,11 @@ namespace SELLCT.Services
 
                 _watcher.EnableRaisingEvents = true;
 
-                Console.WriteLine("File watcher initialized");
+                System.Diagnostics.Debug.WriteLine("File watcher initialized");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error setting up file watcher: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Error setting up file watcher: {ex.Message}");
             }
         }
 
@@ -202,15 +202,15 @@ namespace SELLCT.Services
                     if (component != null)
                     {
                         _components[component.Name] = component;
-                        Console.WriteLine($"Loaded existing component: {component.Name}");
+                        System.Diagnostics.Debug.WriteLine($"Loaded existing component: {component.Name}");
                     }
                 }
 
-                Console.WriteLine($"Loaded {_components.Count} existing components");
+                System.Diagnostics.Debug.WriteLine($"Loaded {_components.Count} existing components");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error loading existing components: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Error loading existing components: {ex.Message}");
             }
         }
 
@@ -223,7 +223,7 @@ namespace SELLCT.Services
 
             try
             {
-                Console.WriteLine($"File created: {e.FullPath}");
+                System.Diagnostics.Debug.WriteLine($"File created: {e.FullPath}");
 
                 if (e.Name.EndsWith(".component"))
                 {
@@ -240,7 +240,7 @@ namespace SELLCT.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error in OnFileCreated: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Error in OnFileCreated: {ex.Message}");
             }
         }
 
@@ -253,7 +253,7 @@ namespace SELLCT.Services
 
             try
             {
-                Console.WriteLine($"File deleted: {e.FullPath}");
+                System.Diagnostics.Debug.WriteLine($"File deleted: {e.FullPath}");
 
                 if (e.Name.EndsWith(".component"))
                 {
@@ -270,7 +270,7 @@ namespace SELLCT.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error in OnFileDeleted: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Error in OnFileDeleted: {ex.Message}");
             }
         }
 
@@ -298,7 +298,7 @@ namespace SELLCT.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error in OnFileChanged: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Error in OnFileChanged: {ex.Message}");
             }
         }
 
@@ -311,7 +311,7 @@ namespace SELLCT.Services
 
             try
             {
-                Console.WriteLine($"File renamed: {e.OldFullPath} -> {e.FullPath}");
+                System.Diagnostics.Debug.WriteLine($"File renamed: {e.OldFullPath} -> {e.FullPath}");
 
                 if (e.OldName.EndsWith(".component") && e.Name.EndsWith(".component"))
                 {
@@ -337,7 +337,7 @@ namespace SELLCT.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error in OnFileRenamed: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Error in OnFileRenamed: {ex.Message}");
             }
         }
 
@@ -346,7 +346,7 @@ namespace SELLCT.Services
         /// </summary>
         private void OnWatcherError(object sender, ErrorEventArgs e)
         {
-            Console.WriteLine($"File watcher error: {e.GetException()?.Message}");
+            System.Diagnostics.Debug.WriteLine($"File watcher error: {e.GetException()?.Message}");
         }
 
         /// <summary>
@@ -392,7 +392,7 @@ namespace SELLCT.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error parsing component file {filePath}: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Error parsing component file {filePath}: {ex.Message}");
                 return null;
             }
         }
@@ -409,11 +409,11 @@ namespace SELLCT.Services
                 // Only update LastModified, as content is no longer parsed for properties
                 component.LastModified = File.GetLastWriteTime(filePath);
 
-                Console.WriteLine($"Updated component: {component.Name}");
+                System.Diagnostics.Debug.WriteLine($"Updated component: {component.Name}");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error updating component from file {filePath}: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Error updating component from file {filePath}: {ex.Message}");
             }
         }
 
@@ -425,13 +425,13 @@ namespace SELLCT.Services
             switch (component.Name.ToLower())
             {
                 case "TextWindow":
-                    Console.WriteLine("TextWindow component created - enabling dialog");
+                    System.Diagnostics.Debug.WriteLine("TextWindow component created - enabling dialog");
                     break;
                 case "no":
-                    Console.WriteLine("NO component created - enabling NO choice");
+                    System.Diagnostics.Debug.WriteLine("NO component created - enabling NO choice");
                     break;
                 case "upload":
-                    Console.WriteLine("Upload component created - granting file access permission");
+                    System.Diagnostics.Debug.WriteLine("Upload component created - granting file access permission");
                     break;
             }
         }
@@ -444,15 +444,15 @@ namespace SELLCT.Services
             switch (component.Name.ToLower())
             {
                 case "button":
-                    Console.WriteLine("Button component deleted - revealing KEY");
+                    System.Diagnostics.Debug.WriteLine("Button component deleted - revealing KEY");
                     RevealHiddenItem("UI", "KEY", "隠れた鍵");
                     break;
                 case "gamewindow":
-                    Console.WriteLine("GameWindow component deleted - transitioning to Phase 2");
+                    System.Diagnostics.Debug.WriteLine("GameWindow component deleted - transitioning to Phase 2");
                     // フェーズ2移行は MainWindow で処理
                     break;
                 case "hiragana":
-                    Console.WriteLine("Hiragana component deleted - revealing secret message");
+                    System.Diagnostics.Debug.WriteLine("Hiragana component deleted - revealing secret message");
                     RevealHiddenItem("Text", "SecretMessage", "隠されたメッセージ");
                     break;
             }
@@ -465,7 +465,7 @@ namespace SELLCT.Services
         {
             if (oldName.ToLower() == "button" && newName.ToLower() == "upload")
             {
-                Console.WriteLine("Button renamed to Upload - granting file upload permission");
+                System.Diagnostics.Debug.WriteLine("Button renamed to Upload - granting file upload permission");
                 component.SetProperty("permission", "file_upload");
                 component.SetProperty("function", "upload");
             }
@@ -495,16 +495,16 @@ namespace SELLCT.Services
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"Failed to delete hidden file {hiddenPath}: {ex.Message}");
+                        System.Diagnostics.Debug.WriteLine($"Failed to delete hidden file {hiddenPath}: {ex.Message}");
                     }
 
-                    Console.WriteLine($"Hidden item revealed: {displayName}");
+                    System.Diagnostics.Debug.WriteLine($"Hidden item revealed: {displayName}");
                     HiddenItemRevealed?.Invoke(this, new HiddenItemRevealedEventArgs(itemName, displayName, folder));
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error revealing hidden item {itemName}: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Error revealing hidden item {itemName}: {ex.Message}");
             }
         }
 
@@ -555,7 +555,7 @@ namespace SELLCT.Services
                 }
 
                 _components.Clear();
-                Console.WriteLine("ComponentManager disposed");
+                System.Diagnostics.Debug.WriteLine("ComponentManager disposed");
             }
         }
     }
