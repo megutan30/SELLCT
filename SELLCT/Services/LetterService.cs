@@ -116,7 +116,7 @@ componentsフォルダの中に「TextWindow.component」というファイル�
             _currentLetterIndex++;
 
             // UIスレッドで実行
-            Application.Current?.Dispatcher.Invoke(() =>
+            System.Windows.Application.Current?.Dispatcher.Invoke(() =>
             {
                 try
                 {
@@ -148,7 +148,7 @@ componentsフォルダの中に「TextWindow.component」というファイル�
             {
                 var letterContent = _letterContents[letterIndex - 1];
 
-                Application.Current?.Dispatcher.Invoke(() =>
+                System.Windows.Application.Current?.Dispatcher.Invoke(() =>
                 {
                     var dialog = new Microsoft.Win32.SaveFileDialog
                     {
@@ -190,7 +190,7 @@ componentsフォルダの中に「TextWindow.component」というファイル�
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Error preparing to download letter {letterIndex}: {ex.Message}");
-                Application.Current?.Dispatcher.Invoke(() =>
+                System.Windows.Application.Current?.Dispatcher.Invoke(() =>
                 {
                     MessageBox.Show(
                         $"手紙のダウンロード準備中にエラーが発生しました。\n\nエラー: {ex.Message}",

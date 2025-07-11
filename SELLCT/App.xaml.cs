@@ -1,12 +1,13 @@
-﻿using System;
+﻿using System.Windows;
+using Application = System.Windows.Application;
+using System;
 using System.IO;
-using System.Windows;
 using SELLCT.Services;
 using SELLCT.Views;
 
 namespace SELLCT
 {
-    public partial class App : Application
+    public partial class App
     {
         private ComponentManager _componentManager;
 
@@ -41,14 +42,12 @@ namespace SELLCT
 
         protected override void OnStartup(StartupEventArgs e)
         {
-            Application.Current.ShutdownMode = ShutdownMode.OnMainWindowClose;
             base.OnStartup(e);
 
             // メインウィンドウの表示
             var mainWindow = new MainWindow();
-            Application.Current.MainWindow = mainWindow;
+            System.Windows.Application.Current.MainWindow = mainWindow;
             mainWindow.Show();
-            Application.Current.ShutdownMode = ShutdownMode.OnMainWindowClose;
         }
 
         protected override void OnExit(ExitEventArgs e)

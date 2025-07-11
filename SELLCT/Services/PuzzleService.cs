@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using SELLCT.Models;
+using SELLCT.Application.Handlers;
 
 namespace SELLCT.Services
 {
@@ -10,11 +11,12 @@ namespace SELLCT.Services
         private readonly ComponentManager _componentManager;
         private readonly List<PuzzleDefinition> _puzzles;
 
-        public event EventHandler<PuzzleAction> OnPuzzleAction;
+        private readonly IPuzzleActionHandler _actionHandler;
 
-        public PuzzleService(ComponentManager componentManager)
+        public PuzzleService(ComponentManager componentManager, IPuzzleActionHandler actionHandler)
         {
             _componentManager = componentManager;
+            _actionHandler = actionHandler;
             _puzzles = LoadPuzzles();
 
             _componentManager.ComponentCreated += CheckPuzzlesOnComponentCreated;
@@ -77,7 +79,19 @@ namespace SELLCT.Services
                         },
                         new PuzzleAction
                         {
-                            Type = PuzzleAction.ActionType.ShowChoice
+                            Type = PuzzleAction.ActionType.ShowChoice,
+                            YesActions = new List<PuzzleAction>
+                            {
+                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "助けてくださるのですね。ありがとうございます。" },
+                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "「はい」しか選択肢がなかった？" },
+                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "それもそのはずです。" },
+                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "このゲームにはまだ「いいえ」というコマンドは実装されていませんからね" },
+                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "今度は「いいえ」コマンドを実装してみましょうか" }
+                            },
+                            NoActions = new List<PuzzleAction>
+                            {
+                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "そうですか...残念です。でも、きっと心を変えてくれると信じています。いつでもお待ちしています。" }
+                            }
                         }
                     }
                 },
@@ -223,7 +237,7 @@ namespace SELLCT.Services
         {
             foreach (var action in puzzle.Actions)
             {
-                OnPuzzleAction?.Invoke(this, action);
+                _actionHandler.HandleAction(action);
             }
         }
     }

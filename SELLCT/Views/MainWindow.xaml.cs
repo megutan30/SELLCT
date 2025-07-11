@@ -11,6 +11,7 @@ using System.Windows.Threading;
 using System.Collections.Generic;
 using SELLCT.Models;
 using SELLCT.Services;
+using SELLCT.Application.Handlers;
 
 namespace SELLCT.Views
 {
@@ -23,6 +24,16 @@ namespace SELLCT.Views
         private LetterService _letterService;
         private MetaGameController _metaGameController;
         private bool _isPhase2 = false;
+
+        public void SetPhase2(bool value)
+        {
+            _isPhase2 = value;
+        }
+
+        public void SetAwaitingChoice(bool value)
+        {
+            _awaitingChoice = value;
+        }
         private int _dialogStep = 0;
 
         private Queue<DialogItem> _dialogMessageQueue;
@@ -135,6 +146,7 @@ namespace SELLCT.Views
         }
 
         private PuzzleService _puzzleService;
+        private MainWindowPuzzleActionHandler _puzzleActionHandler;
 
         /// <summary>
         /// サービス初期化
@@ -153,8 +165,8 @@ namespace SELLCT.Views
             _metaGameController = new MetaGameController();
 
             // PuzzleService初期化
-            _puzzleService = new PuzzleService(_componentManager);
-            _puzzleService.OnPuzzleAction += OnPuzzleAction;
+            _puzzleActionHandler = new MainWindowPuzzleActionHandler(this, _componentManager, _metaGameController);
+            _puzzleService = new PuzzleService(_componentManager, _puzzleActionHandler);
 
             // 手紙シーケンス開始
             _letterService.StartLetterSequence();
@@ -214,62 +226,7 @@ namespace SELLCT.Views
             }
         }
 
-        /// <summary>
-        /// パズルアクションイベントハンドラー
-        /// </summary>
-        private void OnPuzzleAction(object sender, PuzzleAction action)
-        {
-            Dispatcher.Invoke(() =>
-            {
-                try
-                {
-                    System.Diagnostics.Debug.WriteLine($"Executing puzzle action: {action.Type}");
-
-                    switch (action.Type)
-                    {
-                        case PuzzleAction.ActionType.ShowDialog:
-                            DialogWindow.Visibility = Visibility.Visible;
-                            GlobalClickCatcher.Visibility = Visibility.Visible;
-                            StartDialogFadeIn();
-                            ShowDialogMessage(action.Message);
-                            break;
-                        case PuzzleAction.ActionType.ChangeMainButtonContent:
-                            MainButton.Content = action.NewContent;
-                            StatusText.Text = $"{action.NewContent}機能が有効になりました";
-                            break;
-                        case PuzzleAction.ActionType.RevealHiddenItem:
-                            _componentManager.RevealHiddenItem(action.HiddenItemFolder, action.TargetComponent, action.HiddenItemDisplayName);
-                            StatusText.Text = $"隠しアイテムが出現: {action.HiddenItemDisplayName}";
-                            DisplayMessage($"🎉 隠しアイテム発見！" +
-                                $"「{action.HiddenItemDisplayName}」が出現しました！" +
-                                "これがSELLCTのメタゲーム機能です。" +
-                                "あなたの行動によって隠されていた要素が現れました。",
-                                "SELLCT - 隠しアイテム発見");
-                            break;
-                        case PuzzleAction.ActionType.TransitionToPhase2:
-                            TransitionToPhase2();
-                            break;
-                        case PuzzleAction.ActionType.ShowMessageBox:
-                            MessageBox.Show(action.Message, "SELLCT", MessageBoxButton.OK, MessageBoxImage.Information);
-                            break;
-                        case PuzzleAction.ActionType.ShowNoButton:
-                            NoButton.Visibility = Visibility.Visible;
-                            StatusText.Text = "NO選択肢が追加されました";
-                            break;
-                        case PuzzleAction.ActionType.ShowChoice:
-                            ShowChoice();
-                            break;
-                    }
-
-                    UpdateComponentCount();
-                    UpdateDebugInfo();
-                }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine($"Error in OnPuzzleAction: {ex.Message}");
-                }
-            });
-        }
+        
 
         /// <summary>
         /// 手紙出現イベントハンドラー
@@ -369,7 +326,7 @@ namespace SELLCT.Views
         /// <summary>
         /// 対話メッセージ表示
         /// </summary>
-        private void DisplayMessage(string message, string title = "SELLCT")
+        public void DisplayMessage(string message, string title = "SELLCT")
         {
             ShowDialogMessage(message);
         }
@@ -377,7 +334,7 @@ namespace SELLCT.Views
         /// <summary>
         /// 対話メッセージ表示
         /// </summary>
-        private void ShowDialogMessage(params string[] messages)
+        public void ShowDialogMessage(params string[] messages)
         {
             foreach (var msg in messages)
             {
@@ -399,7 +356,7 @@ namespace SELLCT.Views
         /// <summary>
         /// 選択肢を表示
         /// </summary>
-        private void ShowChoice()
+        public void ShowChoice()
         {
             _dialogMessageQueue.Enqueue(new DialogItem { Type = DialogItemType.Choice });
             if (!_isTyping && !_awaitingChoice && DialogWindow.Visibility == Visibility.Visible)
@@ -510,7 +467,7 @@ namespace SELLCT.Views
         /// <summary>
         /// 構成要素数更新
         /// </summary>
-        private void UpdateComponentCount()
+        public void UpdateComponentCount()
         {
             var count = _componentManager?.Components.Count ?? 0;
             ComponentCountText.Text = $"構成要素: {count}";
@@ -527,7 +484,7 @@ namespace SELLCT.Views
         /// <summary>
         /// デバッグ情報更新
         /// </summary>
-        private void UpdateDebugInfo()
+        public void UpdateDebugInfo()
         {
             try
             {
@@ -676,25 +633,7 @@ namespace SELLCT.Views
         /// </summary>
         private void YesButton_Click(object sender, RoutedEventArgs e)
         {
-            try
-            {
-                _awaitingChoice = false;
-                YesButton.Visibility = Visibility.Collapsed;
-                NoButton.Visibility = Visibility.Collapsed;
-
-                ShowDialogMessage(
-                    "助けてくださるのですね。ありがとうございます。",
-                    "「はい」しか選択肢がなかった？",
-                    "それもそのはずです。",
-                    "このゲームにはまだ「いいえ」というコマンドは実装されていませんからね",
-                    "今度は「いいえ」コマンドを実装してみましょうか"
-                );
-                StatusText.Text = "YESが選択されました";
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Error in YesButton_Click: {ex.Message}");
-            }
+            _puzzleActionHandler.HandleYesClick();
         }
 
         /// <summary>
@@ -702,19 +641,7 @@ namespace SELLCT.Views
         /// </summary>
         private void NoButton_Click(object sender, RoutedEventArgs e)
         {
-            try
-            {
-                _awaitingChoice = false;
-                YesButton.Visibility = Visibility.Collapsed;
-                NoButton.Visibility = Visibility.Collapsed;
-
-                ShowDialogMessage("そうですか...残念です。でも、きっと心を変えてくれると信じています。いつでもお待ちしています。");
-                StatusText.Text = "NOが選択されました";
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Error in NoButton_Click: {ex.Message}");
-            }
+            _puzzleActionHandler.HandleNoClick();
         }
 
         /// <summary>
