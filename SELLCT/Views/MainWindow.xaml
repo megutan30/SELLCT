@@ -25,6 +25,24 @@
 
 
 
+        <Style x:Key="TransparentButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <!-- スタイル定義 -->
         <Style x:Key="PixelButtonStyle" TargetType="Button">
             <Setter Property="Background" Value="White"/>
@@ -239,6 +257,7 @@
 
         <!-- グローバルクリックキャッチャー -->
         <Button Name="GlobalClickCatcher" 
+                Style="{StaticResource TransparentButtonStyle}"
                 Background="Transparent" 
                 BorderBrush="Transparent"
                 Click="GlobalClickCatcher_Click"
