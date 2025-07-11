@@ -44,6 +44,7 @@ namespace SELLCT.Views
         public MainWindow()
         {
             InitializeComponent();
+            this.Loaded += Window_Loaded; // Window_Loadedイベントハンドラを登録
             _dialogMessageQueue = new Queue<DialogItem>();
             _typingTimer = new DispatcherTimer();
             _typingTimer.Interval = TimeSpan.FromMilliseconds(50); // 1文字表示にかかる時間
@@ -58,6 +59,23 @@ namespace SELLCT.Views
             _subsequentLetterTimer.Tick += SubsequentLetterTimer_Tick;
 
             InitializeAsync();
+        }
+
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            // ウィンドウの非クライアント領域の高さを取得
+            // これにより、タイトルバーなどの高さが考慮される
+            var borderThickness = Window.GetWindow(this).BorderThickness;
+            var captionHeight = SystemParameters.WindowCaptionHeight;
+
+            // GameCanvasのMarginを調整して、タイトルバーの高さ分だけ上にずらす
+            // 左、上、右、下 の順
+            GameCanvas.Margin = new Thickness(
+                -borderThickness.Left,
+                -(borderThickness.Top + captionHeight-5),
+                -borderThickness.Right,
+                -borderThickness.Bottom
+            );
         }
 
         /// <summary>

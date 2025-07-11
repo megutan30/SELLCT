@@ -65,23 +65,26 @@
     </Window.Resources>
 
     <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="3*"/>
+            <ColumnDefinition Width="427*"/>
+            <ColumnDefinition Width="370*"/>
+        </Grid.ColumnDefinitions>
         <!-- 背景画像（常時表示） -->
         <Image Name="BackgroundImage" 
                Source="/Resources/Background.png" 
                Stretch="Fill"
-               Panel.ZIndex="0"/>
+               Panel.ZIndex="0" Grid.ColumnSpan="3"/>
 
         <!-- メインゲーム領域 -->
-        <Canvas Name="GameCanvas" Panel.ZIndex="1" Margin="0,-50,0,0">
+        <Canvas Name="GameCanvas" Panel.ZIndex="1" Grid.ColumnSpan="3">
 
-            <!-- G-1,G-2,G-3状態時表示、G-4時非表示：メインボタン -->
             <Button Name="MainButton" 
                     Content="?" 
                     Style="{StaticResource PixelButtonStyle}"
-                    Width="200" Height="59"
-                    Canvas.Left="34" Canvas.Top="532"
+                    Width="200" Height="59" Canvas.Top="504"
                     Click="MainButton_Click"
-                    Visibility="Visible" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+                    Visibility="Visible" HorizontalAlignment="Left" VerticalAlignment="Top" Canvas.Left="57"/>
 
             <!--手紙画像 -->
             <Image Name="LetterImage" 
@@ -115,9 +118,9 @@
             <!--：対話ウィンドウ -->
             <Border Name="DialogWindow" 
                     Style="{StaticResource DialogWindowStyle}"
-                    Width="350" Height="180"
-                    Canvas.Left="440" Canvas.Top="454"
-                    Visibility="Visible"
+                    Width="450" Height="90"
+                    Canvas.Left="350" Canvas.Top="488"
+                    Visibility="Collapsed"
                     Panel.ZIndex="3" HorizontalAlignment="Left" VerticalAlignment="Top">
                 <Grid>
                     <Grid.ColumnDefinitions>
@@ -131,14 +134,11 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
-                    <!-- SELLCT アバター -->
-                    <StackPanel Orientation="Horizontal" Margin="15,0,15,11" Grid.Row="1" Grid.ColumnSpan="2"/>
-
                     <!-- メッセージテキスト -->
                     <TextBlock Name="DialogText" 
                                TextWrapping="Wrap"
-                               FontSize="18"
-                               LineHeight="24"
+                               FontSize="16"
+                               LineHeight="16"
                                Margin="15,5,15,5"
                                Foreground="White" Grid.RowSpan="4" Grid.ColumnSpan="2"/>
 
@@ -175,10 +175,10 @@
                 Width="250" Height="120"
                 HorizontalAlignment="Left"
                 VerticalAlignment="Bottom"
-                Margin="10"
+                Margin="7,0,0,10"
                 Panel.ZIndex="10"
                 Visibility="Collapsed"
-                Name="DebugPanel">
+                Name="DebugPanel" Grid.Column="1">
             <StackPanel Margin="10">
                 <TextBlock Text="SELLCT Debug Info" 
                            Foreground="Lime" 
@@ -189,15 +189,15 @@
                            Foreground="Lime" 
                            FontFamily="Consolas"
                            FontSize="10"
-                           Text="State: G-1&#x0a;Components: 5&#x0a;Letters: 0/6&#x0a;Phase: 1"/>
+                           Text="State: #x0a;Components: 5&#x0a;Letters: 0/6&#x0a;Phase: 1"/>
             </StackPanel>
         </Border>
 
         <!-- 状態表示（右下） -->
         <StackPanel HorizontalAlignment="Right" 
                     VerticalAlignment="Bottom" 
-                    Margin="10"
-                    Panel.ZIndex="5">
+                    Margin="0,0,10,10"
+                    Panel.ZIndex="5" Grid.Column="2">
             <TextBlock Name="StatusText" 
                        Text="SELLCT 起動中..."
                        FontFamily="Consolas"
@@ -217,7 +217,7 @@
               Background="Black" 
               Opacity="0.8"
               Panel.ZIndex="1000"
-              Visibility="Collapsed">
+              Visibility="Collapsed" Grid.ColumnSpan="3">
             <StackPanel HorizontalAlignment="Center" 
                         VerticalAlignment="Center">
                 <TextBlock Text="SELLCT" 
@@ -245,6 +245,6 @@
                 Panel.ZIndex="999" 
                 Visibility="Collapsed"
                 HorizontalAlignment="Stretch"
-                VerticalAlignment="Stretch"/>
+                VerticalAlignment="Stretch" Grid.ColumnSpan="3"/>
     </Grid>
 </Window>
