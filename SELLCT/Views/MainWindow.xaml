@@ -138,7 +138,7 @@
                     Style="{StaticResource DialogWindowStyle}"
                     Width="450" Height="90"
                     Canvas.Left="350" Canvas.Top="488"
-                    Visibility="Collapsed"
+                    Visibility="Visible"
                     Panel.ZIndex="3" HorizontalAlignment="Left" VerticalAlignment="Top">
                 <Grid>
                     <Grid.ColumnDefinitions>
@@ -160,31 +160,31 @@
                                Margin="15,5,15,5"
                                Foreground="White" Grid.RowSpan="4" Grid.ColumnSpan="2"/>
 
-                    <!-- 選択肢ボタン -->
-                    <StackPanel Orientation="Horizontal" 
-                                HorizontalAlignment="Right"
-                                Margin="15,0,15,15"
-                                Grid.Row="2">
-                        <Button Name="YesButton" 
-                                Content="はい" 
-                                Style="{StaticResource PixelButtonStyle}"
-                                Width="60" Height="30"
-                                Margin="5,0"
-                                Visibility="Collapsed"
-                                Click="YesButton_Click"/>
-                        <Button Name="NoButton" 
-                                Content="いいえ" 
-                                Style="{StaticResource PixelButtonStyle}"
-                                Width="60" Height="30"
-                                Margin="5,0"
-                                Visibility="Collapsed"
-                                Click="NoButton_Click"/>
-                    </StackPanel>
-
                     <!-- クリックイベントを捕捉するための透明なボタン -->
                     <!-- GlobalClickCatcherが全体をカバーするため、ここでは不要 -->
                 </Grid>
             </Border>
+
+            <!-- 選択肢ボタン -->
+            <StackPanel Name="ChoiceButtonsPanel"
+                        Orientation="Horizontal" 
+                        HorizontalAlignment="Center"
+                        Canvas.Left="330" Canvas.Top="262"
+                        Panel.ZIndex="4"
+                        Visibility="Collapsed" VerticalAlignment="Top">
+                <Button Name="YesButton" 
+                        Content="はい" 
+                        Style="{StaticResource PixelButtonStyle}"
+                        Width="60" Height="30"
+                        Margin="5,0"
+                        Click="YesButton_Click"/>
+                <Button Name="NoButton" 
+                                Content="はい" 
+                                Style="{StaticResource PixelButtonStyle}"
+                                Width="60" Height="30"
+                                Margin="5,0"
+                                Click="NoButton_Click"/>
+            </StackPanel>
         </Canvas>
 
         <!-- デバッグ情報パネル（開発時のみ表示） -->

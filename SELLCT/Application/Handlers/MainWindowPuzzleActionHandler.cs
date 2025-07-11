@@ -54,9 +54,13 @@ namespace SELLCT.Application.Handlers
                         case PuzzleAction.ActionType.ShowMessageBox:
                             MessageBox.Show(action.Message, "SELLCT", MessageBoxButton.OK, MessageBoxImage.Information);
                             break;
-                        case PuzzleAction.ActionType.ShowNoButton:
-                            _mainWindow.NoButton.Visibility = Visibility.Visible;
-                            _mainWindow.StatusText.Text = "NO選択肢が追加されました";
+                        case PuzzleAction.ActionType.ChangeNoButtonContent:
+                            _mainWindow.NoButton.Content = action.NewContent;
+                            _mainWindow.StatusText.Text = $"NOボタンのテキストが'{action.NewContent}'に変更されました";
+                            break;
+                        case PuzzleAction.ActionType.EnableNoFunction:
+                            _mainWindow.IsNoFunctionEnabled = true;
+                            _mainWindow.StatusText.Text = "NO機能が有効になりました";
                             break;
                         case PuzzleAction.ActionType.ShowChoice:
                             _currentChoiceAction = action; // 選択肢アクションを保持
@@ -81,6 +85,7 @@ namespace SELLCT.Application.Handlers
                 _mainWindow.SetAwaitingChoice(false);
                 _mainWindow.YesButton.Visibility = Visibility.Collapsed;
                 _mainWindow.NoButton.Visibility = Visibility.Collapsed;
+                _mainWindow.ChoiceButtonsPanel.Visibility = Visibility.Collapsed;
 
                 if (_currentChoiceAction?.YesActions != null)
                 {
@@ -101,6 +106,7 @@ namespace SELLCT.Application.Handlers
                 _mainWindow.SetAwaitingChoice(false);
                 _mainWindow.YesButton.Visibility = Visibility.Collapsed;
                 _mainWindow.NoButton.Visibility = Visibility.Collapsed;
+                _mainWindow.ChoiceButtonsPanel.Visibility = Visibility.Collapsed;
 
                 if (_currentChoiceAction?.NoActions != null)
                 {

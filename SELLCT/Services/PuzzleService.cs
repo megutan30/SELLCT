@@ -90,7 +90,7 @@ namespace SELLCT.Services
                             },
                             NoActions = new List<PuzzleAction>
                             {
-                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "そうですか...残念です。でも、きっと心を変えてくれると信じています。いつでもお待ちしています。" }
+                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "なぜすでに「いいえ」コマンドを持っているのですか？さてはもしやずるをしましたね？" }
                             }
                         }
                     }
@@ -108,7 +108,7 @@ namespace SELLCT.Services
                     {
                         new PuzzleAction
                         {
-                            Type = PuzzleAction.ActionType.ShowNoButton
+                            Type = PuzzleAction.ActionType.EnableNoFunction
                         },
                         new PuzzleAction
                         {

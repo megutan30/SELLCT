@@ -48,6 +48,25 @@ namespace SELLCT.Views
 
         /// <summary>
         private bool _isTextWindowEnabled = false;
+        private bool _isNoFunctionEnabled = false;
+
+        public bool IsNoFunctionEnabled
+        {
+            get { return _isNoFunctionEnabled; }
+            set
+            {
+                _isNoFunctionEnabled = value;
+                // 必要に応じてUIを更新
+                if (_isNoFunctionEnabled)
+                {
+                    NoButton.Content = "いいえ";
+                }
+                else
+                {
+                    NoButton.Content = "はい";
+                }
+            }
+        }
 
         /// <summary>
         /// コンストラクタ
@@ -359,13 +378,14 @@ namespace SELLCT.Views
         public void ShowChoice()
         {
             _dialogMessageQueue.Enqueue(new DialogItem { Type = DialogItemType.Choice });
-            if (!_isTyping && !_awaitingChoice && DialogWindow.Visibility == Visibility.Visible)
+            if (!_isTyping && !_awaitingChoice)
             {
+                DialogWindow.Visibility = Visibility.Collapsed; // Hide dialog when choice is shown
                 ProcessNextDialogMessage();
             }
             else if (DialogWindow.Visibility != Visibility.Visible)
             {
-                DialogWindow.Visibility = Visibility.Visible;
+                DialogWindow.Visibility = Visibility.Collapsed; // Hide dialog when choice is shown
                 GlobalClickCatcher.Visibility = Visibility.Visible; // グローバルクリックキャッチャーを表示
                 StartDialogFadeIn();
             }
@@ -392,14 +412,14 @@ namespace SELLCT.Views
                     _typingTimer.Start();
 
                     // 選択肢ボタンを非表示にする
-                    YesButton.Visibility = Visibility.Collapsed;
-                    NoButton.Visibility = Visibility.Collapsed;
+                    ChoiceButtonsPanel.Visibility = Visibility.Collapsed;
                 }
                 else if (nextItem.Type == DialogItemType.Choice)
                 {
                     // 選択肢を表示
-                    YesButton.Visibility = Visibility.Visible;
-                    // NoButton.Visibility = Visibility.Visible; // 今回は「はい」のみなのでコメントアウト
+                    ChoiceButtonsPanel.Visibility = Visibility.Visible;
+                    DialogWindow.Visibility = Visibility.Collapsed; // Hide dialog when choice is shown
+                    GlobalClickCatcher.Visibility = Visibility.Collapsed; // Hide global click catcher when choice is shown
                     _awaitingChoice = true;
                     _typingTimer.Stop(); // テキストの自動進行を停止
                     System.Diagnostics.Debug.WriteLine("[ProcessNextDialogMessage] Choice displayed.");
@@ -407,17 +427,10 @@ namespace SELLCT.Views
             }
             else
             {
-                System.Diagnostics.Debug.WriteLine("[ProcessNextDialogMessage] Message queue empty. Hiding dialog.");
-                // メッセージキューが空になったら黒画面を表示
-                DialogWindow.Visibility = Visibility.Collapsed;
-                GlobalClickCatcher.Visibility = Visibility.Collapsed; // グローバルクリックキャッチャーを非表示
+                System.Diagnostics.Debug.WriteLine("[ProcessNextDialogMessage] Message queue empty. Keeping dialog visible.");
                 _isTyping = false;
                 _typingTimer.Stop();
                 _awaitingChoice = false;
-
-                // 黒画面表示
-                GameCanvas.Visibility = Visibility.Collapsed;
-                LoadingOverlay.Visibility = Visibility.Visible;
             }
         }
 
@@ -641,7 +654,14 @@ namespace SELLCT.Views
         /// </summary>
         private void NoButton_Click(object sender, RoutedEventArgs e)
         {
-            _puzzleActionHandler.HandleNoClick();
+            if (_isNoFunctionEnabled)
+            {
+                _puzzleActionHandler.HandleNoClick();
+            }
+            else
+            {
+                _puzzleActionHandler.HandleYesClick(); // NO機能が無効な場合はYESとして扱う
+            }
         }
 
         /// <summary>
