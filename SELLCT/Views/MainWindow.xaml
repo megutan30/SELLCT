@@ -115,8 +115,8 @@
             <!-- G-3状態時のみ表示：対話ウィンドウ -->
             <Border Name="DialogWindow" 
                     Style="{StaticResource DialogWindowStyle}"
-                    Width="527" Height="100"
-                    Canvas.Left="273" Canvas.Top="516"
+                    Width="350" Height="180"
+                    Canvas.Left="420" Canvas.Top="50"
                     Visibility="Collapsed"
                     Panel.ZIndex="3" HorizontalAlignment="Left" VerticalAlignment="Top">
                 <Grid>
