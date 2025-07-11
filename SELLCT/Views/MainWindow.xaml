@@ -83,7 +83,7 @@
                     Click="MainButton_Click"
                     Visibility="Visible" HorizontalAlignment="Left" VerticalAlignment="Top"/>
 
-            <!-- G-2状態時のみ表示：手紙画像 -->
+            <!--手紙画像 -->
             <Image Name="LetterImage" 
                    Source="/Resources/Letter.png"
                    Width="60" Height="80"
@@ -102,7 +102,7 @@
                 </Image.RenderTransform>
             </Image>
 
-            <!-- G-4状態時のみ表示：KEY画像 -->
+            <!--：KEY画像 -->
             <Image Name="KeyImage" 
                    Source="/Resources/KEY.png"
                    Width="60" Height="60"
@@ -112,12 +112,12 @@
                    Cursor="Hand"
                    Panel.ZIndex="2"/>
 
-            <!-- G-3状態時のみ表示：対話ウィンドウ -->
+            <!--：対話ウィンドウ -->
             <Border Name="DialogWindow" 
                     Style="{StaticResource DialogWindowStyle}"
                     Width="350" Height="180"
-                    Canvas.Left="420" Canvas.Top="50"
-                    Visibility="Collapsed"
+                    Canvas.Left="440" Canvas.Top="454"
+                    Visibility="Visible"
                     Panel.ZIndex="3" HorizontalAlignment="Left" VerticalAlignment="Top">
                 <Grid>
                     <Grid.ColumnDefinitions>

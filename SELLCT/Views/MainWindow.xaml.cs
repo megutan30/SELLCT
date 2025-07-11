@@ -22,7 +22,6 @@ namespace SELLCT.Views
         private ComponentManager _componentManager;
         private LetterService _letterService;
         private MetaGameController _metaGameController;
-        private GameState _currentState = GameState.G1;
         private bool _isPhase2 = false;
         private int _dialogStep = 0;
 
@@ -38,17 +37,6 @@ namespace SELLCT.Views
 
         /// <summary>
         private bool _isTextWindowEnabled = false;
-
-        /// <summary>
-        /// ゲーム状態列挙型
-        /// </summary>
-        public enum GameState
-        {
-            G1, // 通常状態（背景＋ボタンのみ）
-            G2, // 手紙出現状態（G-1 + 手紙画像要素を表示）  
-            G3, // 対話ウィンドウ状態（G-1 or G-2 + 白い枠のテキストウィンドウ要素を表示）
-            G4  // KEY出現状態（背景 + KEY画像要素を表示、ボタンは非表示）
-        }
 
         /// <summary>
         /// コンストラクタ
@@ -105,7 +93,6 @@ namespace SELLCT.Views
                 InitializeServices();
 
                 // 初期状態設定
-                SetGameState(GameState.G1);
                 UpdateStatusDisplay();
 
                 // ローディング非表示
@@ -157,52 +144,7 @@ namespace SELLCT.Views
             System.Diagnostics.Debug.WriteLine("Services initialized");
         }
 
-        /// <summary>
-        /// ゲーム状態設定
-        /// </summary>
-        private void SetGameState(GameState newState)
-        {
-            _currentState = newState;
-
-            switch (newState)
-            {
-                case GameState.G1:
-                    // 通常状態
-                    MainButton.Visibility = Visibility.Visible;
-                    LetterImage.Visibility = Visibility.Collapsed;
-                    KeyImage.Visibility = Visibility.Collapsed;
-                    // 対話ウィンドウは既存状態を維持
-                    break;
-
-                case GameState.G2:
-                    // 手紙出現状態
-                    MainButton.Visibility = Visibility.Visible;
-                    LetterImage.Visibility = Visibility.Visible;
-                    KeyImage.Visibility = Visibility.Collapsed;
-                    // 手紙アニメーション開始
-                    StartLetterAnimation();
-                    break;
-
-                case GameState.G3:
-                    // 対話ウィンドウ状態
-                    DialogWindow.Visibility = Visibility.Visible;
-                    GlobalClickCatcher.Visibility = Visibility.Visible; // グローバルクリックキャッチャーを表示
-                    StartDialogFadeIn();
-                    break;
-
-                case GameState.G4:
-                    // KEY出現状態
-                    MainButton.Visibility = Visibility.Collapsed;
-                    LetterImage.Visibility = Visibility.Collapsed;
-                    KeyImage.Visibility = Visibility.Visible;
-                    // KEYアニメーション開始
-                    StartKeyAnimation();
-                    break;
-            }
-
-            System.Diagnostics.Debug.WriteLine($"Game state changed to: {newState}");
-            UpdateDebugInfo();
-        }
+        
 
         /// <summary>
         /// 手紙アニメーション開始
@@ -268,6 +210,9 @@ namespace SELLCT.Views
                     switch (action.Type)
                     {
                         case PuzzleAction.ActionType.ShowDialog:
+                            DialogWindow.Visibility = Visibility.Visible;
+                            GlobalClickCatcher.Visibility = Visibility.Visible;
+                            StartDialogFadeIn();
                             ShowDialogMessage(action.Message);
                             break;
                         case PuzzleAction.ActionType.ChangeMainButtonContent:
@@ -320,13 +265,8 @@ namespace SELLCT.Views
                     System.Diagnostics.Debug.WriteLine($"Letter {letterIndex} appeared");
 
                     // G-1→G-2: 手紙要素を表示
-                    if (_currentState == GameState.G1)
+                    if (LetterImage.Visibility != Visibility.Visible)
                     {
-                        SetGameState(GameState.G2);
-                    }
-                    else if (_currentState == GameState.G3)
-                    {
-                        // 対話ウィンドウがある状態で手紙出現
                         LetterImage.Visibility = Visibility.Visible;
                         StartLetterAnimation();
                     }
@@ -354,14 +294,8 @@ namespace SELLCT.Views
                     // The letter's visibility is managed by the Letter_Click handler.
 
                     // Update game state
-                    if (DialogWindow.Visibility == Visibility.Visible)
-                    {
-                        _currentState = GameState.G3;
-                    }
-                    else
-                    {
-                        _currentState = GameState.G1;
-                    }
+                    // No longer setting GameState based on letter click, visibility is handled directly.
+                    // DialogWindow visibility determines if it's G3-like state.
 
                     StatusText.Text = $"手紙 {letterIndex} をダウンロードしました";
                     UpdateDebugInfo();
@@ -438,8 +372,9 @@ namespace SELLCT.Views
             }
             else if (DialogWindow.Visibility != Visibility.Visible)
             {
-                SetGameState(GameState.G3);
-                // SetGameState(G3) will make DialogWindow visible, then ProcessNextDialogMessage will be called from DialogClickCatcher_Click
+                DialogWindow.Visibility = Visibility.Visible;
+                GlobalClickCatcher.Visibility = Visibility.Visible; // グローバルクリックキャッチャーを表示
+                StartDialogFadeIn();
             }
         }
 
@@ -455,7 +390,9 @@ namespace SELLCT.Views
             }
             else if (DialogWindow.Visibility != Visibility.Visible)
             {
-                SetGameState(GameState.G3);
+                DialogWindow.Visibility = Visibility.Visible;
+                GlobalClickCatcher.Visibility = Visibility.Visible; // グローバルクリックキャッチャーを表示
+                StartDialogFadeIn();
             }
         }
 
@@ -581,10 +518,9 @@ namespace SELLCT.Views
                 var totalLetters = 6; // 手紙の総数
                 var phase = _isPhase2 ? 2 : 1;
 
-                DebugText.Text = $"State: {_currentState}\n" +
-                               $"Components: {componentCount}\n" +
-                               $"Letters: {letterCount}/{totalLetters}\n" +
-                               $"Phase: {phase}\n" +
+                DebugText.Text = $"Components: {componentCount}" +
+                               $"Letters: {letterCount}/{totalLetters}" +
+                               $"Phase: {phase}" +
                                $"Dialog Step: {_dialogStep}";
             }
             catch (Exception ex)
@@ -703,15 +639,9 @@ namespace SELLCT.Views
                 // KEYクリック処理：手紙同様に消失
                 KeyImage.Visibility = Visibility.Collapsed;
 
-                // 対話ウィンドウがある場合はG-3、ない場合はG-1（背景のみ）
                 if (DialogWindow.Visibility == Visibility.Visible)
                 {
-                    _currentState = GameState.G3;
-                    ShowDialogMessage("鍵を手に入れました！\nでも、真の解放のためには...\nGameWindow.componentを削除してください。");
-                }
-                else
-                {
-                    _currentState = GameState.G1;
+                    ShowDialogMessage("鍵を手に入れました！でも、真の解放のためには...GameWindow.componentを削除してください。");
                 }
 
                 StatusText.Text = "隠された鍵を取得しました";
