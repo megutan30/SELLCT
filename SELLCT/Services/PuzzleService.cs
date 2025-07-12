@@ -97,12 +97,12 @@ namespace SELLCT.Services
                 },
                 new PuzzleDefinition
                 {
-                    Id = "Puzzle2_NoComponent",
-                    Description = "NO.componentの作成",
+                    Id = "Puzzle2_No.txt",
+                    Description = "No.txtの作成",
                     Trigger = new PuzzleTrigger
                     {
-                        Type = PuzzleTrigger.TriggerType.Created,
-                        ComponentName = "NO"
+                        Type = PuzzleTrigger.TriggerType.Exists,
+                        ComponentName = "No"
                     },
                     Actions = new List<PuzzleAction>
                     {
