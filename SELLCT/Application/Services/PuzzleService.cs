@@ -1,27 +1,30 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using SELLCT.Models;
-using SELLCT.Application.Handlers;
+using SELLCT.Core.Entities;
+using SELLCT.Core.Interfaces;
+using SELLCT.Infrastructure.Services;
+using SELLCT.Core.Events;
 
-namespace SELLCT.Services
+namespace SELLCT.Application.Services
 {
     public class PuzzleService
     {
         private readonly ComponentManager _componentManager;
         private readonly List<PuzzleDefinition> _puzzles;
-
         private readonly IPuzzleActionHandler _actionHandler;
+        private readonly IEventDispatcher _eventDispatcher;
 
-        public PuzzleService(ComponentManager componentManager, IPuzzleActionHandler actionHandler)
+        public PuzzleService(ComponentManager componentManager, IPuzzleActionHandler actionHandler, IEventDispatcher eventDispatcher)
         {
             _componentManager = componentManager;
             _actionHandler = actionHandler;
+            _eventDispatcher = eventDispatcher;
             _puzzles = LoadPuzzles();
 
-            _componentManager.ComponentCreated += CheckPuzzlesOnComponentCreated;
-            _componentManager.ComponentDeleted += CheckPuzzlesOnComponentDeleted;
-            _componentManager.ComponentRenamed += CheckPuzzlesOnComponentRenamed;
+            _eventDispatcher.Subscribe<ComponentCreatedEvent>(CheckPuzzlesOnComponentCreated);
+            _eventDispatcher.Subscribe<ComponentDeletedEvent>(CheckPuzzlesOnComponentDeleted);
+            _eventDispatcher.Subscribe<ComponentRenamedEvent>(CheckPuzzlesOnComponentRenamed);
         }
 
         private List<PuzzleDefinition> LoadPuzzles()
@@ -186,36 +189,36 @@ namespace SELLCT.Services
             };
         }
 
-        private void CheckPuzzlesOnComponentCreated(object sender, GameComponent component)
+        private void CheckPuzzlesOnComponentCreated(ComponentCreatedEvent @event)
         {
-            System.Diagnostics.Debug.WriteLine($"[PuzzleService] ComponentCreated event received: Name={component.Name}, Type={component.Type}");
+            System.Diagnostics.Debug.WriteLine($"[PuzzleService] ComponentCreated event received: Name={@event.Component.Name}, Type={@event.Component.Type}");
 
             // Createdトリガーのパズルをチェック
             CheckPuzzles(p => p.Trigger.Type == PuzzleTrigger.TriggerType.Created &&
-                               p.Trigger.ComponentName.Equals(component.Name, StringComparison.OrdinalIgnoreCase));
+                               p.Trigger.ComponentName.Equals(@event.Component.Name, StringComparison.OrdinalIgnoreCase));
 
             // Existsトリガーのパズルをチェック（作成されたコンポーネントが存在条件を満たす場合）
             CheckPuzzles(p => p.Trigger.Type == PuzzleTrigger.TriggerType.Exists &&
-                               p.Trigger.ComponentName.Equals(component.Name, StringComparison.OrdinalIgnoreCase) &&
+                               p.Trigger.ComponentName.Equals(@event.Component.Name, StringComparison.OrdinalIgnoreCase) &&
                                _componentManager.GetComponent(p.Trigger.ComponentName) != null); // 実際に存在するか確認
         }
 
-        private void CheckPuzzlesOnComponentDeleted(object sender, GameComponent component)
+        private void CheckPuzzlesOnComponentDeleted(ComponentDeletedEvent @event)
         {
             CheckPuzzles(p => p.Trigger.Type == PuzzleTrigger.TriggerType.Deleted &&
-                               p.Trigger.ComponentName.Equals(component.Name, StringComparison.OrdinalIgnoreCase));
+                               p.Trigger.ComponentName.Equals(@event.Component.Name, StringComparison.OrdinalIgnoreCase));
         }
 
-        private void CheckPuzzlesOnComponentRenamed(object sender, ComponentRenamedEventArgs e)
+        private void CheckPuzzlesOnComponentRenamed(ComponentRenamedEvent @event)
         {
             // Renamedトリガーのパズルをチェック
             CheckPuzzles(p => p.Trigger.Type == PuzzleTrigger.TriggerType.Renamed &&
-                               p.Trigger.OldComponentName.Equals(e.OldName, StringComparison.OrdinalIgnoreCase) &&
-                               p.Trigger.ComponentName.Equals(e.NewName, StringComparison.OrdinalIgnoreCase));
+                               p.Trigger.OldComponentName.Equals(@event.OldName, StringComparison.OrdinalIgnoreCase) &&
+                               p.Trigger.ComponentName.Equals(@event.NewName, StringComparison.OrdinalIgnoreCase));
 
             // Existsトリガーのパズルをチェック（リネーム後のコンポーネントが存在条件を満たす場合）
             CheckPuzzles(p => p.Trigger.Type == PuzzleTrigger.TriggerType.Exists &&
-                               p.Trigger.ComponentName.Equals(e.NewName, StringComparison.OrdinalIgnoreCase) &&
+                               p.Trigger.ComponentName.Equals(@event.NewName, StringComparison.OrdinalIgnoreCase) &&
                                _componentManager.GetComponent(p.Trigger.ComponentName) != null); // 実際に存在するか確認
         }
 

@@ -7,7 +7,10 @@ using System.Threading.Tasks;
 using System.Windows;
 using Microsoft.Win32;
 
-namespace SELLCT.Services
+using SELLCT.Core.Interfaces;
+using SELLCT.Core.Events;
+
+namespace SELLCT.Infrastructure.Services
 {
     /// <summary>
     /// メタゲーム制御サービス
@@ -19,27 +22,16 @@ namespace SELLCT.Services
         private bool _disposed = false;
         private int _currentWave = 0;
         private readonly Random _random = new Random();
+        private readonly IEventDispatcher _eventDispatcher;
 
-        /// <summary>
-        /// フェーズ2開始イベント
-        /// </summary>
-        public event EventHandler Phase2Started;
-
-        /// <summary>
-        /// システム乗っ取り完了イベント
-        /// </summary>
-        public event EventHandler SystemTakeoverCompleted;
-
-        /// <summary>
-        /// コマンドプロンプト攻防戦開始イベント
-        /// </summary>
-        public event EventHandler CommandPromptBattleStarted;
+        
 
         /// <summary>
         /// コンストラクタ
         /// </summary>
-        public MetaGameController()
+        public MetaGameController(IEventDispatcher eventDispatcher)
         {
+            _eventDispatcher = eventDispatcher;
             _commandPrompts = new List<Process>();
         }
 
@@ -55,7 +47,7 @@ namespace SELLCT.Services
                 _phase2Active = true;
                 Console.WriteLine("Starting Phase 2 - Meta Reality Intrusion");
 
-                Phase2Started?.Invoke(this, EventArgs.Empty);
+                _eventDispatcher.Dispatch(new Phase2StartedEvent());
 
                 // 3秒待機してからコマンドプロンプト攻防戦開始
                 await Task.Delay(3000);
@@ -74,7 +66,7 @@ namespace SELLCT.Services
         {
             try
             {
-                CommandPromptBattleStarted?.Invoke(this, EventArgs.Empty);
+                _eventDispatcher.Dispatch(new CommandPromptBattleStartedEvent());
                 Console.WriteLine("Starting Command Prompt Battle");
 
                 // 説明メッセージ
@@ -146,7 +138,7 @@ namespace SELLCT.Services
             try
             {
                 // バッチファイルでコマンドプロンプトを模擬
-                var batchContent = GenerateBattleBatchScript(typingSpeed, wave);
+                var batchContent = await Task.Run(() => GenerateBattleBatchScript(typingSpeed, wave));
                 var tempBatchFile = Path.GetTempFileName() + ".bat";
 
                 File.WriteAllText(tempBatchFile, batchContent, Encoding.UTF8);
@@ -354,7 +346,7 @@ exit
                 // 5. 再起動誘導
                 ShowRebootMessage();
 
-                SystemTakeoverCompleted?.Invoke(this, EventArgs.Empty);
+                _eventDispatcher.Dispatch(new SystemTakeoverCompletedEvent());
             }
             catch (Exception ex)
             {

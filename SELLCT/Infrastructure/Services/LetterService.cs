@@ -4,27 +4,23 @@ using System.Text;
 using System.Threading;
 using System.Windows;
 
-namespace SELLCT.Services
+using SELLCT.Core.Interfaces;
+using SELLCT.Core.Events;
+
+namespace SELLCT.Infrastructure.Services
 {
     /// <summary>
     /// 手紙システムサービス
     /// </summary>
     public class LetterService : IDisposable
     {
-        private Timer _letterTimer;
+        private readonly IEventDispatcher _eventDispatcher;
+        
         private int _currentLetterIndex = 0;
         private readonly string[] _letterContents;
         private bool _disposed = false;
 
-        /// <summary>
-        /// 手紙出現イベント
-        /// </summary>
-        public event EventHandler<int> LetterAppeared;
-
-        /// <summary>
-        /// 手紙クリックイベント
-        /// </summary>
-        public event EventHandler<int> LetterClicked;
+        
 
         /// <summary>
         /// 現在の手紙インデックス
@@ -34,8 +30,9 @@ namespace SELLCT.Services
         /// <summary>
         /// コンストラクタ
         /// </summary>
-        public LetterService()
+        public LetterService(IEventDispatcher eventDispatcher)
         {
+            _eventDispatcher = eventDispatcher;
             _letterContents = new string[]
             {
 @"…ボタンが押された？
@@ -121,7 +118,7 @@ componentsフォルダの中に「TextWindow.component」というファイル�
                 try
                 {
                     System.Diagnostics.Debug.WriteLine($"Showing letter {_currentLetterIndex}");
-                    LetterAppeared?.Invoke(this, _currentLetterIndex);
+                    _eventDispatcher.Dispatch(new LetterAppearedEvent(_currentLetterIndex));
                 }
                 catch (Exception ex)
                 {
@@ -166,7 +163,7 @@ componentsフォルダの中に「TextWindow.component」というファイル�
 
                             // メッセージボックスは不要のため削除
 
-                            LetterClicked?.Invoke(this, letterIndex);
+                            _eventDispatcher.Dispatch(new LetterClickedEvent(letterIndex));
                             success = true;
                         }
                         catch (Exception ex)
@@ -233,7 +230,7 @@ componentsフォルダの中に「TextWindow.component」というファイル�
             if (letterIndex > 0 && letterIndex <= _letterContents.Length)
             {
                 _currentLetterIndex = letterIndex;
-                LetterAppeared?.Invoke(this, letterIndex);
+                _eventDispatcher.Dispatch(new LetterAppearedEvent(letterIndex));
             }
         }
 

@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace SELLCT.Models
+namespace SELLCT.Core.Entities
 {
     public class PuzzleDefinition
     {

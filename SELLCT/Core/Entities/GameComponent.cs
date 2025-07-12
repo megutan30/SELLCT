@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
-namespace SELLCT.Models
+namespace SELLCT.Core.Entities
 {
     /// <summary>
     /// ゲーム構成要素タイプ

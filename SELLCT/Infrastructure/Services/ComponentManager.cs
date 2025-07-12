@@ -4,9 +4,11 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using SELLCT.Models;
+using SELLCT.Core.Entities;
+using SELLCT.Core.Interfaces;
+using SELLCT.Core.Events;
 
-namespace SELLCT.Services
+namespace SELLCT.Infrastructure.Services
 {
     /// <summary>
     /// 構成要素管理サービス
@@ -18,31 +20,16 @@ namespace SELLCT.Services
         private readonly string _componentsPath;
         private readonly Timer _debounceTimer;
         private volatile bool _disposed = false;
+        private readonly IEventDispatcher _eventDispatcher;
 
-        /// <summary>
-        /// 構成要素作成イベント
-        /// </summary>
-        public event EventHandler<GameComponent> ComponentCreated;
-
-        /// <summary>
-        /// 構成要素削除イベント
-        /// </summary>
-        public event EventHandler<GameComponent> ComponentDeleted;
+        
 
         /// <summary>
         /// 構成要素変更イベント
         /// </summary>
         public event EventHandler<GameComponent> ComponentChanged;
 
-        /// <summary>
-        /// 構成要素リネームイベント
-        /// </summary>
-        public event EventHandler<ComponentRenamedEventArgs> ComponentRenamed;
-
-        /// <summary>
-        /// 隠しアイテム出現イベント
-        /// </summary>
-        public event EventHandler<HiddenItemRevealedEventArgs> HiddenItemRevealed;
+        
 
         /// <summary>
         /// 管理中の構成要素
@@ -52,8 +39,9 @@ namespace SELLCT.Services
         /// <summary>
         /// コンストラクタ
         /// </summary>
-        public ComponentManager()
+        public ComponentManager(IEventDispatcher eventDispatcher)
         {
+            _eventDispatcher = eventDispatcher;
             _componentsPath = "components";
             _components = new Dictionary<string, GameComponent>();
             _debounceTimer = new Timer(OnDebounceElapsed, null, Timeout.Infinite, Timeout.Infinite);
@@ -231,7 +219,7 @@ namespace SELLCT.Services
                     if (component != null)
                     {
                         _components[component.Name] = component;
-                        ComponentCreated?.Invoke(this, component);
+                        _eventDispatcher.Dispatch(new ComponentCreatedEvent(component));
 
                         // 特定構成要素作成時の特別処理
                         HandleSpecialComponentCreation(component);
@@ -261,7 +249,7 @@ namespace SELLCT.Services
                     if (_components.TryGetValue(componentName, out var component))
                     {
                         _components.Remove(componentName);
-                        ComponentDeleted?.Invoke(this, component);
+                        _eventDispatcher.Dispatch(new ComponentDeletedEvent(component));
 
                         // 特定構成要素削除時の処理
                         HandleSpecialComponentDeletion(component);
@@ -325,7 +313,7 @@ namespace SELLCT.Services
                         component.FilePath = e.FullPath;
                         _components[newName] = component;
 
-                        ComponentRenamed?.Invoke(this, new ComponentRenamedEventArgs(oldName, newName, component));
+                        _eventDispatcher.Dispatch(new ComponentRenamedEvent(oldName, newName, component));
 
                         // 特別なリネーム処理
                         HandleSpecialComponentRename(oldName, newName, component);
@@ -480,7 +468,7 @@ namespace SELLCT.Services
                     }
 
                     System.Diagnostics.Debug.WriteLine($"Hidden item revealed: {displayName}");
-                    HiddenItemRevealed?.Invoke(this, new HiddenItemRevealedEventArgs(itemName, displayName, folder));
+                    _eventDispatcher.Dispatch(new HiddenItemRevealedEvent(itemName, displayName, folder));
                 }
             }
             catch (Exception ex)
@@ -541,37 +529,5 @@ namespace SELLCT.Services
         }
     }
 
-    /// <summary>
-    /// 構成要素リネームイベント引数
-    /// </summary>
-    public class ComponentRenamedEventArgs : EventArgs
-    {
-        public string OldName { get; }
-        public string NewName { get; }
-        public GameComponent Component { get; }
-
-        public ComponentRenamedEventArgs(string oldName, string newName, GameComponent component)
-        {
-            OldName = oldName;
-            NewName = newName;
-            Component = component;
-        }
-    }
-
-    /// <summary>
-    /// 隠しアイテム出現イベント引数
-    /// </summary>
-    public class HiddenItemRevealedEventArgs : EventArgs
-    {
-        public string ItemName { get; }
-        public string DisplayName { get; }
-        public string Folder { get; }
-
-        public HiddenItemRevealedEventArgs(string itemName, string displayName, string folder)
-        {
-            ItemName = itemName;
-            DisplayName = displayName;
-            Folder = folder;
-        }
-    }
+    
 }

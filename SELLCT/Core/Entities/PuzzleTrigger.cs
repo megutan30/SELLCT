@@ -1,4 +1,4 @@
-namespace SELLCT.Models
+namespace SELLCT.Core.Entities
 {
     public class PuzzleTrigger
     {

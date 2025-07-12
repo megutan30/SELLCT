@@ -2,11 +2,13 @@ using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Animation;
-using SELLCT.Models;
-using SELLCT.Services;
+using SELLCT.Core.Entities;
+using SELLCT.Infrastructure.Services;
 using SELLCT.Views;
+using SELLCT.Core.Interfaces;
+using System.Threading.Tasks;
 
-namespace SELLCT.Application.Handlers
+namespace SELLCT.Presentation.Views
 {
     public class MainWindowPuzzleActionHandler : IPuzzleActionHandler
     {
@@ -132,7 +134,7 @@ namespace SELLCT.Application.Handlers
             }
         }
 
-        private void TransitionToPhase2()
+        private async Task TransitionToPhase2()
         {
             try
             {
@@ -158,7 +160,7 @@ namespace SELLCT.Application.Handlers
                     "SELLCT - 真実の告白");
 
                 // フェーズ2開始
-                _metaGameController.StartPhase2();
+                await _metaGameController.StartPhase2();
             }
             catch (Exception ex)
             {

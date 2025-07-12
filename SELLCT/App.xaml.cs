@@ -2,20 +2,25 @@
 using Application = System.Windows.Application;
 using System;
 using System.IO;
-using SELLCT.Services;
+using SELLCT.Infrastructure.Services;
 using SELLCT.Views;
+using SELLCT.Core.Interfaces;
 
 namespace SELLCT
 {
     public partial class App
     {
         private ComponentManager _componentManager;
+        private IEventDispatcher _eventDispatcher;
 
         public App()
         {
             // グローバルな例外ハンドラーを設定
             AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
             this.DispatcherUnhandledException += OnDispatcherUnhandledException;
+
+            // EventDispatcherを初期化
+            _eventDispatcher = new EventDispatcher();
         }
 
         private void OnUnhandledException(object sender, UnhandledExceptionEventArgs e)
@@ -40,9 +45,22 @@ namespace SELLCT
             e.Handled = true;
         }
 
+        public ComponentManager GetComponentManager()
+        {
+            return _componentManager;
+        }
+
+        public IEventDispatcher GetEventDispatcher()
+        {
+            return _eventDispatcher;
+        }
+
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
+
+            // ComponentManagerを初期化
+            _componentManager = new ComponentManager(_eventDispatcher);
 
             // メインウィンドウの表示
             var mainWindow = new MainWindow();

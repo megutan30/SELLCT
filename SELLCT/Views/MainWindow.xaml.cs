@@ -9,9 +9,12 @@ using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Threading;
 using System.Collections.Generic;
-using SELLCT.Models;
-using SELLCT.Services;
-using SELLCT.Application.Handlers;
+using SELLCT.Core.Entities;
+using SELLCT.Infrastructure.Services;
+using SELLCT.Presentation.Views;
+using SELLCT.Core.Interfaces;
+using SELLCT.Application.Services;
+using SELLCT.Core.Events;
 
 namespace SELLCT.Views
 {
@@ -47,7 +50,7 @@ namespace SELLCT.Views
         private DispatcherTimer _subsequentLetterTimer;
 
         /// <summary>
-        private bool _isTextWindowEnabled = false;
+        
         private bool _isNoFunctionEnabled = false;
 
         public bool IsNoFunctionEnabled
@@ -172,20 +175,25 @@ namespace SELLCT.Views
         /// </summary>
         private void InitializeServices()
         {
-            // ComponentManager初期化
-            _componentManager = new ComponentManager();
+            // ComponentManagerはApp.xaml.csで初期化されるため、ここでは行わない
+            _componentManager = (System.Windows.Application.Current as App).GetComponentManager();
 
             // LetterService初期化
-            _letterService = new LetterService();
-            _letterService.LetterAppeared += OnLetterAppeared;
-            _letterService.LetterClicked += OnLetterClicked;
+            _letterService = new LetterService((System.Windows.Application.Current as App).GetEventDispatcher());
+            var eventDispatcher = (System.Windows.Application.Current as App).GetEventDispatcher();
+            eventDispatcher.Subscribe<LetterAppearedEvent>(OnLetterAppeared);
+            eventDispatcher.Subscribe<LetterClickedEvent>(OnLetterClicked);
+            eventDispatcher.Subscribe<Phase2StartedEvent>(OnPhase2Started);
+            eventDispatcher.Subscribe<CommandPromptBattleStartedEvent>(OnCommandPromptBattleStarted);
+            eventDispatcher.Subscribe<SystemTakeoverCompletedEvent>(OnSystemTakeoverCompleted);
+            
 
             // MetaGameController初期化
-            _metaGameController = new MetaGameController();
+            _metaGameController = new MetaGameController((System.Windows.Application.Current as App).GetEventDispatcher());
 
             // PuzzleService初期化
             _puzzleActionHandler = new MainWindowPuzzleActionHandler(this, _componentManager, _metaGameController);
-            _puzzleService = new PuzzleService(_componentManager, _puzzleActionHandler);
+            _puzzleService = new PuzzleService(_componentManager, _puzzleActionHandler, (System.Windows.Application.Current as App).GetEventDispatcher());
 
             // 手紙シーケンス開始
             _letterService.StartLetterSequence();
@@ -247,16 +255,49 @@ namespace SELLCT.Views
 
         
 
+        private void OnSystemTakeoverCompleted(SystemTakeoverCompletedEvent @event)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                System.Diagnostics.Debug.WriteLine("System takeover completed.");
+                // ここでUIの更新などを行う
+            });
+        }
+
+        /// <summary>
+        /// コマンドプロンプト攻防戦開始イベントハンドラー
+        /// </summary>
+        private void OnCommandPromptBattleStarted(CommandPromptBattleStartedEvent @event)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                System.Diagnostics.Debug.WriteLine("Command prompt battle started.");
+                // ここでUIの更新などを行う
+            });
+        }
+
+        /// <summary>
+        /// フェーズ2開始イベントハンドラー
+        /// </summary>
+        private void OnPhase2Started(Phase2StartedEvent @event)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                System.Diagnostics.Debug.WriteLine("Phase 2 started.");
+                // ここでUIの更新などを行う
+            });
+        }
+
         /// <summary>
         /// 手紙出現イベントハンドラー
         /// </summary>
-        private void OnLetterAppeared(object sender, int letterIndex)
+        private void OnLetterAppeared(LetterAppearedEvent @event)
         {
             Dispatcher.Invoke(() =>
             {
                 try
                 {
-                    System.Diagnostics.Debug.WriteLine($"Letter {letterIndex} appeared");
+                    System.Diagnostics.Debug.WriteLine($"Letter {@event.LetterIndex} appeared");
 
                     if (LetterImage.Visibility != Visibility.Visible)
                     {
@@ -264,7 +305,7 @@ namespace SELLCT.Views
                         StartLetterAnimation();
                     }
 
-                    StatusText.Text = $"SELLCTからの手紙 {letterIndex} が到着しました";
+                    StatusText.Text = $"SELLCTからの手紙 {@event.LetterIndex} が到着しました";
                     UpdateDebugInfo();
                 }
                 catch (Exception ex)
@@ -277,7 +318,7 @@ namespace SELLCT.Views
         /// <summary>
         /// 手紙クリックイベントハンドラー
         /// </summary>
-        private void OnLetterClicked(object sender, int letterIndex)
+        private void OnLetterClicked(LetterClickedEvent @event)
         {
             Dispatcher.Invoke(() =>
             {
@@ -290,7 +331,7 @@ namespace SELLCT.Views
                     // No longer setting GameState based on letter click, visibility is handled directly.
                     // DialogWindow visibility determines if it's G3-like state.
 
-                    StatusText.Text = $"手紙 {letterIndex} をダウンロードしました";
+                    StatusText.Text = $"手紙 {@event.LetterIndex} をダウンロードしました";
                     UpdateDebugInfo();
                 }
                 catch (Exception ex)
@@ -303,7 +344,7 @@ namespace SELLCT.Views
         /// <summary>
         /// フェーズ2への移行
         /// </summary>
-        private void TransitionToPhase2()
+        private async Task TransitionToPhase2()
         {
             try
             {
@@ -328,7 +369,7 @@ namespace SELLCT.Views
                     "SELLCT - 真実の告白");
 
                 // フェーズ2開始
-                _metaGameController.StartPhase2();
+                await _metaGameController.StartPhase2();
             }
             catch (Exception ex)
             {
