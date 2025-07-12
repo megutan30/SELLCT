@@ -258,7 +258,6 @@ namespace SELLCT.Views
                 {
                     System.Diagnostics.Debug.WriteLine($"Letter {letterIndex} appeared");
 
-                    // G-1→G-2: 手紙要素を表示
                     if (LetterImage.Visibility != Visibility.Visible)
                     {
                         LetterImage.Visibility = Visibility.Visible;

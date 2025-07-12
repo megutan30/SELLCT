@@ -47,6 +47,8 @@ namespace SELLCT.Application.Handlers
                             _mainWindow.StatusText.Text = $"隠しアイテムが出現: {action.HiddenItemDisplayName}";
                             _mainWindow.DisplayMessage($"🎉 隠しアイテム発見！「{action.HiddenItemDisplayName}」が出現しました！これがSELLCTのメタゲーム機能です。あなたの行動によって隠されていた要素が現れました.",
                                 "SELLCT - 隠しアイテム発見");
+                            _mainWindow.MainButton.Visibility = Visibility.Collapsed;
+                            _mainWindow.KeyImage.Visibility = Visibility.Visible;
                             break;
                         case PuzzleAction.ActionType.TransitionToPhase2:
                             TransitionToPhase2();

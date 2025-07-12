@@ -123,16 +123,6 @@
                 </Image.RenderTransform>
             </Image>
 
-            <!--：KEY画像 -->
-            <Image Name="KeyImage" 
-                   Source="/Resources/KEY.png"
-                   Width="60" Height="60"
-                   Canvas.Left="127" Canvas.Top="503"
-                   Visibility="Collapsed"
-                   MouseLeftButtonDown="Key_Click"
-                   Cursor="Hand"
-                   Panel.ZIndex="2"/>
-
             <!--：対話ウィンドウ -->
             <Border Name="DialogWindow" 
                     Style="{StaticResource DialogWindowStyle}"
@@ -164,7 +154,15 @@
                     <!-- GlobalClickCatcherが全体をカバーするため、ここでは不要 -->
                 </Grid>
             </Border>
-
+            <!--：KEY画像 -->
+            <Image Name="KeyImage" 
+                   Source="/Resources/KEY.png"
+                   Width="60" Height="60"
+                   Canvas.Left="127" Canvas.Top="503"
+                   Visibility="Collapsed"
+                   MouseLeftButtonDown="Key_Click"
+                   Cursor="Hand"
+                   Panel.ZIndex="2"/>
             <!-- 選択肢ボタン -->
             <StackPanel Name="ChoiceButtonsPanel"
                         Orientation="Horizontal" 
