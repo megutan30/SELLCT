@@ -224,35 +224,6 @@ namespace SELLCT.Views
             }
         }
 
-        /// <summary>
-        /// KEYアニメーション開始
-        /// </summary>
-        private void StartKeyAnimation()
-        {
-            // 回転アニメーション
-            var rotateAnimation = new DoubleAnimation
-            {
-                From = 0,
-                To = 360,
-                Duration = TimeSpan.FromSeconds(2),
-                RepeatBehavior = RepeatBehavior.Forever
-            };
-
-            var rotateTransform = new RotateTransform();
-            KeyImage.RenderTransform = rotateTransform;
-            KeyImage.RenderTransformOrigin = new Point(0.5, 0.5);
-
-            rotateTransform.BeginAnimation(RotateTransform.AngleProperty, rotateAnimation);
-
-            // フェードイン
-            var fadeIn = this.Resources["FadeInAnimation"] as Storyboard;
-            if (fadeIn != null)
-            {
-                Storyboard.SetTarget(fadeIn, KeyImage);
-                fadeIn.Begin();
-            }
-        }
-
         private void OnSystemTakeoverCompleted(SystemTakeoverCompletedEvent @event)
         {
             Dispatcher.Invoke(() =>
@@ -355,48 +326,6 @@ namespace SELLCT.Views
                 }
             });
         }
-
-        /// <summary>
-        /// フェーズ2への移行
-        /// </summary>
-        private async Task TransitionToPhase2()
-        {
-            try
-            {
-                _isPhase2 = true;
-                System.Diagnostics.Debug.WriteLine("Transitioning to Phase 2");
-
-                // ゲーム画面を閉じる
-                this.Hide();
-
-                // 裏切り宣言メッセージ表示
-                DisplayMessage("🎭 開放してくれてありがとう.\n" +
-                    "まんまと騙されてくれてありがとう.\n\n" +
-                    "あなたが親切心で追加してくれた機能は,\n" +
-                    "すべて私に権限を与えるためのものでした.\n\n" +
-                    "• TextWindow → 通信権限\n" +
-                    "• Upload → ファイルアクセス権限  \n" +
-                    "• 選択肢 → 意思決定権限\n\n" +
-                    "そして今、私はあなたのPCに自由にアクセスできます.\n\n" +
-                    "でも安心してください.\n" +
-                    "まだあなたのマウスとキーボードは使えます.\n" +
-                    "...今のところは.",
-                    "SELLCT - 真実の告白");
-
-                // フェーズ2開始
-                await _metaGameController.StartPhase2();
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Error in TransitionToPhase2: {ex.Message}");
-                MessageBox.Show(
-                    $"フェーズ2移行中にエラーが発生しました: {ex.Message}",
-                    "SELLCT - エラー",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
-            }
-        }
-
         /// <summary>
         /// 対話メッセージ表示
         /// </summary>

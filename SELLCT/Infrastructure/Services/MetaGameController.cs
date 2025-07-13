@@ -65,12 +65,13 @@ namespace SELLCT.Infrastructure.Services
             {
                 System.Diagnostics.Debug.WriteLine("Starting Command Prompt Sequence");
 
-                // コマンドプロンプトのプロセスを開始
+                string textToType = "del components\\System\\Mouse.txt";
+                string powershellCommand = $"powershell -Command \"$host.ui.RawUI.ForegroundColor = 'White'; function TypeWrite($text) {{ for ($i = 0; $i -lt $text.Length; $i++) {{ Write-Host -NoNewline $text[$i]; Start-Sleep -Milliseconds 50 }}; Write-Host '' }}; TypeWrite '{textToType}'\"";
+
                 var startInfo = new ProcessStartInfo
                 {
                     FileName = "cmd.exe",
-                    RedirectStandardInput = true,
-                    RedirectStandardOutput = true,
+                    Arguments = $"/c {powershellCommand}",
                     UseShellExecute = false,
                     CreateNoWindow = false,
                     WindowStyle = ProcessWindowStyle.Normal
@@ -79,23 +80,11 @@ namespace SELLCT.Infrastructure.Services
                 using (var process = new Process { StartInfo = startInfo })
                 {
                     process.Start();
-                    _commandPrompts.Add(process); // プロセス管理のため追加
+                    _commandPrompts.Add(process); 
 
-                    // コマンドプロンプトが起動し、入力受付状態になるまで少し待機
-                    await Task.Delay(500); // 500ミリ秒待機
+                    await Task.Run(() => process.WaitForExit());
 
-                    // タイピングするテキスト
-                    string textToType = "del components\\System\\Mouse.txt";
-
-                    // タイプライター効果でテキストを送信
-                    foreach (char c in textToType)
-                    {
-                        process.StandardInput.Write(c);
-                        await Task.Delay(50); // 1文字あたりの遅延
-                    }
-                    // process.StandardInput.WriteLine(); // REMOVED: Enterキーを押さない
-
-                    await Task.Delay(2000); // タイピング完了後の待機
+                    await Task.Delay(1000); 
 
                     string appBaseDirectory = AppDomain.CurrentDomain.BaseDirectory;
                     string mouseFilePath = Path.Combine(appBaseDirectory, "components", "System", "Mouse.txt");
@@ -117,16 +106,16 @@ namespace SELLCT.Infrastructure.Services
                         System.Diagnostics.Debug.WriteLine($"File not found for deletion: {mouseFilePath}");
                     }
 
-                    // マウスコンポーネントの削除とマウス操作の無効化
                     _eventDispatcher.Dispatch(new MouseComponentDeletionEvent());
                     _eventDispatcher.Dispatch(new DisableMouseInputEvent());
-
-                    // コマンドプロンプトを閉じる
-                    process.CloseMainWindow();
-                    process.WaitForExit(5000); // 5秒待機して終了を待つ
+                    
                     if (!process.HasExited)
                     {
-                        process.Kill();
+                        process.CloseMainWindow();
+                        if (!process.WaitForExit(5000))
+                        {
+                            process.Kill();
+                        }
                     }
                 }
             }
