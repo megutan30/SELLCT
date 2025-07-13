@@ -203,8 +203,6 @@ namespace SELLCT.Views
             System.Diagnostics.Debug.WriteLine("Services initialized");
         }
 
-        
-
         /// <summary>
         /// 手紙アニメーション開始
         /// </summary>
@@ -255,8 +253,6 @@ namespace SELLCT.Views
             }
         }
 
-        
-
         private void OnSystemTakeoverCompleted(SystemTakeoverCompletedEvent @event)
         {
             Dispatcher.Invoke(() =>
@@ -265,8 +261,6 @@ namespace SELLCT.Views
                 // ここでUIの更新などを行う
             });
         }
-
-        
 
         /// <summary>
         /// フェーズ2開始イベントハンドラー

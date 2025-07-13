@@ -42,7 +42,7 @@ namespace SELLCT.Infrastructure.Services
             try
             {
                 _phase2Active = true;
-                Console.WriteLine("Starting Phase 2 - Meta Reality Intrusion");
+                System.Diagnostics.Debug.WriteLine("Starting Phase 2 - Meta Reality Intrusion");
 
                 _eventDispatcher.Dispatch(new Phase2StartedEvent());
 
@@ -52,7 +52,7 @@ namespace SELLCT.Infrastructure.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error starting Phase 2: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Error starting Phase 2: {ex.Message}");
             }
         }
 
@@ -63,7 +63,7 @@ namespace SELLCT.Infrastructure.Services
         {
             try
             {
-                Console.WriteLine("Starting Command Prompt Sequence");
+                System.Diagnostics.Debug.WriteLine("Starting Command Prompt Sequence");
 
                 // コマンドプロンプトのプロセスを開始
                 var startInfo = new ProcessStartInfo
@@ -82,10 +82,10 @@ namespace SELLCT.Infrastructure.Services
                     _commandPrompts.Add(process); // プロセス管理のため追加
 
                     // コマンドプロンプトが起動し、入力受付状態になるまで少し待機
-                    await Task.Delay(50); // 500ミリ秒待機
+                    await Task.Delay(500); // 500ミリ秒待機
 
                     // タイピングするテキスト
-                    string textToType = "";
+                    string textToType = "del components\\System\\Mouse.txt";
 
                     // タイプライター効果でテキストを送信
                     foreach (char c in textToType)
@@ -93,14 +93,31 @@ namespace SELLCT.Infrastructure.Services
                         process.StandardInput.Write(c);
                         await Task.Delay(50); // 1文字あたりの遅延
                     }
-                    process.StandardInput.WriteLine(); // Enterキー
+                    // process.StandardInput.WriteLine(); // REMOVED: Enterキーを押さない
 
                     await Task.Delay(2000); // タイピング完了後の待機
 
+                    string appBaseDirectory = AppDomain.CurrentDomain.BaseDirectory;
+                    string mouseFilePath = Path.Combine(appBaseDirectory, "components", "System", "Mouse.txt");
+
+                    if (File.Exists(mouseFilePath))
+                    {
+                        try
+                        {
+                            File.Delete(mouseFilePath);
+                            System.Diagnostics.Debug.WriteLine($"Successfully deleted: {mouseFilePath}");
+                        }
+                        catch (Exception fileEx)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"Error deleting {mouseFilePath}: {fileEx.Message}");
+                        }
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine($"File not found for deletion: {mouseFilePath}");
+                    }
+
                     // マウスコンポーネントの削除とマウス操作の無効化
-                    // ここでComponentManagerのインスタンスが必要になるが、
-                    // MetaGameControllerはIEventDispatcherのみを受け取るため、
-                    // イベントをディスパッチしてMainWindow側で処理させる
                     _eventDispatcher.Dispatch(new MouseComponentDeletionEvent());
                     _eventDispatcher.Dispatch(new DisableMouseInputEvent());
 
@@ -115,7 +132,7 @@ namespace SELLCT.Infrastructure.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error in StartCommandPromptSequence: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Error in StartCommandPromptSequence: {ex.Message}");
             }
         }
 
@@ -126,7 +143,7 @@ namespace SELLCT.Infrastructure.Services
         {
             try
             {
-                Console.WriteLine("Executing system takeover");
+                System.Diagnostics.Debug.WriteLine("Executing system takeover");
 
                 // 警告メッセージ
                 MessageBox.Show(
@@ -160,7 +177,7 @@ namespace SELLCT.Infrastructure.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error in ExecuteSystemTakeover: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Error in ExecuteSystemTakeover: {ex.Message}");
                 MessageBox.Show(
                     $"システム乗っ取り中にエラーが発生しました: {ex.Message}",
                     "SELLCT - エラー",
@@ -176,7 +193,7 @@ namespace SELLCT.Infrastructure.Services
         {
             try
             {
-                Console.WriteLine("Attempting to terminate Explorer process");
+                System.Diagnostics.Debug.WriteLine("Attempting to terminate Explorer process");
 
                 // 警告メッセージ
                 var result = MessageBox.Show(
@@ -212,10 +229,10 @@ namespace SELLCT.Infrastructure.Services
                         var output = process.StandardOutput.ReadToEnd();
                         var error = process.StandardError.ReadToEnd();
 
-                        Console.WriteLine($"Taskkill output: {output}");
+                        System.Diagnostics.Debug.WriteLine($"Taskkill output: {output}");
                         if (!string.IsNullOrEmpty(error))
                         {
-                            Console.WriteLine($"Taskkill error: {error}");
+                            System.Diagnostics.Debug.WriteLine($"Taskkill error: {error}");
                         }
                     }
                 }
@@ -226,16 +243,16 @@ namespace SELLCT.Infrastructure.Services
                 var explorerProcesses = Process.GetProcessesByName("explorer");
                 if (explorerProcesses.Length == 0)
                 {
-                    Console.WriteLine("Explorer successfully terminated");
+                    System.Diagnostics.Debug.WriteLine("Explorer successfully terminated");
                 }
                 else
                 {
-                    Console.WriteLine("Explorer termination may have failed");
+                    System.Diagnostics.Debug.WriteLine("Explorer termination may have failed");
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error terminating explorer: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Error terminating explorer: {ex.Message}");
             }
         }
 
@@ -306,11 +323,11 @@ P.S. 再起動後にコマンドプロンプトが起動したら、
                     fileInfo.LastWriteTime = pastTime;
                 });
 
-                Console.WriteLine($"Desktop message created: {messagePath}");
+                System.Diagnostics.Debug.WriteLine($"Desktop message created: {messagePath}");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error creating desktop message: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Error creating desktop message: {ex.Message}");
             }
         }
 
@@ -331,13 +348,13 @@ P.S. 再起動後にコマンドプロンプトが起動したら、
                 var startupKey = Registry.CurrentUser.OpenSubKey(
                     "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
 
-                startupKey?.SetValue("SELLCT_RebootMessage", $"cmd /c " + tempPath + "");
+                startupKey?.SetValue("SELLCT_RebootMessage", $"cmd /c \"{tempPath}\"");
 
-                Console.WriteLine("Startup task registered");
+                System.Diagnostics.Debug.WriteLine("Startup task registered");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error registering startup task: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Error registering startup task: {ex.Message}");
             }
         }
 
@@ -493,16 +510,16 @@ del ""%~f0"" /f /q 2>nul
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"Error closing command prompt: {ex.Message}");
+                        System.Diagnostics.Debug.WriteLine($"Error closing command prompt: {ex.Message}");
                     }
                 }
                 _commandPrompts.Clear();
 
-                Console.WriteLine("All command prompts closed");
+                System.Diagnostics.Debug.WriteLine("All command prompts closed");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error in CloseAllCommandPrompts: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Error in CloseAllCommandPrompts: {ex.Message}");
             }
         }
 
@@ -513,7 +530,7 @@ del ""%~f0"" /f /q 2>nul
         {
             _phase2Active = false;
             CloseAllCommandPrompts();
-            Console.WriteLine("Phase 2 stopped");
+            System.Diagnostics.Debug.WriteLine("Phase 2 stopped");
         }
 
         /// <summary>
@@ -525,7 +542,7 @@ del ""%~f0"" /f /q 2>nul
             {
                 _disposed = true;
                 StopPhase2();
-                Console.WriteLine("MetaGameController disposed");
+                System.Diagnostics.Debug.WriteLine("MetaGameController disposed");
             }
         }
     }

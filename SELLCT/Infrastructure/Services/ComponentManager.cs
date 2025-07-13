@@ -22,14 +22,10 @@ namespace SELLCT.Infrastructure.Services
         private volatile bool _disposed = false;
         private readonly IEventDispatcher _eventDispatcher;
 
-        
-
         /// <summary>
         /// 構成要素変更イベント
         /// </summary>
         public event EventHandler<GameComponent> ComponentChanged;
-
-        
 
         /// <summary>
         /// 管理中の構成要素
@@ -88,8 +84,6 @@ namespace SELLCT.Infrastructure.Services
                 CreateComponentFile("Visual/Background.txt", "");
 
                 // 隠しファイル（.hidden拡張子）
-                CreateHiddenFile("UI/KEY.txt", "");
-                CreateHiddenFile("Text/SecretMessage.txt", "");
                 CreateHiddenFile("System/Mouse.txt", "");
                 CreateHiddenFile("System/Keyboard.txt", "");
                 CreateHiddenFile("System/Explorer.txt", "");
@@ -132,16 +126,29 @@ namespace SELLCT.Infrastructure.Services
                 Directory.CreateDirectory(directory);
             }
 
-            File.WriteAllText(fullPath, content);
+            if (!File.Exists(fullPath))
+            {
+                File.WriteAllText(fullPath, content);
+                System.Diagnostics.Debug.WriteLine($"Created hidden file: {fullPath}");
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine($"Hidden file already exists: {fullPath}. Skipping creation.");
+            }
 
             // 隠しファイル属性設定
             try
             {
-                File.SetAttributes(fullPath, FileAttributes.Hidden);
+                FileAttributes attributes = File.GetAttributes(fullPath);
+                if ((attributes & FileAttributes.Hidden) != FileAttributes.Hidden)
+                {
+                    File.SetAttributes(fullPath, attributes | FileAttributes.Hidden);
+                    System.Diagnostics.Debug.WriteLine($"Set hidden attribute for: {fullPath}");
+                }
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Failed to set hidden attribute: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Failed to set hidden attribute for {fullPath}: {ex.Message}");
             }
         }
 
@@ -274,7 +281,7 @@ namespace SELLCT.Infrastructure.Services
                 // デバウンス処理
                 _debounceTimer.Change(500, Timeout.Infinite);
 
-                if (e.Name.EndsWith(".component"))
+                if (e.Name.EndsWith(".txt"))
                 {
                     var componentName = Path.GetFileNameWithoutExtension(e.Name);
                     if (_components.TryGetValue(componentName, out var component))
