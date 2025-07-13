@@ -494,6 +494,30 @@ namespace SELLCT.Infrastructure.Services
         }
 
         /// <summary>
+        /// 構成要素を削除
+        /// </summary>
+        public void DeleteComponent(string componentName)
+        {
+            if (_components.TryGetValue(componentName, out var component))
+            {
+                try
+                {
+                    // ファイルシステムからファイルを削除
+                    File.Delete(component.FilePath);
+                    System.Diagnostics.Debug.WriteLine($"Component file deleted: {component.FilePath}");
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Error deleting component file {component.FilePath}: {ex.Message}");
+                }
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine($"Component not found: {componentName}");
+            }
+        }
+
+        /// <summary>
         /// 可視状態の構成要素を取得
         /// </summary>
         public IEnumerable<GameComponent> GetVisibleComponents()

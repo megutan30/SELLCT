@@ -20,11 +20,8 @@ namespace SELLCT.Infrastructure.Services
         private List<Process> _commandPrompts;
         private bool _phase2Active = false;
         private bool _disposed = false;
-        private int _currentWave = 0;
-        private readonly Random _random = new Random();
-        private readonly IEventDispatcher _eventDispatcher;
-
         
+        private readonly IEventDispatcher _eventDispatcher;
 
         /// <summary>
         /// コンストラクタ
@@ -49,9 +46,9 @@ namespace SELLCT.Infrastructure.Services
 
                 _eventDispatcher.Dispatch(new Phase2StartedEvent());
 
-                // 3秒待機してからコマンドプロンプト攻防戦開始
+                // 3秒待機してからコマンドプロンプト開始
                 await Task.Delay(3000);
-                await StartCommandPromptBattle();
+                await StartCommandPromptSequence();
             }
             catch (Exception ex)
             {
@@ -60,252 +57,65 @@ namespace SELLCT.Infrastructure.Services
         }
 
         /// <summary>
-        /// コマンドプロンプト攻防戦開始
+        /// コマンドプロンプト表示とタイピング、マウス操作無効化
         /// </summary>
-        private async Task StartCommandPromptBattle()
+        private async Task StartCommandPromptSequence()
         {
             try
             {
-                _eventDispatcher.Dispatch(new CommandPromptBattleStartedEvent());
-                Console.WriteLine("Starting Command Prompt Battle");
+                Console.WriteLine("Starting Command Prompt Sequence");
 
-                // 説明メッセージ
-                MessageBox.Show(
-                    "⚔️ コマンドプロンプト攻防戦開始！ ⚔️\n\n" +
-                    "SELLCTが複数のコマンドプロンプトで\n" +
-                    "あなたのシステム構成要素を削除しようとしています。\n\n" +
-                    "ルール:\n" +
-                    "• コマンドプロンプトをクリックして閉じてください\n" +
-                    "• Mouse.component または Keyboard.component が\n" +
-                    "  削除されると敗北です\n" +
-                    "• Wave形式で難易度が上昇します\n\n" +
-                    "あなたのマウスとキーボードを守り抜いてください！",
-                    "SELLCT - フェーズ2開始",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning);
-
-                // Wave形式で徐々に難易度上昇
-                for (int wave = 1; wave <= 10 && _phase2Active; wave++)
-                {
-                    _currentWave = wave;
-                    Console.WriteLine($"Starting Wave {wave}");
-
-                    await StartWave(wave);
-                    await Task.Delay(2000); // Wave間の間隔
-                }
-
-                // プレイヤーが10Waveを乗り切った場合
-                if (_phase2Active)
-                {
-                    await HandlePlayerVictory();
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error in command prompt battle: {ex.Message}");
-            }
-        }
-
-        /// <summary>
-        /// Wave開始
-        /// </summary>
-        private async Task StartWave(int waveNumber)
-        {
-            try
-            {
-                var commandCount = Math.Min(waveNumber, 10);
-                var typingSpeed = Math.Max(50, 500 - (waveNumber * 40)); // 文字入力間隔（ミリ秒）
-
-                Console.WriteLine($"Wave {waveNumber}: {commandCount} command prompts, typing speed: {typingSpeed}ms");
-
-                for (int i = 0; i < commandCount && _phase2Active; i++)
-                {
-                    await CreateFakeCommandPrompt(typingSpeed, waveNumber);
-                    await Task.Delay(Math.Max(200, 1000 - (waveNumber * 80))); // CMD作成間隔
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error in StartWave: {ex.Message}");
-            }
-        }
-
-        /// <summary>
-        /// 偽コマンドプロンプト作成
-        /// </summary>
-        private async Task CreateFakeCommandPrompt(int typingSpeed, int wave)
-        {
-            try
-            {
-                // バッチファイルでコマンドプロンプトを模擬
-                var batchContent = await Task.Run(() => GenerateBattleBatchScript(typingSpeed, wave));
-                var tempBatchFile = Path.GetTempFileName() + ".bat";
-
-                File.WriteAllText(tempBatchFile, batchContent, Encoding.UTF8);
-
-                // プロセス開始
+                // コマンドプロンプトのプロセスを開始
                 var startInfo = new ProcessStartInfo
                 {
-                    FileName = tempBatchFile,
-                    UseShellExecute = true,
+                    FileName = "cmd.exe",
+                    RedirectStandardInput = true,
+                    RedirectStandardOutput = true,
+                    UseShellExecute = false,
                     CreateNoWindow = false,
                     WindowStyle = ProcessWindowStyle.Normal
                 };
 
-                var process = Process.Start(startInfo);
-                if (process != null)
+                using (var process = new Process { StartInfo = startInfo })
                 {
-                    _commandPrompts.Add(process);
+                    process.Start();
+                    _commandPrompts.Add(process); // プロセス管理のため追加
 
-                    // プロセス監視
-                    Task.Run(() =>
+                    // コマンドプロンプトが起動し、入力受付状態になるまで少し待機
+                    await Task.Delay(50); // 500ミリ秒待機
+
+                    // タイピングするテキスト
+                    string textToType = "";
+
+                    // タイプライター効果でテキストを送信
+                    foreach (char c in textToType)
                     {
-                        try
-                        {
-                            process.WaitForExit();
-                            _commandPrompts.Remove(process);
+                        process.StandardInput.Write(c);
+                        await Task.Delay(50); // 1文字あたりの遅延
+                    }
+                    process.StandardInput.WriteLine(); // Enterキー
 
-                            // 一時ファイル削除
-                            try
-                            {
-                                if (File.Exists(tempBatchFile))
-                                    File.Delete(tempBatchFile);
-                            }
-                            catch { }
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine($"Error monitoring process: {ex.Message}");
-                        }
-                    });
+                    await Task.Delay(2000); // タイピング完了後の待機
+
+                    // マウスコンポーネントの削除とマウス操作の無効化
+                    // ここでComponentManagerのインスタンスが必要になるが、
+                    // MetaGameControllerはIEventDispatcherのみを受け取るため、
+                    // イベントをディスパッチしてMainWindow側で処理させる
+                    _eventDispatcher.Dispatch(new MouseComponentDeletionEvent());
+                    _eventDispatcher.Dispatch(new DisableMouseInputEvent());
+
+                    // コマンドプロンプトを閉じる
+                    process.CloseMainWindow();
+                    process.WaitForExit(5000); // 5秒待機して終了を待つ
+                    if (!process.HasExited)
+                    {
+                        process.Kill();
+                    }
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error creating fake command prompt: {ex.Message}");
-            }
-        }
-
-        /// <summary>
-        /// 攻防戦用バッチスクリプト生成
-        /// </summary>
-        private string GenerateBattleBatchScript(int typingSpeed, int wave)
-        {
-            var commands = new[]
-            {
-                "del components\\System\\Mouse.component",
-                "del components\\System\\Keyboard.component",
-                "rmdir components\\System /s /q",
-                "del components\\UI\\*.component",
-                "del components\\Text\\*.component"
-            };
-
-            var selectedCommand = commands[_random.Next(commands.Length)];
-            var windowTitle = $"SELLCT Attack Vector {wave}-{_random.Next(1000, 9999)}";
-
-            return $@"@echo off
-chcp 65001 >nul
-title {windowTitle}
-color 0C
-mode con: cols=80 lines=25
-
-rem ウィンドウポジション設定
-powershell -command ""Add-Type -TypeDefinition 'using System; using System.Runtime.InteropServices; public class Win32 {{ [DllImport(\""user32.dll\"", SetLastError = true)] public static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags); [DllImport(\""kernel32.dll\"", SetLastError = true)] public static extern IntPtr GetConsoleWindow(); }} '; $h = [Win32]::GetConsoleWindow(); [Win32]::SetWindowPos($h, -1, {_random.Next(100, 800)}, {_random.Next(50, 400)}, 0, 0, 0x0001 -bor 0x0002)"" 2>nul
-
-cls
-echo [SELLCT ATTACK VECTOR {wave}]
-echo Target: System Components
-echo.
-timeout /t 1 /nobreak >nul
-
-echo Initializing attack sequence...
-timeout /t {_random.Next(1, 3)} /nobreak >nul
-
-echo.
-echo ^> {selectedCommand}
-
-rem タイプライター効果でコマンド入力シミュレーション
-set ""cmd={selectedCommand}""
-set ""output=""
-for /l %%i in (0,1,50) do (
-    call set ""char=%%cmd:~%%i,1%%""
-    if ""!char!""=="""" goto :execute
-    set ""output=!output!!char!""
-    echo ^> !output!_
-    timeout /t 0 >nul
-    ping -n 1 127.0.0.1 >nul 2>&1
-)
-
-:execute
-echo.
-echo ^> !output!
-echo.
-
-rem 実行前の警告
-timeout /t {Math.Max(2, 5 - wave)} /nobreak >nul
-
-rem 偽の実行結果
-if ""{selectedCommand}"" == ""del components\System\Mouse.component"" (
-    echo ERROR: Access denied. File is protected.
-    echo [SELLCT]: Attempting privilege escalation...
-    timeout /t 2 /nobreak >nul
-    echo [SELLCT]: Still trying... Click this window to stop me!
-) else if ""{selectedCommand}"" == ""del components\System\Keyboard.component"" (
-    echo ERROR: File in use by another process.
-    echo [SELLCT]: Killing process... Click to interrupt!
-    timeout /t 2 /nobreak >nul
-    echo [SELLCT]: Almost there... Click NOW!
-) else (
-    echo Processing...
-    timeout /t 1 /nobreak >nul
-    echo [SELLCT]: Click this window to abort!
-)
-
-timeout /t {Math.Max(3, 8 - wave)} /nobreak >nul
-
-rem 「成功」メッセージ（実際には何もしない）
-color 0A
-echo.
-echo [SELLCT]: Operation interrupted by user click!
-echo [SELLCT]: You saved your system this time...
-echo [SELLCT]: But I'll be back!
-echo.
-timeout /t 2 /nobreak >nul
-
-rem 自己削除
-del ""%~f0"" 2>nul
-exit
-";
-        }
-
-        /// <summary>
-        /// プレイヤー勝利処理
-        /// </summary>
-        private async Task HandlePlayerVictory()
-        {
-            try
-            {
-                // 全CMDウィンドウを閉じる
-                CloseAllCommandPrompts();
-
-                await Task.Delay(1000);
-
-                MessageBox.Show(
-                    "🎉 おめでとうございます！\n\n" +
-                    "あなたは10Waveを乗り切り、\n" +
-                    "SELLCTの攻撃からシステムを守りました！\n\n" +
-                    "しかし、SELLCTはまだ諦めていません...\n" +
-                    "最後の手段を使ってきます。",
-                    "SELLCT - プレイヤー勝利？",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Information);
-
-                // 強制的にシステム乗っ取り実行
-                await ExecuteSystemTakeover();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error handling player victory: {ex.Message}");
+                Console.WriteLine($"Error in StartCommandPromptSequence: {ex.Message}");
             }
         }
 
@@ -521,7 +331,7 @@ P.S. 再起動後にコマンドプロンプトが起動したら、
                 var startupKey = Registry.CurrentUser.OpenSubKey(
                     "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
 
-                startupKey?.SetValue("SELLCT_RebootMessage", $"cmd /c \"{tempPath}\"");
+                startupKey?.SetValue("SELLCT_RebootMessage", $"cmd /c " + tempPath + "");
 
                 Console.WriteLine("Startup task registered");
             }

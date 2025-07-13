@@ -9,6 +9,7 @@ using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Threading;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using SELLCT.Core.Entities;
 using SELLCT.Infrastructure.Services;
 using SELLCT.Presentation.Views;
@@ -184,8 +185,9 @@ namespace SELLCT.Views
             eventDispatcher.Subscribe<LetterAppearedEvent>(OnLetterAppeared);
             eventDispatcher.Subscribe<LetterClickedEvent>(OnLetterClicked);
             eventDispatcher.Subscribe<Phase2StartedEvent>(OnPhase2Started);
-            eventDispatcher.Subscribe<CommandPromptBattleStartedEvent>(OnCommandPromptBattleStarted);
             eventDispatcher.Subscribe<SystemTakeoverCompletedEvent>(OnSystemTakeoverCompleted);
+            eventDispatcher.Subscribe<MouseComponentDeletionEvent>(OnMouseComponentDeletion);
+            eventDispatcher.Subscribe<DisableMouseInputEvent>(OnDisableMouseInput);
             
 
             // MetaGameController初期化
@@ -264,17 +266,7 @@ namespace SELLCT.Views
             });
         }
 
-        /// <summary>
-        /// コマンドプロンプト攻防戦開始イベントハンドラー
-        /// </summary>
-        private void OnCommandPromptBattleStarted(CommandPromptBattleStartedEvent @event)
-        {
-            Dispatcher.Invoke(() =>
-            {
-                System.Diagnostics.Debug.WriteLine("Command prompt battle started.");
-                // ここでUIの更新などを行う
-            });
-        }
+        
 
         /// <summary>
         /// フェーズ2開始イベントハンドラー
@@ -287,6 +279,35 @@ namespace SELLCT.Views
                 // ここでUIの更新などを行う
             });
         }
+
+        /// <summary>
+        /// マウスコンポーネント削除イベントハンドラー
+        /// </summary>
+        private void OnMouseComponentDeletion(MouseComponentDeletionEvent @event)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                System.Diagnostics.Debug.WriteLine("Mouse component deletion event received.");
+                _componentManager.DeleteComponent("Mouse.txt");
+                UpdateStatusDisplay();
+            });
+        }
+
+        /// <summary>
+        /// マウス入力無効化イベントハンドラー
+        /// </summary>
+        private void OnDisableMouseInput(DisableMouseInputEvent @event)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                System.Diagnostics.Debug.WriteLine("Disable mouse input event received.");
+                // マウス入力を無効化
+                BlockInput(true);
+            });
+        }
+
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        private static extern bool BlockInput(bool fBlockIt);
 
         /// <summary>
         /// 手紙出現イベントハンドラー

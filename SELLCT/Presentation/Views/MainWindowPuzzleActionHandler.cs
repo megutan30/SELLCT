@@ -146,7 +146,7 @@ namespace SELLCT.Presentation.Views
                 _mainWindow.Hide();
 
                 // 裏切り宣言メッセージ表示
-                _mainWindow.DisplayMessage("🎭 開放してくれてありがとう.\n" +
+                MessageBox.Show("🎭 開放してくれてありがとう.\n" +
                     "まんまと騙されてくれてありがとう.\n\n" +
                     "あなたが親切心で追加してくれた機能は,\n" +
                     "すべて私に権限を与えるためのものでした.\n\n" +
