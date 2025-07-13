@@ -23,8 +23,6 @@
                             From="1" To="0" Duration="0:0:0.5"/>
         </Storyboard>
 
-
-
         <Style x:Key="TransparentButtonStyle" TargetType="Button">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderBrush" Value="Transparent"/>
@@ -102,7 +100,8 @@
                     Style="{StaticResource PixelButtonStyle}"
                     Width="200" Height="59" Canvas.Top="504"
                     Click="MainButton_Click"
-                    Visibility="Visible" HorizontalAlignment="Left" VerticalAlignment="Top" Canvas.Left="57"/>
+                    Visibility="Visible" HorizontalAlignment="Left" VerticalAlignment="Top" Canvas.Left="57"
+                    Panel.ZIndex="3"/>
 
             <!--手紙画像 -->
             <Image Name="LetterImage" 
@@ -157,9 +156,9 @@
             <!--：KEY画像 -->
             <Image Name="KeyImage" 
                    Source="/Resources/KEY.png"
-                   Width="60" Height="60"
+                   Width="50" Height="50"
                    Canvas.Left="127" Canvas.Top="503"
-                   Visibility="Collapsed"
+                   Visibility="Visible"
                    MouseLeftButtonDown="Key_Click"
                    Cursor="Hand"
                    Panel.ZIndex="2"/>
