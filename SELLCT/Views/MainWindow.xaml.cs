@@ -49,6 +49,9 @@ namespace SELLCT.Views
 
         private DispatcherTimer _initialLetterTimer;
         private DispatcherTimer _subsequentLetterTimer;
+        
+        // ボタンクリック処理の排他制御フラグ
+        private bool _isButtonProcessing = false;
 
         /// <summary>
         
@@ -332,9 +335,16 @@ namespace SELLCT.Views
         /// </summary>
         public void ShowDialogMessage(params string[] messages)
         {
+            // キューに追加可能かチェック
+            if (!CanAddToQueue())
+            {
+                System.Diagnostics.Debug.WriteLine("[ShowDialogMessage] Cannot add to queue, ignoring messages");
+                return;
+            }
+
             foreach (var msg in messages)
             {
-                _dialogMessageQueue.Enqueue(new DialogItem { Type = DialogItemType.Text, Message = msg });
+                EnqueueUniqueMessage(msg);
             }
 
             if (!_isTyping && !_awaitingChoice && TextWindow.Visibility == Visibility.Visible)
@@ -427,6 +437,23 @@ namespace SELLCT.Views
             {
                 _isTyping = false;
                 _typingTimer.Stop();
+                
+                // タイピング完了時に次のメッセージがある場合は自動処理
+                if (_dialogMessageQueue.Count > 0 && !_awaitingChoice)
+                {
+                    // 少し遅延を設けて自然な流れにする
+                    var delayTimer = new DispatcherTimer();
+                    delayTimer.Interval = TimeSpan.FromMilliseconds(1000);
+                    delayTimer.Tick += (s, args) =>
+                    {
+                        delayTimer.Stop();
+                        if (_dialogMessageQueue.Count > 0 && !_awaitingChoice && !_isTyping)
+                        {
+                            ProcessNextDialogMessage();
+                        }
+                    };
+                    delayTimer.Start();
+                }
             }
         }
 
@@ -506,6 +533,51 @@ namespace SELLCT.Views
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// キューに重複しないメッセージを追加
+        /// </summary>
+        private void EnqueueUniqueMessage(string message)
+        {
+            // 現在表示中のメッセージと同じ場合は追加しない
+            if (_currentFullMessage == message)
+            {
+                System.Diagnostics.Debug.WriteLine($"[EnqueueUniqueMessage] Current message duplicate ignored: {message}");
+                return;
+            }
+
+            // キュー内に同じメッセージが既に存在する場合は追加しない
+            if (_dialogMessageQueue.Any(item => item.Type == DialogItemType.Text && item.Message == message))
+            {
+                System.Diagnostics.Debug.WriteLine($"[EnqueueUniqueMessage] Queue duplicate ignored: {message}");
+                return;
+            }
+            
+            _dialogMessageQueue.Enqueue(new DialogItem { Type = DialogItemType.Text, Message = message });
+            System.Diagnostics.Debug.WriteLine($"[EnqueueUniqueMessage] Message enqueued: {message}");
+        }
+
+        /// <summary>
+        /// キューに追加可能かどうかを判定
+        /// </summary>
+        private bool CanAddToQueue()
+        {
+            // ボタン処理中は追加不可
+            if (_isButtonProcessing)
+            {
+                System.Diagnostics.Debug.WriteLine("[CanAddToQueue] Button processing in progress, cannot add to queue");
+                return false;
+            }
+
+            // 選択肢表示中は追加不可
+            if (_awaitingChoice)
+            {
+                System.Diagnostics.Debug.WriteLine("[CanAddToQueue] Awaiting choice, cannot add to queue");
+                return false;
+            }
+
+            return true;
         }
 
         /// <summary>
@@ -609,23 +681,64 @@ namespace SELLCT.Views
         /// </summary>
         private void HandleUnknownButtonClick(string buttonText)
         {
+            // 排他制御チェック
+            if (_isButtonProcessing)
+            {
+                System.Diagnostics.Debug.WriteLine($"[HandleUnknownButtonClick] Button processing in progress, ignoring click: {buttonText}");
+                return;
+            }
+
+            // キューに追加可能かチェック
+            if (!CanAddToQueue())
+            {
+                System.Diagnostics.Debug.WriteLine($"[HandleUnknownButtonClick] Cannot add to queue, ignoring click: {buttonText}");
+                return;
+            }
+
             if (TextWindow.Visibility != Visibility.Visible) return;
+
             try
             {
+                // ボタン処理開始
+                _isButtonProcessing = true;
+                System.Diagnostics.Debug.WriteLine($"[HandleUnknownButtonClick] Starting button processing: {buttonText}");
+
                 // テキストウィンドウを表示
                 SetTextWindowVisibility(true);
                 
-                string message = $"ボタン名前を変えられるみたいですが、\n";
-                ShowDialogMessage(message);
-                message = $"どうやら'{buttonText}'機能はないようですね。\n";
-                ShowDialogMessage(message);
+                string message1 = $"ボタン名前を変えられるみたいですが、\n";
+                string message2 = $"どうやら'{buttonText}'機能はないようですね。\n";
+                
+                // 重複チェックを使用してキューに追加
+                EnqueueUniqueMessage(message1);
+                EnqueueUniqueMessage(message2);
+                
                 StatusText.Text = $"'{buttonText}'機能について説明を表示しました";
                 
                 System.Diagnostics.Debug.WriteLine($"Unknown button clicked: {buttonText}");
+
+                // キューの処理を開始
+                if (!_isTyping && !_awaitingChoice && _dialogMessageQueue.Count > 0)
+                {
+                    ProcessNextDialogMessage();
+                }
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Error in HandleUnknownButtonClick: {ex.Message}");
+            }
+            finally
+            {
+                // ボタン処理終了（少し遅延を設けて重複クリックを防ぐ）
+                var timer = new DispatcherTimer();
+                timer.Interval = TimeSpan.FromMilliseconds(500);
+                timer.Tick += (s, e) =>
+                {
+                    _isButtonProcessing = false;
+                    timer.Stop();
+                    System.Diagnostics.Debug.WriteLine($"[HandleUnknownButtonClick] Button processing completed: {buttonText}");
+                };
+                timer.Start();
             }
         }
 

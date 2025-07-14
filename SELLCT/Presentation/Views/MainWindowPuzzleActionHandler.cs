@@ -36,7 +36,6 @@ namespace SELLCT.Presentation.Views
                     {
                         case PuzzleAction.ActionType.ShowDialog:
                             _mainWindow.TextWindow.Visibility = Visibility.Visible;
-                            // グローバルクリックキャッチャーを廃止し、MainWindow_MouseDownで処理
                             StartDialogFadeIn();
                             _mainWindow.ShowDialogMessage(action.Message);
                             break;
