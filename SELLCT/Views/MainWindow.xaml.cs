@@ -344,7 +344,7 @@ namespace SELLCT.Views
             else if (TextWindow.Visibility != Visibility.Visible)
             {
                 TextWindow.Visibility = Visibility.Visible;
-                GlobalClickCatcher.Visibility = Visibility.Visible; // グローバルクリックキャッチャーを表示
+                // グローバルクリックキャッチャーを廃止し、MainWindow_MouseDownで処理
                 StartDialogFadeIn();
             }
         }
@@ -363,7 +363,7 @@ namespace SELLCT.Views
             else if (TextWindow.Visibility != Visibility.Visible)
             {
                 TextWindow.Visibility = Visibility.Collapsed;
-                GlobalClickCatcher.Visibility = Visibility.Visible; // グローバルクリックキャッチャーを表示
+                // グローバルクリックキャッチャーを廃止し、MainWindow_MouseDownで処理
                 StartDialogFadeIn();
             }
         }
@@ -398,7 +398,7 @@ namespace SELLCT.Views
                     YesButton.Visibility = Visibility.Visible; // 個別ボタンの可視性を復元
                     NoButton.Visibility = Visibility.Visible; // 個別ボタンの可視性を復元
                     TextWindow.Visibility = Visibility.Collapsed;
-                    GlobalClickCatcher.Visibility = Visibility.Collapsed; 
+                    // グローバルクリックキャッチャーを廃止し、MainWindow_MouseDownで処理 
                     _awaitingChoice = true;
                     _typingTimer.Stop(); // テキストの自動進行を停止
                     System.Diagnostics.Debug.WriteLine("[ProcessNextDialogMessage] Choice displayed. YesButton: {YesButton.Visibility}, NoButton: {NoButton.Visibility}");
@@ -431,13 +431,31 @@ namespace SELLCT.Views
         }
 
         /// <summary>
-        /// グローバルクリックキャッチャー
+        /// メインウィンドウのマウスダウンイベント
         /// </summary>
-        private void GlobalClickCatcher_Click(object sender, RoutedEventArgs e)
+        private void MainWindow_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            System.Diagnostics.Debug.WriteLine($"[GlobalClickCatcher_Click] Click detected. _isTyping: {_isTyping}, _awaitingChoice: {_awaitingChoice}");
+            if (e.ChangedButton != MouseButton.Left) return;
 
-            if (_awaitingChoice) return; // 選択肢表示中はクリックを無視
+            System.Diagnostics.Debug.WriteLine($"[MainWindow_MouseDown] Click detected. _isTyping: {_isTyping}, _awaitingChoice: {_awaitingChoice}");
+
+            // クリック位置でヒットテストを実行
+            var hitTestResult = VisualTreeHelper.HitTest(this, e.GetPosition(this));
+            if (hitTestResult?.VisualHit is FrameworkElement hitElement)
+            {
+                // 優先度の高い要素のクリック処理
+                if (IsHighPriorityElement(hitElement))
+                {
+                    System.Diagnostics.Debug.WriteLine($"[MainWindow_MouseDown] High priority element clicked: {hitElement.Name}");
+                    return; // 優先度の高い要素は個別のイベントハンドラーで処理
+                }
+            }
+
+            // テキストウィンドウが表示されていない場合は何もしない
+            if (TextWindow.Visibility != Visibility.Visible) return;
+
+            // 選択肢表示中はクリックを無視
+            if (_awaitingChoice) return;
 
             if (_isTyping)
             {
@@ -446,14 +464,48 @@ namespace SELLCT.Views
                 _currentMessageCharIndex = _currentFullMessage.Length;
                 _isTyping = false;
                 _typingTimer.Stop();
-                System.Diagnostics.Debug.WriteLine("[GlobalClickCatcher_Click] Text typing skipped.");
+                System.Diagnostics.Debug.WriteLine("[MainWindow_MouseDown] Text typing skipped.");
             }
             else
             {
                 // タイピング完了済みの場合は次のメッセージを処理
                 ProcessNextDialogMessage();
-                System.Diagnostics.Debug.WriteLine("[GlobalClickCatcher_Click] ProcessNextDialogMessage called.");
+                System.Diagnostics.Debug.WriteLine("[MainWindow_MouseDown] ProcessNextDialogMessage called.");
             }
+        }
+
+        /// <summary>
+        /// 優先度の高い要素かどうかを判定
+        /// </summary>
+        private bool IsHighPriorityElement(FrameworkElement element)
+        {
+            if (element == null) return false;
+
+            // 要素自体または親要素を検索
+            var current = element;
+            while (current != null)
+            {
+                // ボタン要素の判定
+                if (current is Button button)
+                {
+                    // MainButton、YesButton、NoButtonは優先度が高い
+                    if (button.Name == "MainButton" || button.Name == "YesButton" || button.Name == "NoButton")
+                    {
+                        return true;
+                    }
+                }
+
+                // KEYイメージの判定
+                if (current.Name == "KeyImage")
+                {
+                    return true;
+                }
+
+                // 親要素を検索
+                current = current.Parent as FrameworkElement;
+            }
+
+            return false;
         }
 
         /// <summary>
