@@ -552,6 +552,24 @@ namespace SELLCT.Infrastructure.Services
         }
 
         /// <summary>
+        /// Yesコンポーネントの存在確認
+        /// </summary>
+        public bool HasYesComponent()
+        {
+            var yesPatterns = new[] { "YES", "yes", "Yes", "はい" };
+            return yesPatterns.Any(pattern => _components.ContainsKey(pattern));
+        }
+
+        /// <summary>
+        /// Noコンポーネントの存在確認
+        /// </summary>
+        public bool HasNoComponent()
+        {
+            var noPatterns = new[] { "NO", "no", "No", "いいえ" };
+            return noPatterns.Any(pattern => _components.ContainsKey(pattern));
+        }
+
+        /// <summary>
         /// 起動時の初期状態リセット（イベント発行なし）
         /// </summary>
         private void ResetToInitialStateOnStartup()

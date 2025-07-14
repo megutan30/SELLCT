@@ -33,6 +33,7 @@ namespace SELLCT.Core.Entities
         public string HiddenItemDisplayName { get; set; }
         public List<PuzzleAction> YesActions { get; set; }
         public List<PuzzleAction> NoActions { get; set; }
+        public List<PuzzleAction> NetherChoiceActions { get; set; }
         
         // 新しい可視性アクションのパラメータ
         public bool IsVisible { get; set; }

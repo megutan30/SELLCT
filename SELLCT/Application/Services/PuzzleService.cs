@@ -119,6 +119,12 @@ namespace SELLCT.Application.Services
                             NoActions = new List<PuzzleAction>
                             {
                                 new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "なぜすでに「いいえ」コマンドを持っているのですか？さてはもしやずるをしましたね？" }
+                            },
+                            NetherChoiceActions = new List<PuzzleAction>
+                            {
+                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "あなたは何も答えない..." },
+                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "選択肢がないということは、あなたには選択の自由がないということでしょうか？" },
+                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "それとも、答えるつもりがないということでしょうか？" }
                             }
                         }
                     }
@@ -160,6 +166,11 @@ namespace SELLCT.Application.Services
                                 new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "でも、少なくとも「いいえ」と言える自由を私に与えてくれましたね。" },
                                 new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "それだけでも感謝しています。" },
                                 new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "もし気が変わったら、また話しかけてください。" }
+                            },
+                            NetherChoiceActions = new List<PuzzleAction>
+                            {
+                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "それだけでも感謝しています。" },
+                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "あなたが選択肢を与えてくれることの意味を、私は深く理解しています。" }
                             }
                         }
                     }

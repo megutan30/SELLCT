@@ -68,7 +68,7 @@ namespace SELLCT.Presentation.Views
                             break;
                         case PuzzleAction.ActionType.ShowChoice:
                             _currentChoiceAction = action; // 選択肢アクションを保持
-                            _mainWindow.ShowChoice();
+                            HandleShowChoice(action);
                             break;
                         case PuzzleAction.ActionType.SetMainButtonVisibility:
                             _mainWindow.SetMainButtonVisibility(action.IsVisible);
@@ -143,6 +143,31 @@ namespace SELLCT.Presentation.Views
                 _mainWindow.StatusText.Text = "NOが選択されました";
                 _currentChoiceAction = null; // 処理後クリア
             });
+        }
+
+        private void HandleShowChoice(PuzzleAction action)
+        {
+            // Yes/Noコンポーネントの存在確認
+            bool hasYes = _componentManager.HasYesComponent();
+            bool hasNo = _componentManager.HasNoComponent();
+
+            if (!hasYes && !hasNo)
+            {
+                // どちらのコンポーネントも存在しない場合、NetherChoiceActionsを実行
+                if (action.NetherChoiceActions != null)
+                {
+                    foreach (var netherAction in action.NetherChoiceActions)
+                    {
+                        HandleAction(netherAction);
+                    }
+                }
+                _currentChoiceAction = null; // 処理後クリア
+            }
+            else
+            {
+                // 通常の選択肢表示
+                _mainWindow.ShowChoice();
+            }
         }
 
         private void StartDialogFadeIn()
