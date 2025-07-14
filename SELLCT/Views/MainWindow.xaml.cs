@@ -395,11 +395,13 @@ namespace SELLCT.Views
                 {
                     // 選択肢を表示
                     ChoiceButtonsPanel.Visibility = Visibility.Visible;
+                    YesButton.Visibility = Visibility.Visible; // 個別ボタンの可視性を復元
+                    NoButton.Visibility = Visibility.Visible; // 個別ボタンの可視性を復元
                     TextWindow.Visibility = Visibility.Collapsed;
                     GlobalClickCatcher.Visibility = Visibility.Collapsed; 
                     _awaitingChoice = true;
                     _typingTimer.Stop(); // テキストの自動進行を停止
-                    System.Diagnostics.Debug.WriteLine("[ProcessNextDialogMessage] Choice displayed.");
+                    System.Diagnostics.Debug.WriteLine("[ProcessNextDialogMessage] Choice displayed. YesButton: {YesButton.Visibility}, NoButton: {NoButton.Visibility}");
                 }
             }
             else
