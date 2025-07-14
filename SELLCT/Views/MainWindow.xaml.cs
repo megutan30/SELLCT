@@ -219,7 +219,7 @@ namespace SELLCT.Views
             var fadeIn = this.Resources["FadeInAnimation"] as Storyboard;
             if (fadeIn != null)
             {
-                Storyboard.SetTarget(fadeIn, DialogWindow);
+                Storyboard.SetTarget(fadeIn, TextWindow);
                 fadeIn.Begin();
             }
         }
@@ -337,13 +337,13 @@ namespace SELLCT.Views
                 _dialogMessageQueue.Enqueue(new DialogItem { Type = DialogItemType.Text, Message = msg });
             }
 
-            if (!_isTyping && !_awaitingChoice && DialogWindow.Visibility == Visibility.Visible)
+            if (!_isTyping && !_awaitingChoice && TextWindow.Visibility == Visibility.Visible)
             {
                 ProcessNextDialogMessage();
             }
-            else if (DialogWindow.Visibility != Visibility.Visible)
+            else if (TextWindow.Visibility != Visibility.Visible)
             {
-                DialogWindow.Visibility = Visibility.Visible;
+                TextWindow.Visibility = Visibility.Visible;
                 GlobalClickCatcher.Visibility = Visibility.Visible; // グローバルクリックキャッチャーを表示
                 StartDialogFadeIn();
             }
@@ -357,12 +357,12 @@ namespace SELLCT.Views
             _dialogMessageQueue.Enqueue(new DialogItem { Type = DialogItemType.Choice });
             if (!_isTyping && !_awaitingChoice)
             {
-                DialogWindow.Visibility = Visibility.Collapsed; // Hide dialog when choice is shown
+                TextWindow.Visibility = Visibility.Collapsed; // Hide dialog when choice is shown
                 ProcessNextDialogMessage();
             }
-            else if (DialogWindow.Visibility != Visibility.Visible)
+            else if (TextWindow.Visibility != Visibility.Visible)
             {
-                DialogWindow.Visibility = Visibility.Collapsed; // Hide dialog when choice is shown
+                TextWindow.Visibility = Visibility.Collapsed; // Hide dialog when choice is shown
                 GlobalClickCatcher.Visibility = Visibility.Visible; // グローバルクリックキャッチャーを表示
                 StartDialogFadeIn();
             }
@@ -395,7 +395,7 @@ namespace SELLCT.Views
                 {
                     // 選択肢を表示
                     ChoiceButtonsPanel.Visibility = Visibility.Visible;
-                    DialogWindow.Visibility = Visibility.Collapsed; // Hide dialog when choice is shown
+                    TextWindow.Visibility = Visibility.Collapsed; // Hide dialog when choice is shown
                     GlobalClickCatcher.Visibility = Visibility.Collapsed; // Hide global click catcher when choice is shown
                     _awaitingChoice = true;
                     _typingTimer.Stop(); // テキストの自動進行を停止
@@ -501,6 +501,7 @@ namespace SELLCT.Views
         {
             try
             {
+                string buttonText = MainButton.Content.ToString();
                 StatusText.Text = "メインボタンがクリックされました";
 
                 // 最初の手紙タイマーを開始
@@ -510,7 +511,7 @@ namespace SELLCT.Views
                     StatusText.Text = "手紙の到着を待っています...";
                 }
 
-                if (MainButton.Content.ToString() == "アップロード")
+                if (buttonText == "アップロード")
                 {
                     // アップロード機能（見せかけ）
                     var dialog = new Microsoft.Win32.OpenFileDialog
@@ -528,10 +529,49 @@ namespace SELLCT.Views
                         ShowDialogMessage("ファイルアクセス権限を取得しました。\n最後の障壁を取り除いてください。\nButton.componentを削除してください。");
                     }
                 }
+                else if (!IsKnownButtonText(buttonText))
+                {
+                    // 未設定の名前の場合、テキストウィンドウに表示
+                    HandleUnknownButtonClick(buttonText);
+                }
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Error in MainButton_Click: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// 既知のボタンテキストかどうかをチェック
+        /// </summary>
+        private bool IsKnownButtonText(string buttonText)
+        {
+            string[] knownTexts = { "Button", "アップロード", "TextWindow", "YES", "NO" };
+            return Array.Exists(knownTexts, text => text.Equals(buttonText, StringComparison.OrdinalIgnoreCase));
+        }
+
+        /// <summary>
+        /// 未知のボタンクリック処理
+        /// </summary>
+        private void HandleUnknownButtonClick(string buttonText)
+        {
+            if (TextWindow.Visibility != Visibility.Visible) return;
+            try
+            {
+                // テキストウィンドウを表示
+                SetTextWindowVisibility(true);
+                
+                string message = $"ボタン名前を変えられるみたいですが、\n";
+                ShowDialogMessage(message);
+                message = $"どうやら'{buttonText}'機能はないようですね。\n";
+                ShowDialogMessage(message);
+                StatusText.Text = $"'{buttonText}'機能について説明を表示しました";
+                
+                System.Diagnostics.Debug.WriteLine($"Unknown button clicked: {buttonText}");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error in HandleUnknownButtonClick: {ex.Message}");
             }
         }
 
@@ -603,7 +643,7 @@ namespace SELLCT.Views
                 // KEYクリック処理：手紙同様に消失
                 KeyImage.Visibility = Visibility.Collapsed;
 
-                if (DialogWindow.Visibility == Visibility.Visible)
+                if (TextWindow.Visibility == Visibility.Visible)
                 {
                     ShowDialogMessage("鍵を手に入れました！でも、真の解放のためには...GameWindow.componentを削除してください。");
                 }
@@ -709,8 +749,8 @@ namespace SELLCT.Views
 
         public void SetTextWindowVisibility(bool isVisible)
         {
-            // DialogWindowがTextWindowであると仮定
-            DialogWindow.Visibility = isVisible ? Visibility.Visible : Visibility.Collapsed;
+            // TextWindowの表示/非表示を設定
+            TextWindow.Visibility = isVisible ? Visibility.Visible : Visibility.Collapsed;
         }
 
         public void DisableMouseInput()

@@ -72,7 +72,7 @@
             </Setter>
         </Style>
 
-        <Style x:Key="DialogWindowStyle" TargetType="Border">
+        <Style x:Key="TextWindowStyle" TargetType="Border">
             <Setter Property="Background" Value="Black"/>
             <Setter Property="BorderBrush" Value="White"/>
             <Setter Property="BorderThickness" Value="5"/>
@@ -122,9 +122,9 @@
                 </Image.RenderTransform>
             </Image>
 
-            <!--：対話ウィンドウ -->
-            <Border Name="DialogWindow" 
-                    Style="{StaticResource DialogWindowStyle}"
+            <!--：テキストウィンドウ -->
+            <Border Name="TextWindow" 
+                    Style="{StaticResource TextWindowStyle}"
                     Width="450" Height="90"
                     Canvas.Left="350" Canvas.Top="488"
                     Visibility="Collapsed"

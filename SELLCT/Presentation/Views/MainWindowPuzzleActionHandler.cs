@@ -35,14 +35,15 @@ namespace SELLCT.Presentation.Views
                     switch (action.Type)
                     {
                         case PuzzleAction.ActionType.ShowDialog:
-                            _mainWindow.DialogWindow.Visibility = Visibility.Visible;
+                            _mainWindow.TextWindow.Visibility = Visibility.Visible;
                             _mainWindow.GlobalClickCatcher.Visibility = Visibility.Visible;
                             StartDialogFadeIn();
                             _mainWindow.ShowDialogMessage(action.Message);
                             break;
                         case PuzzleAction.ActionType.ChangeMainButtonContent:
                             _mainWindow.MainButton.Content = action.NewContent;
-                            _mainWindow.StatusText.Text = $"{action.NewContent}機能が有効になりました";
+                            _mainWindow.StatusText.Text = $"ボタンテキストが'{action.NewContent}'に変更されました";
+                            System.Diagnostics.Debug.WriteLine($"MainButton text updated to: {action.NewContent}");
                             break;
                         case PuzzleAction.ActionType.RevealHiddenItem:
                             _componentManager.RevealHiddenItem(action.HiddenItemFolder, action.TargetComponent, action.HiddenItemDisplayName);
@@ -150,7 +151,7 @@ namespace SELLCT.Presentation.Views
             var fadeIn = _mainWindow.Resources["FadeInAnimation"] as Storyboard;
             if (fadeIn != null)
             {
-                Storyboard.SetTarget(fadeIn, _mainWindow.DialogWindow);
+                Storyboard.SetTarget(fadeIn, _mainWindow.TextWindow);
                 fadeIn.Begin();
             }
         }

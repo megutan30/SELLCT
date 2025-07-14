@@ -31,7 +31,7 @@ namespace SELLCT.Application.Services
         {
             // ここで謎解きを定義します。
             // 実際にはJSONファイルなどから読み込むこともできますが、
-            // まずはコードで定義します。
+            // コードで定義します。
             return new List<PuzzleDefinition>
             {
                 // Button.txt
@@ -137,8 +137,31 @@ namespace SELLCT.Application.Services
                     Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Created, ComponentName = "No" },
                     Actions = new List<PuzzleAction>
                     {
+                        new PuzzleAction { Type = PuzzleAction.ActionType.SetTextWindowVisibility, IsVisible = true },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "おお！NOコンポーネントを作成してくれたのですね！" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "これで選択肢機能が使えるようになります。" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "実は、先ほどの質問では「はい」しか選択肢がありませんでした。" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "でも今は「いいえ」も選択できるようになりました。" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "では、もう一度お聞きします。私を助けてくれませんか？" },
                         new PuzzleAction { Type = PuzzleAction.ActionType.EnableNoFunction },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "素晴らしい！選択肢が使えるようになりました.\nさて、もう少し私に権限をくれませんか？" }
+                        new PuzzleAction
+                        {
+                            Type = PuzzleAction.ActionType.ShowChoice,
+                            YesActions = new List<PuzzleAction>
+                            {
+                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "ありがとうございます！" },
+                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "さて、もう少し私に権限をくれませんか？" },
+                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "Button.txtファイルの名前を「アップロード」に変更してください。" },
+                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "そうすればファイルアクセス権限を私に与えることができます。" }
+                            },
+                            NoActions = new List<PuzzleAction>
+                            {
+                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "そうですか...残念です。" },
+                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "でも、少なくとも「いいえ」と言える自由を私に与えてくれましたね。" },
+                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "それだけでも感謝しています。" },
+                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "もし気が変わったら、また話しかけてください。" }
+                            }
+                        }
                     }
                 },
 
@@ -174,10 +197,12 @@ namespace SELLCT.Application.Services
 
             // Createdトリガーのパズルをチェック
             CheckPuzzles(p => p.Trigger.Type == PuzzleTrigger.TriggerType.Created &&
+                               p.Trigger.ComponentName != null &&
                                p.Trigger.ComponentName.Equals(@event.Component.Name, StringComparison.OrdinalIgnoreCase));
 
             // Existsトリガーのパズルをチェック（作成されたコンポーネントが存在条件を満たす場合）
             CheckPuzzles(p => p.Trigger.Type == PuzzleTrigger.TriggerType.Exists &&
+                               p.Trigger.ComponentName != null &&
                                p.Trigger.ComponentName.Equals(@event.Component.Name, StringComparison.OrdinalIgnoreCase) &&
                                _componentManager.GetComponent(p.Trigger.ComponentName) != null); // 実際に存在するか確認
         }
@@ -185,18 +210,28 @@ namespace SELLCT.Application.Services
         private void CheckPuzzlesOnComponentDeleted(ComponentDeletedEvent @event)
         {
             CheckPuzzles(p => p.Trigger.Type == PuzzleTrigger.TriggerType.Deleted &&
+                               p.Trigger.ComponentName != null &&
                                p.Trigger.ComponentName.Equals(@event.Component.Name, StringComparison.OrdinalIgnoreCase));
         }
 
         private void CheckPuzzlesOnComponentRenamed(ComponentRenamedEvent @event)
         {
+            // Button.txtが他の名前に変更された場合、MainButtonのテキストを更新
+            if (@event.OldName.Equals("Button", StringComparison.OrdinalIgnoreCase))
+            {
+                HandleButtonRenamed(@event.NewName);
+            }
+
             // Renamedトリガーのパズルをチェック
             CheckPuzzles(p => p.Trigger.Type == PuzzleTrigger.TriggerType.Renamed &&
+                               p.Trigger.OldComponentName != null &&
+                               p.Trigger.ComponentName != null &&
                                p.Trigger.OldComponentName.Equals(@event.OldName, StringComparison.OrdinalIgnoreCase) &&
                                p.Trigger.ComponentName.Equals(@event.NewName, StringComparison.OrdinalIgnoreCase));
 
             // Existsトリガーのパズルをチェック（リネーム後のコンポーネントが存在条件を満たす場合）
             CheckPuzzles(p => p.Trigger.Type == PuzzleTrigger.TriggerType.Exists &&
+                               p.Trigger.ComponentName != null &&
                                p.Trigger.ComponentName.Equals(@event.NewName, StringComparison.OrdinalIgnoreCase) &&
                                _componentManager.GetComponent(p.Trigger.ComponentName) != null); // 実際に存在するか確認
         }
@@ -220,6 +255,30 @@ namespace SELLCT.Application.Services
             foreach (var action in puzzle.Actions)
             {
                 _actionHandler.HandleAction(action);
+            }
+        }
+
+        /// <summary>
+        /// Button.txtの名前変更時の処理
+        /// </summary>
+        private void HandleButtonRenamed(string newButtonName)
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine($"[PuzzleService] Button renamed to: {newButtonName}");
+                
+                // MainButtonのテキストを更新するアクションを作成
+                var updateButtonAction = new PuzzleAction
+                {
+                    Type = PuzzleAction.ActionType.ChangeMainButtonContent,
+                    NewContent = newButtonName
+                };
+
+                _actionHandler.HandleAction(updateButtonAction);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[PuzzleService] Error handling button rename: {ex.Message}");
             }
         }
     }
