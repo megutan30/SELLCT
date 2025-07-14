@@ -570,6 +570,15 @@ namespace SELLCT.Infrastructure.Services
         }
 
         /// <summary>
+        /// TextWindowコンポーネントの存在確認
+        /// </summary>
+        public bool HasTextWindowComponent()
+        {
+            var textWindowPatterns = new[] { "TextWindow", "textwindow", "TEXTWINDOW" };
+            return textWindowPatterns.Any(pattern => _components.ContainsKey(pattern));
+        }
+
+        /// <summary>
         /// 起動時の初期状態リセット（イベント発行なし）
         /// </summary>
         private void ResetToInitialStateOnStartup()

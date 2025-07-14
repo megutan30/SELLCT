@@ -35,9 +35,13 @@ namespace SELLCT.Presentation.Views
                     switch (action.Type)
                     {
                         case PuzzleAction.ActionType.ShowDialog:
-                            _mainWindow.TextWindow.Visibility = Visibility.Visible;
-                            StartDialogFadeIn();
-                            _mainWindow.ShowDialogMessage(action.Message);
+                            // TextWindowコンポーネントが存在する場合のみダイアログを表示
+                            if (_componentManager.HasTextWindowComponent())
+                            {
+                                _mainWindow.TextWindow.Visibility = Visibility.Visible;
+                                StartDialogFadeIn();
+                                _mainWindow.ShowDialogMessage(action.Message);
+                            }
                             break;
                         case PuzzleAction.ActionType.ChangeMainButtonContent:
                             _mainWindow.MainButton.Content = action.NewContent;
