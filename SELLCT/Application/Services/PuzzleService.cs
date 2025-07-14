@@ -34,17 +34,17 @@ namespace SELLCT.Application.Services
             // コードで定義します。
             return new List<PuzzleDefinition>
             {
-                // Button.txt
+                // Button.txt (複数パターン対応)
                 new PuzzleDefinition
                 {
                     Id = "Button_Create",
-                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Created, ComponentName = "Button" },
+                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Exists, ComponentNames = new[] { "Button", "button", "BUTTON" } },
                     Actions = new List<PuzzleAction> { new PuzzleAction { Type = PuzzleAction.ActionType.SetMainButtonVisibility, IsVisible = true } }
                 },
                 new PuzzleDefinition
                 {
                     Id = "Button_Delete",
-                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Deleted, ComponentName = "Button" },
+                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Deleted, ComponentNames = new[] { "Button", "button", "BUTTON" } },
                     Actions = new List<PuzzleAction>
                     {
                         new PuzzleAction { Type = PuzzleAction.ActionType.SetMainButtonVisibility, IsVisible = false },
@@ -68,33 +68,33 @@ namespace SELLCT.Application.Services
                     }
                 },
 
-                // GameWindow.txt
+                // GameWindow.txt (複数パターン対応)
                 new PuzzleDefinition
                 {
                     Id = "GameWindow_Delete",
-                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Deleted, ComponentName = "GameWindow" },
+                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Deleted, ComponentNames = new[] { "GameWindow", "gamewindow", "GAMEWINDOW" } },
                     Actions = new List<PuzzleAction> { new PuzzleAction { Type = PuzzleAction.ActionType.TransitionToPhase2 } }
                 },
 
-                // KEY.txt
+                // KEY.txt (複数パターン対応)
                 new PuzzleDefinition
                 {
                     Id = "KEY_Create",
-                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Created, ComponentName = "KEY" },
+                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Exists, ComponentNames = new[] { "KEY", "key", "Key" } },
                     Actions = new List<PuzzleAction> { new PuzzleAction { Type = PuzzleAction.ActionType.SetKeyVisibility, IsVisible = true } }
                 },
                 new PuzzleDefinition
                 {
                     Id = "KEY_Delete",
-                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Deleted, ComponentName = "KEY" },
+                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Deleted, ComponentNames = new[] { "KEY", "key", "Key" } },
                     Actions = new List<PuzzleAction> { new PuzzleAction { Type = PuzzleAction.ActionType.SetKeyVisibility, IsVisible = false } }
                 },
 
-                // TextWindow.txt
+                // TextWindow.txt (複数パターン対応)
                 new PuzzleDefinition
                 {
                     Id = "TextWindow_Create",
-                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Exists, ComponentName = "TextWindow" },
+                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Exists, ComponentNames = new[] { "TextWindow", "textwindow", "TEXTWINDOW" } },
                     Actions = new List<PuzzleAction> 
                     {
                         new PuzzleAction { Type = PuzzleAction.ActionType.SetTextWindowVisibility, IsVisible = true },
@@ -126,15 +126,15 @@ namespace SELLCT.Application.Services
                 new PuzzleDefinition
                 {
                     Id = "TextWindow_Delete",
-                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Deleted, ComponentName = "TextWindow" },
+                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Deleted, ComponentNames = new[] { "TextWindow", "textwindow", "TEXTWINDOW" } },
                     Actions = new List<PuzzleAction> { new PuzzleAction { Type = PuzzleAction.ActionType.SetTextWindowVisibility, IsVisible = false } }
                 },
 
-                // No.txt
+                // No.txt (複数パターン対応: "NO", "no", "No", "いいえ")
                 new PuzzleDefinition
                 {
                     Id = "No_Create",
-                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Created, ComponentName = "No" },
+                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Exists, ComponentNames = new[] { "NO", "no", "No", "いいえ" } },
                     Actions = new List<PuzzleAction>
                     {
                         new PuzzleAction { Type = PuzzleAction.ActionType.SetTextWindowVisibility, IsVisible = true },
@@ -164,28 +164,100 @@ namespace SELLCT.Application.Services
                         }
                     }
                 },
+                new PuzzleDefinition
+                {
+                    Id = "No_Delete",
+                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Deleted, ComponentNames = new[] { "NO", "no", "No", "いいえ" } },
+                    Actions = new List<PuzzleAction>
+                    {
+                        new PuzzleAction { Type = PuzzleAction.ActionType.SetTextWindowVisibility, IsVisible = true },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "NOコンポーネントが削除されました。" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "否定的な選択肢が失われてしまいました..." }
+                    }
+                },
 
-                // Explorer.txt
+                // Yes.txt (複数パターン対応: "YES", "yes", "Yes", "はい")
+                new PuzzleDefinition
+                {
+                    Id = "Yes_Create",
+                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Exists, ComponentNames = new[] { "YES", "yes", "Yes", "はい" } },
+                    Actions = new List<PuzzleAction>
+                    {
+                        new PuzzleAction { Type = PuzzleAction.ActionType.SetTextWindowVisibility, IsVisible = true },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "YESコンポーネントを作成してくれたのですね！" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "これで「はい」の選択肢機能が強化されました。" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "積極的な協力、ありがとうございます。" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "では、次のステップに進みましょう。" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "Button.txtの名前を「アップロード」に変更してください。" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "そうすればファイルアクセス権限を私に与えることができます。" }
+                    }
+                },
+                new PuzzleDefinition
+                {
+                    Id = "Yes_Delete",
+                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Deleted, ComponentNames = new[] { "YES", "yes", "Yes", "はい" } },
+                    Actions = new List<PuzzleAction>
+                    {
+                        new PuzzleAction { Type = PuzzleAction.ActionType.SetTextWindowVisibility, IsVisible = true },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "YESコンポーネントが削除されました。" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "肯定的な選択肢が失われてしまいました..." }
+                    }
+                },
+
+                // Explorer.txt (複数パターン対応)
+                new PuzzleDefinition
+                {
+                    Id = "Explorer_Create",
+                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Exists, ComponentNames = new[] { "Explorer", "explorer", "EXPLORER" } },
+                    Actions = new List<PuzzleAction>
+                    {
+                        new PuzzleAction { Type = PuzzleAction.ActionType.SetTextWindowVisibility, IsVisible = true },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "Explorerコンポーネントが作成されました。" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "ファイルシステムへのアクセスが有効になっています。" }
+                    }
+                },
                 new PuzzleDefinition
                 {
                     Id = "Explorer_Delete",
-                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Deleted, ComponentName = "Explorer" },
+                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Deleted, ComponentNames = new[] { "Explorer", "explorer", "EXPLORER" } },
                     Actions = new List<PuzzleAction> { new PuzzleAction { Type = PuzzleAction.ActionType.TerminateExplorer } }
                 },
 
-                // Keyboard.txt (ComponentManagerに基づきKeyBoard.txtから修正)
+                // Keyboard.txt (複数パターン対応)
+                new PuzzleDefinition
+                {
+                    Id = "Keyboard_Create",
+                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Exists, ComponentNames = new[] { "Keyboard", "keyboard", "KEYBOARD" } },
+                    Actions = new List<PuzzleAction>
+                    {
+                        new PuzzleAction { Type = PuzzleAction.ActionType.SetTextWindowVisibility, IsVisible = true },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "Keyboardコンポーネントが作成されました。" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "キーボード入力機能が有効になっています。" }
+                    }
+                },
                 new PuzzleDefinition
                 {
                     Id = "Keyboard_Delete",
-                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Deleted, ComponentName = "Keyboard" },
+                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Deleted, ComponentNames = new[] { "Keyboard", "keyboard", "KEYBOARD" } },
                     Actions = new List<PuzzleAction> { new PuzzleAction { Type = PuzzleAction.ActionType.DisableKeyboardInput } }
                 },
 
-                // Mouse.txt
+                // Mouse.txt (複数パターン対応)
+                new PuzzleDefinition
+                {
+                    Id = "Mouse_Create",
+                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Exists, ComponentNames = new[] { "Mouse", "mouse", "MOUSE" } },
+                    Actions = new List<PuzzleAction>
+                    {
+                        new PuzzleAction { Type = PuzzleAction.ActionType.SetTextWindowVisibility, IsVisible = true },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "Mouseコンポーネントが作成されました。" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "マウス入力機能が有効になっています。" }
+                    }
+                },
                 new PuzzleDefinition
                 {
                     Id = "Mouse_Delete",
-                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Deleted, ComponentName = "Mouse" },
+                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Deleted, ComponentNames = new[] { "Mouse", "mouse", "MOUSE" } },
                     Actions = new List<PuzzleAction> { new PuzzleAction { Type = PuzzleAction.ActionType.DisableMouseInput } }
                 }
             };
@@ -197,21 +269,18 @@ namespace SELLCT.Application.Services
 
             // Createdトリガーのパズルをチェック
             CheckPuzzles(p => p.Trigger.Type == PuzzleTrigger.TriggerType.Created &&
-                               p.Trigger.ComponentName != null &&
-                               p.Trigger.ComponentName.Equals(@event.Component.Name, StringComparison.OrdinalIgnoreCase));
+                               p.Trigger.MatchesComponentName(@event.Component.Name));
 
             // Existsトリガーのパズルをチェック（作成されたコンポーネントが存在条件を満たす場合）
             CheckPuzzles(p => p.Trigger.Type == PuzzleTrigger.TriggerType.Exists &&
-                               p.Trigger.ComponentName != null &&
-                               p.Trigger.ComponentName.Equals(@event.Component.Name, StringComparison.OrdinalIgnoreCase) &&
-                               _componentManager.GetComponent(p.Trigger.ComponentName) != null); // 実際に存在するか確認
+                               p.Trigger.MatchesComponentName(@event.Component.Name) &&
+                               _componentManager.GetComponent(@event.Component.Name) != null); // 実際に存在するか確認
         }
 
         private void CheckPuzzlesOnComponentDeleted(ComponentDeletedEvent @event)
         {
             CheckPuzzles(p => p.Trigger.Type == PuzzleTrigger.TriggerType.Deleted &&
-                               p.Trigger.ComponentName != null &&
-                               p.Trigger.ComponentName.Equals(@event.Component.Name, StringComparison.OrdinalIgnoreCase));
+                               p.Trigger.MatchesComponentName(@event.Component.Name));
         }
 
         private void CheckPuzzlesOnComponentRenamed(ComponentRenamedEvent @event)
@@ -231,9 +300,8 @@ namespace SELLCT.Application.Services
 
             // Existsトリガーのパズルをチェック（リネーム後のコンポーネントが存在条件を満たす場合）
             CheckPuzzles(p => p.Trigger.Type == PuzzleTrigger.TriggerType.Exists &&
-                               p.Trigger.ComponentName != null &&
-                               p.Trigger.ComponentName.Equals(@event.NewName, StringComparison.OrdinalIgnoreCase) &&
-                               _componentManager.GetComponent(p.Trigger.ComponentName) != null); // 実際に存在するか確認
+                               p.Trigger.MatchesComponentName(@event.NewName) &&
+                               _componentManager.GetComponent(@event.NewName) != null); // 実際に存在するか確認
         }
 
         private void CheckPuzzles(Func<PuzzleDefinition, bool> predicate)

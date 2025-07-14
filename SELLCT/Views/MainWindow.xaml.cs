@@ -357,12 +357,12 @@ namespace SELLCT.Views
             _dialogMessageQueue.Enqueue(new DialogItem { Type = DialogItemType.Choice });
             if (!_isTyping && !_awaitingChoice)
             {
-                TextWindow.Visibility = Visibility.Collapsed; // Hide dialog when choice is shown
+                TextWindow.Visibility = Visibility.Collapsed;
                 ProcessNextDialogMessage();
             }
             else if (TextWindow.Visibility != Visibility.Visible)
             {
-                TextWindow.Visibility = Visibility.Collapsed; // Hide dialog when choice is shown
+                TextWindow.Visibility = Visibility.Collapsed;
                 GlobalClickCatcher.Visibility = Visibility.Visible; // グローバルクリックキャッチャーを表示
                 StartDialogFadeIn();
             }
@@ -395,8 +395,8 @@ namespace SELLCT.Views
                 {
                     // 選択肢を表示
                     ChoiceButtonsPanel.Visibility = Visibility.Visible;
-                    TextWindow.Visibility = Visibility.Collapsed; // Hide dialog when choice is shown
-                    GlobalClickCatcher.Visibility = Visibility.Collapsed; // Hide global click catcher when choice is shown
+                    TextWindow.Visibility = Visibility.Collapsed;
+                    GlobalClickCatcher.Visibility = Visibility.Collapsed; 
                     _awaitingChoice = true;
                     _typingTimer.Stop(); // テキストの自動進行を停止
                     System.Diagnostics.Debug.WriteLine("[ProcessNextDialogMessage] Choice displayed.");
