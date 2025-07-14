@@ -42,10 +42,9 @@ namespace SELLCT.Infrastructure.Services
             _components = new Dictionary<string, GameComponent>();
             _debounceTimer = new Timer(OnDebounceElapsed, null, Timeout.Infinite, Timeout.Infinite);
 
-            CreateComponentsFolder();
-            CreateInitialComponents();
+            // 起動時にcomponentsフォルダを初期状態にリセット
+            ResetToInitialStateOnStartup();
             SetupFileWatcher();
-            LoadExistingComponents();
         }
 
         /// <summary>
@@ -110,7 +109,23 @@ namespace SELLCT.Infrastructure.Services
                 Directory.CreateDirectory(directory);
             }
 
+            // 既存ファイルがあれば削除してから作成
+            if (File.Exists(fullPath))
+            {
+                try
+                {
+                    File.SetAttributes(fullPath, FileAttributes.Normal);
+                    File.Delete(fullPath);
+                    System.Diagnostics.Debug.WriteLine($"Deleted existing component file: {fullPath}");
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Failed to delete existing component file {fullPath}: {ex.Message}");
+                }
+            }
+
             File.WriteAllText(fullPath, content);
+            System.Diagnostics.Debug.WriteLine($"Created component file: {fullPath}");
         }
 
         /// <summary>
@@ -126,25 +141,29 @@ namespace SELLCT.Infrastructure.Services
                 Directory.CreateDirectory(directory);
             }
 
-            if (!File.Exists(fullPath))
+            // 既存ファイルがあれば削除してから作成
+            if (File.Exists(fullPath))
             {
-                File.WriteAllText(fullPath, content);
-                System.Diagnostics.Debug.WriteLine($"Created hidden file: {fullPath}");
+                try
+                {
+                    File.SetAttributes(fullPath, FileAttributes.Normal);
+                    File.Delete(fullPath);
+                    System.Diagnostics.Debug.WriteLine($"Deleted existing file: {fullPath}");
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Failed to delete existing file {fullPath}: {ex.Message}");
+                }
             }
-            else
-            {
-                System.Diagnostics.Debug.WriteLine($"Hidden file already exists: {fullPath}. Skipping creation.");
-            }
+
+            File.WriteAllText(fullPath, content);
+            System.Diagnostics.Debug.WriteLine($"Created hidden file: {fullPath}");
 
             // 隠しファイル属性設定
             try
             {
-                FileAttributes attributes = File.GetAttributes(fullPath);
-                if ((attributes & FileAttributes.Hidden) != FileAttributes.Hidden)
-                {
-                    File.SetAttributes(fullPath, attributes | FileAttributes.Hidden);
-                    System.Diagnostics.Debug.WriteLine($"Set hidden attribute for: {fullPath}");
-                }
+                File.SetAttributes(fullPath, File.GetAttributes(fullPath) | FileAttributes.Hidden);
+                System.Diagnostics.Debug.WriteLine($"Set hidden attribute for: {fullPath}");
             }
             catch (Exception ex)
             {
@@ -530,6 +549,35 @@ namespace SELLCT.Infrastructure.Services
         public IEnumerable<GameComponent> GetVisibleComponents()
         {
             return _components.Values.Where(c => c.IsVisible);
+        }
+
+        /// <summary>
+        /// 起動時の初期状態リセット（イベント発行なし）
+        /// </summary>
+        private void ResetToInitialStateOnStartup()
+        {
+            try
+            {
+                // Clear current components
+                _components.Clear();
+
+                // Delete and recreate the components directory
+                if (Directory.Exists(_componentsPath))
+                {
+                    Directory.Delete(_componentsPath, true);
+                    System.Diagnostics.Debug.WriteLine("Deleted existing components folder");
+                }
+                
+                CreateComponentsFolder();
+                CreateInitialComponents();
+                LoadExistingComponents();
+
+                System.Diagnostics.Debug.WriteLine("Components folder reset to initial state on startup");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error resetting components folder on startup: {ex.Message}");
+            }
         }
 
         /// <summary>
