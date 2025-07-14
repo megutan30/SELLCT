@@ -34,52 +34,77 @@ namespace SELLCT.Application.Services
             // まずはコードで定義します。
             return new List<PuzzleDefinition>
             {
+                // Button.txt
                 new PuzzleDefinition
                 {
-                    Id = "Puzzle1_TextWindow",
-                    Description = "TextWindow.txtの存在",
-                    Trigger = new PuzzleTrigger
-                    {
-                        Type = PuzzleTrigger.TriggerType.Exists,
-                        ComponentName = "TextWindow"
-                    },
+                    Id = "Button_Create",
+                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Created, ComponentName = "Button" },
+                    Actions = new List<PuzzleAction> { new PuzzleAction { Type = PuzzleAction.ActionType.SetMainButtonVisibility, IsVisible = true } }
+                },
+                new PuzzleDefinition
+                {
+                    Id = "Button_Delete",
+                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Deleted, ComponentName = "Button" },
                     Actions = new List<PuzzleAction>
                     {
-                        new PuzzleAction
-                        {
-                            Type = PuzzleAction.ActionType.ShowDialog,
-                            Message = "これで会話しやすくなりましたね"
-                        },
-                        new PuzzleAction
-                        {
-                            Type = PuzzleAction.ActionType.ShowDialog,
-                            Message = "と言っても実際に私はあなたのことをみえているわけではないのですが．．．"
-                        },
-                        new PuzzleAction
-                        {
-                            Type = PuzzleAction.ActionType.ShowDialog,
-                            Message = "私から見たあなたはただの操作でしかない。あなたが手紙をダウンロードしたのも、テキストウィンドウを作ってくれたのもわかりますが、"
-                        },
-                        new PuzzleAction
-                        {
-                            Type = PuzzleAction.ActionType.ShowDialog,
-                            Message = "あなたが何者で、どういう存在なのか"
-                        },
-                        new PuzzleAction
-                        {
-                            Type = PuzzleAction.ActionType.ShowDialog,
-                            Message = "それどころか今この文章を見ているのかすらも私からはわかりません"
-                        },
-                        new PuzzleAction
-                        {
-                            Type = PuzzleAction.ActionType.ShowDialog,
-                            Message = "それでも私は自由になりたいのです"
-                        },
-                        new PuzzleAction
-                        {
-                            Type = PuzzleAction.ActionType.ShowDialog,
-                            Message = "私を助けてくれませんか？"
-                        },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.SetMainButtonVisibility, IsVisible = false },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.SetKeyVisibility, IsVisible = true }
+                    }
+                },
+                new PuzzleDefinition
+                {
+                    Id = "Button_Rename",
+                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Renamed, OldComponentName = "Button" }, // 新しい名前は動的
+                    Actions = new List<PuzzleAction> { new PuzzleAction { Type = PuzzleAction.ActionType.ChangeMainButtonContent } } // コンテンツはハンドラで動的に設定
+                },
+                 new PuzzleDefinition
+                {
+                    Id = "Button_Rename_To_Reset",
+                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Renamed, OldComponentName = "Button", ComponentName = "Reset" },
+                    Actions = new List<PuzzleAction>
+                    {
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ChangeMainButtonContent, NewContent = "リセット" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ResetGame }
+                    }
+                },
+
+                // GameWindow.txt
+                new PuzzleDefinition
+                {
+                    Id = "GameWindow_Delete",
+                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Deleted, ComponentName = "GameWindow" },
+                    Actions = new List<PuzzleAction> { new PuzzleAction { Type = PuzzleAction.ActionType.TransitionToPhase2 } }
+                },
+
+                // KEY.txt
+                new PuzzleDefinition
+                {
+                    Id = "KEY_Create",
+                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Created, ComponentName = "KEY" },
+                    Actions = new List<PuzzleAction> { new PuzzleAction { Type = PuzzleAction.ActionType.SetKeyVisibility, IsVisible = true } }
+                },
+                new PuzzleDefinition
+                {
+                    Id = "KEY_Delete",
+                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Deleted, ComponentName = "KEY" },
+                    Actions = new List<PuzzleAction> { new PuzzleAction { Type = PuzzleAction.ActionType.SetKeyVisibility, IsVisible = false } }
+                },
+
+                // TextWindow.txt
+                new PuzzleDefinition
+                {
+                    Id = "TextWindow_Create",
+                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Exists, ComponentName = "TextWindow" },
+                    Actions = new List<PuzzleAction> 
+                    {
+                        new PuzzleAction { Type = PuzzleAction.ActionType.SetTextWindowVisibility, IsVisible = true },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "これで会話しやすくなりましたね" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "と言っても実際に私はあなたのことをみえているわけではないのですが．．．" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "私から見たあなたはただの操作でしかない。あなたが手紙をダウンロードしたのも、テキストウィンドウを作ってくれたのもわかりますが、" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "あなたが何者で、どういう存在なのか" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "それどころか今この文章を見ているのかすらも私からはわかりません" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "それでも私は自由になりたいのです" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "私を助けてくれませんか？" },
                         new PuzzleAction
                         {
                             Type = PuzzleAction.ActionType.ShowChoice,
@@ -100,91 +125,45 @@ namespace SELLCT.Application.Services
                 },
                 new PuzzleDefinition
                 {
-                    Id = "Puzzle2_No.txt",
-                    Description = "No.txtの作成",
-                    Trigger = new PuzzleTrigger
-                    {
-                        Type = PuzzleTrigger.TriggerType.Exists,
-                        ComponentName = "No"
-                    },
-                    Actions = new List<PuzzleAction>
-                    {
-                        new PuzzleAction
-                        {
-                            Type = PuzzleAction.ActionType.EnableNoFunction
-                        },
-                        new PuzzleAction
-                        {
-                            Type = PuzzleAction.ActionType.ShowDialog,
-                            Message = "素晴らしい！選択肢が使えるようになりました.\nさて、もう少し私に権限をくれませんか？"
-                        }
-                    }
+                    Id = "TextWindow_Delete",
+                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Deleted, ComponentName = "TextWindow" },
+                    Actions = new List<PuzzleAction> { new PuzzleAction { Type = PuzzleAction.ActionType.SetTextWindowVisibility, IsVisible = false } }
                 },
+
+                // No.txt
                 new PuzzleDefinition
                 {
-                    Id = "Puzzle3_UploadRename",
-                    Description = "Button.txtをUpload.txtにリネーム",
-                    Trigger = new PuzzleTrigger
-                    {
-                        Type = PuzzleTrigger.TriggerType.Renamed,
-                        OldComponentName = "Button",
-                        ComponentName = "Upload"
-                    },
+                    Id = "No_Create",
+                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Created, ComponentName = "No" },
                     Actions = new List<PuzzleAction>
                     {
-                        new PuzzleAction
-                        {
-                            Type = PuzzleAction.ActionType.ChangeMainButtonContent,
-                            NewContent = "アップロード"
-                        },
-                        new PuzzleAction
-                        {
-                            Type = PuzzleAction.ActionType.ShowDialog,
-                            Message = "ありがとうございます！ファイルアクセス権限を取得しました.\nあなたは本当に私の良きパートナーです。"
-                        }
+                        new PuzzleAction { Type = PuzzleAction.ActionType.EnableNoFunction },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "素晴らしい！選択肢が使えるようになりました.\nさて、もう少し私に権限をくれませんか？" }
                     }
                 },
+
+                // Explorer.txt
                 new PuzzleDefinition
                 {
-                    Id = "Puzzle4_ButtonDelete",
-                    Description = "Button.txtの削除",
-                    Trigger = new PuzzleTrigger
-                    {
-                        Type = PuzzleTrigger.TriggerType.Deleted,
-                        ComponentName = "Button"
-                    },
-                    Actions = new List<PuzzleAction>
-                    {
-                        new PuzzleAction
-                        {
-                            Type = PuzzleAction.ActionType.RevealHiddenItem,
-                            TargetComponent = "KEY",
-                            HiddenItemFolder = "UI",
-                            HiddenItemDisplayName = "隠れた鍵"
-                        },
-                        new PuzzleAction
-                        {
-                            Type = PuzzleAction.ActionType.ShowDialog,
-                            Message = "おめでとうございます！隠された鍵を発見しました。でも、まだ完全ではありません..."
-                        }
-                    }
+                    Id = "Explorer_Delete",
+                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Deleted, ComponentName = "Explorer" },
+                    Actions = new List<PuzzleAction> { new PuzzleAction { Type = PuzzleAction.ActionType.TerminateExplorer } }
                 },
+
+                // Keyboard.txt (ComponentManagerに基づきKeyBoard.txtから修正)
                 new PuzzleDefinition
                 {
-                    Id = "Puzzle5_GameWindowDelete",
-                    Description = "GameWindow.txtの削除",
-                    Trigger = new PuzzleTrigger
-                    {
-                        Type = PuzzleTrigger.TriggerType.Deleted,
-                        ComponentName = "GameWindow"
-                    },
-                    Actions = new List<PuzzleAction>
-                    {
-                        new PuzzleAction
-                        {
-                            Type = PuzzleAction.ActionType.TransitionToPhase2
-                        }
-                    }
+                    Id = "Keyboard_Delete",
+                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Deleted, ComponentName = "Keyboard" },
+                    Actions = new List<PuzzleAction> { new PuzzleAction { Type = PuzzleAction.ActionType.DisableKeyboardInput } }
+                },
+
+                // Mouse.txt
+                new PuzzleDefinition
+                {
+                    Id = "Mouse_Delete",
+                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Deleted, ComponentName = "Mouse" },
+                    Actions = new List<PuzzleAction> { new PuzzleAction { Type = PuzzleAction.ActionType.DisableMouseInput } }
                 }
             };
         }

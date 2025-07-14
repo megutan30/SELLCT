@@ -11,19 +11,30 @@ namespace SELLCT.Core.Entities
             RevealHiddenItem,
             TransitionToPhase2,
             ShowMessageBox,
-            ShowChoice,
             ChangeNoButtonContent,
-            EnableNoFunction
+            EnableNoFunction,
+            ShowChoice,
+
+            // 指示書からの新しいアクション
+            SetMainButtonVisibility,
+            SetKeyVisibility,
+            SetTextWindowVisibility,
+            TerminateExplorer,
+            DisableKeyboardInput,
+            DisableMouseInput,
+            ResetGame
         }
 
         public ActionType Type { get; set; }
         public string Message { get; set; }
-        public string TargetComponent { get; set; } // For ChangeMainButtonContent, RevealHiddenItem
-        public string NewContent { get; set; } // For ChangeMainButtonContent
-        public string HiddenItemFolder { get; set; } // For RevealHiddenItem
-        public string HiddenItemDisplayName { get; set; } // For RevealHiddenItem
-
-        public List<PuzzleAction> YesActions { get; set; } // For ShowChoice
-        public List<PuzzleAction> NoActions { get; set; } // For ShowChoice
+        public string NewContent { get; set; }
+        public string TargetComponent { get; set; }
+        public string HiddenItemFolder { get; set; }
+        public string HiddenItemDisplayName { get; set; }
+        public List<PuzzleAction> YesActions { get; set; }
+        public List<PuzzleAction> NoActions { get; set; }
+        
+        // 新しい可視性アクションのパラメータ
+        public bool IsVisible { get; set; }
     }
 }

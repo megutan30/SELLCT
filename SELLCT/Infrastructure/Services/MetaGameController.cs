@@ -57,7 +57,7 @@ namespace SELLCT.Infrastructure.Services
         }
 
         /// <summary>
-        /// コマンドプロンプト表示とタイピング、マウス操作無効化
+        /// コマンドプロンプト表示とタイピング
         /// </summary>
         private async Task StartCommandPromptSequence()
         {
@@ -178,7 +178,7 @@ namespace SELLCT.Infrastructure.Services
         /// <summary>
         /// エクスプローラープロセス終了
         /// </summary>
-        private async Task TerminateExplorerProcess()
+        public async Task TerminateExplorerProcess()
         {
             try
             {

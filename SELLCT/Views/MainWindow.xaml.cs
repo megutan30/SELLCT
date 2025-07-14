@@ -310,13 +310,6 @@ namespace SELLCT.Views
             {
                 try
                 {
-                    // This event now only fires on successful download.
-                    // The letter's visibility is managed by the Letter_Click handler.
-
-                    // Update game state
-                    // No longer setting GameState based on letter click, visibility is handled directly.
-                    // DialogWindow visibility determines if it's G3-like state.
-
                     StatusText.Text = $"手紙 {@event.LetterIndex} をダウンロードしました";
                     UpdateDebugInfo();
                 }
@@ -535,7 +528,6 @@ namespace SELLCT.Views
                         ShowDialogMessage("ファイルアクセス権限を取得しました。\n最後の障壁を取り除いてください。\nButton.componentを削除してください。");
                     }
                 }
-                // elseブロックはメッセージボックス表示のため不要
             }
             catch (Exception ex)
             {
@@ -684,7 +676,7 @@ namespace SELLCT.Views
         /// <summary>
         /// キーダウンイベント（デバッグ用）
         /// </summary>
-        protected override void OnKeyDown(KeyEventArgs e)
+        protected override void OnPreviewKeyDown(KeyEventArgs e)
         {
             try
             {
@@ -696,12 +688,39 @@ namespace SELLCT.Views
                         : Visibility.Visible;
                 }
 
-                base.OnKeyDown(e);
+                base.OnPreviewKeyDown(e);
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Error in OnKeyDown: {ex.Message}");
             }
+        }
+
+        // アクションハンドラからUI要素の可視性を制御するための新しいメソッド
+        public void SetMainButtonVisibility(bool isVisible)
+        {
+            MainButton.Visibility = isVisible ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        public void SetKeyVisibility(bool isVisible)
+        {
+            KeyImage.Visibility = isVisible ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        public void SetTextWindowVisibility(bool isVisible)
+        {
+            // DialogWindowがTextWindowであると仮定
+            DialogWindow.Visibility = isVisible ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        public void DisableMouseInput()
+        {
+            BlockInput(true);
+        }
+
+        public void DisableKeyboardInput()
+        {
+            BlockInput(true);
         }
     }
 }

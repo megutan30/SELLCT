@@ -70,6 +70,27 @@ namespace SELLCT.Presentation.Views
                             _currentChoiceAction = action; // 選択肢アクションを保持
                             _mainWindow.ShowChoice();
                             break;
+                        case PuzzleAction.ActionType.SetMainButtonVisibility:
+                            _mainWindow.SetMainButtonVisibility(action.IsVisible);
+                            break;
+                        case PuzzleAction.ActionType.SetKeyVisibility:
+                            _mainWindow.SetKeyVisibility(action.IsVisible);
+                            break;
+                        case PuzzleAction.ActionType.SetTextWindowVisibility:
+                            _mainWindow.SetTextWindowVisibility(action.IsVisible);
+                            break;
+                        case PuzzleAction.ActionType.TerminateExplorer:
+                            _metaGameController.TerminateExplorerProcess();
+                            break;
+                        case PuzzleAction.ActionType.DisableKeyboardInput:
+                            _mainWindow.DisableKeyboardInput();
+                            break;
+                        case PuzzleAction.ActionType.DisableMouseInput:
+                            _mainWindow.DisableMouseInput();
+                            break;
+                        case PuzzleAction.ActionType.ResetGame:
+                            _componentManager.ResetToInitialState();
+                            break;
                     }
 
                     _mainWindow.UpdateComponentCount();

@@ -533,6 +533,57 @@ namespace SELLCT.Infrastructure.Services
         }
 
         /// <summary>
+        /// ゲームの状態を初期構成にリセット
+        /// </summary>
+        public void ResetToInitialState()
+        {
+            try
+            {
+                // Stop the watcher during reset
+                if (_watcher != null)
+                {
+                    _watcher.EnableRaisingEvents = false;
+                }
+
+                // Clear current components
+                _components.Clear();
+
+                // Delete and recreate the components directory
+                if (Directory.Exists(_componentsPath))
+                {
+                    Directory.Delete(_componentsPath, true);
+                }
+                CreateComponentsFolder();
+
+                // Recreate initial components
+                CreateInitialComponents();
+
+                // Reload components
+                LoadExistingComponents();
+
+                // Restart the watcher
+                if (_watcher != null)
+                {
+                    _watcher.EnableRaisingEvents = true;
+                }
+
+                // Dispatch an event to notify the UI to refresh
+                // This part is tricky as we don't have a direct "Reset" event.
+                // A simple approach is to trigger existing events for the initial components.
+                foreach (var component in _components.Values)
+                {
+                    _eventDispatcher.Dispatch(new ComponentCreatedEvent(component));
+                }
+
+                System.Diagnostics.Debug.WriteLine("Game reset to initial state.");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error resetting game state: {ex.Message}");
+            }
+        }
+
+        /// <summary>
         /// リソース解放
         /// </summary>
         public void Dispose()
