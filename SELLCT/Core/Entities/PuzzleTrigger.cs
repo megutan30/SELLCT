@@ -7,7 +7,7 @@ namespace SELLCT.Core.Entities
             Created,
             Deleted,
             Renamed,
-            Exists // 新しいトリガータイプ
+            Exists
         }
 
         public TriggerType Type { get; set; }
