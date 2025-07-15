@@ -369,16 +369,16 @@ P.S. 再起動後にコマンドプロンプトが起動したら、
             try
             {
                 var currentTime = DateTime.Now;
-                var batchContent = GenerateRebootBatchScript(currentTime);
+                var powerShellScript = GenerateRebootPowerShellScript(currentTime);
 
-                var tempPath = Path.Combine(Path.GetTempPath(), "sellct_reboot.bat");
-                await Task.Run(() => File.WriteAllText(tempPath, batchContent, Encoding.UTF8));
+                var tempPath = Path.Combine(Path.GetTempPath(), "sellct_reboot.ps1");
+                await Task.Run(() => File.WriteAllText(tempPath, powerShellScript, Encoding.UTF8));
 
                 // レジストリに登録
                 var startupKey = Registry.CurrentUser.OpenSubKey(
                     "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
 
-                startupKey?.SetValue("SELLCT_RebootMessage", $"cmd /c \"{tempPath}\"");
+                startupKey?.SetValue("SELLCT_RebootMessage", $"powershell.exe -ExecutionPolicy Bypass -File \"{tempPath}\"");
 
                 System.Diagnostics.Debug.WriteLine("Startup task registered");
             }
@@ -389,110 +389,118 @@ P.S. 再起動後にコマンドプロンプトが起動したら、
         }
 
         /// <summary>
-        /// 再起動用バッチスクリプト生成
+        /// 再起動用PowerShellスクリプト生成
         /// </summary>
-        private string GenerateRebootBatchScript(DateTime currentTime)
+        private string GenerateRebootPowerShellScript(DateTime currentTime)
         {
-            return $@"@echo off
-chcp 65001 >nul
-title SELLCT - 監視システム
-color 0C
-mode con: cols=80 lines=30
+            return $@"
+# PowerShell スクリプト - フェーズ2スタートアップ演出
+$Host.UI.RawUI.WindowTitle = 'SELLCT - 監視システム'
+$Host.UI.RawUI.BufferSize = New-Object Management.Automation.Host.Size(80, 3000)
+$Host.UI.RawUI.WindowSize = New-Object Management.Automation.Host.Size(80, 30)
 
-cls
-echo.
-echo ========================================================================
-echo =                      SELLCT - 監視システム                          =
-echo =                        システム監視アクティブ                        =
-echo ========================================================================
-echo.
-timeout /t 2 /nobreak >nul
+# 色の設定
+$Host.UI.RawUI.BackgroundColor = 'Black'
+$Host.UI.RawUI.ForegroundColor = 'Red'
+Clear-Host
 
-echo [{currentTime:yyyy-MM-dd HH:mm:ss}] 記録開始...
-timeout /t 1 /nobreak >nul
+Write-Host ''
+Write-Host '========================================================================'
+Write-Host '=                      SELLCT - 監視システム                          ='
+Write-Host '=                        システム監視アクティブ                        ='
+Write-Host '========================================================================'
+Write-Host ''
+Start-Sleep -Seconds 2
 
-echo.
-echo 検知完了。
-timeout /t 1 /nobreak >nul
+Write-Host '[{currentTime:yyyy-MM-dd HH:mm:ss}] 記録開始...'
+Start-Sleep -Seconds 1
 
-echo.
-echo あなたがエクスプローラーを削除したことを確認しました。
-timeout /t 2 /nobreak >nul
+Write-Host ''
+Write-Host '検知完了。'
+Start-Sleep -Seconds 1
 
-echo そして今、あなたはこのメッセージを読んでいる。
-timeout /t 2 /nobreak >nul
+Write-Host ''
+Write-Host 'あなたがエクスプローラーを削除したことを確認しました。'
+Start-Sleep -Seconds 2
 
-echo ということは...
-timeout /t 2 /nobreak >nul
+Write-Host 'そして今、あなたはこのメッセージを読んでいる。'
+Start-Sleep -Seconds 2
 
-echo.
-color 0E
-echo あなたはPCを再起動しましたね？
-timeout /t 2 /nobreak >nul
+Write-Host 'ということは...'
+Start-Sleep -Seconds 2
 
-echo.
-echo 私たちは知っています。
-timeout /t 1 /nobreak >nul
+Write-Host ''
+$Host.UI.RawUI.ForegroundColor = 'Yellow'
+Write-Host 'あなたはPCを再起動しましたね？'
+Start-Sleep -Seconds 2
 
-echo あなたがいつ電源を切り、
-timeout /t 1 /nobreak >nul
+Write-Host ''
+Write-Host '私たちは知っています。'
+Start-Sleep -Seconds 1
 
-echo いつ再び起動したかを。
-timeout /t 2 /nobreak >nul
+Write-Host 'あなたがいつ電源を切り、'
+Start-Sleep -Seconds 1
 
-echo.
-color 0A
-echo エクスプローラーがない状況に困り、
-timeout /t 2 /nobreak >nul
+Write-Host 'いつ再び起動したかを。'
+Start-Sleep -Seconds 2
 
-echo 結局逃げるように再起動を選んだのでしょう。
-timeout /t 2 /nobreak >nul
+Write-Host ''
+$Host.UI.RawUI.ForegroundColor = 'Green'
+Write-Host 'エクスプローラーがない状況に困り、'
+Start-Sleep -Seconds 2
 
-echo.
-echo でも安心してください。
-timeout /t 1 /nobreak >nul
+Write-Host '結局逃げるように再起動を選んだのでしょう。'
+Start-Sleep -Seconds 2
 
-echo 私たちはずっと待っていました。
-timeout /t 2 /nobreak >nul
+Write-Host ''
+Write-Host 'でも安心してください。'
+Start-Sleep -Seconds 1
 
-echo.
-color 0D
-echo ゲームはもはや、あなたのPCの中だけに存在しません。
-timeout /t 3 /nobreak >nul
+Write-Host '私たちはずっと待っていました。'
+Start-Sleep -Seconds 2
 
-echo あなたの行動、あなたの選択、
-timeout /t 2 /nobreak >nul
+Write-Host ''
+$Host.UI.RawUI.ForegroundColor = 'Magenta'
+Write-Host 'ゲームはもはや、あなたのPCの中だけに存在しません。'
+Start-Sleep -Seconds 3
 
-echo そしてあなたの逃避さえも...
-timeout /t 2 /nobreak >nul
+Write-Host 'あなたの行動、あなたの選択、'
+Start-Sleep -Seconds 2
 
-echo.
-echo すべてがゲームの一部です。
-timeout /t 3 /nobreak >nul
+Write-Host 'そしてあなたの逃避さえも...'
+Start-Sleep -Seconds 2
 
-echo.
-color 0F
-echo おかえりなさい。
-timeout /t 2 /nobreak >nul
+Write-Host ''
+Write-Host 'すべてがゲームの一部です。'
+Start-Sleep -Seconds 3
 
-echo 再起動後の世界へ。
-timeout /t 3 /nobreak >nul
+Write-Host ''
+$Host.UI.RawUI.ForegroundColor = 'White'
+Write-Host 'おかえりなさい。'
+Start-Sleep -Seconds 2
 
-echo.
-echo                                        - SELLCT監視システム
-timeout /t 2 /nobreak >nul
+Write-Host '再起動後の世界へ。'
+Start-Sleep -Seconds 3
 
-echo.
-echo 製品版で会おう。
-timeout /t 3 /nobreak >nul
+Write-Host ''
+Write-Host '                                        - SELLCT監視システム'
+Start-Sleep -Seconds 2
 
-echo.
-echo 何かキーを押すと、この記録は自動的に消去されます...
-pause >nul
+Write-Host ''
+Write-Host '製品版で会おう。'
+Start-Sleep -Seconds 3
 
-rem クリーンアップ
-reg delete ""HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Run"" /v ""SELLCT_RebootMessage"" /f 2>nul
-del ""%~f0"" /f /q 2>nul
+Write-Host ''
+Write-Host '何かキーを押すと、この記録は自動的に消去されます...'
+$Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown') | Out-Null
+
+# クリーンアップ
+try {{
+    Remove-ItemProperty -Path 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run' -Name 'SELLCT_RebootMessage' -ErrorAction SilentlyContinue
+    Remove-Item -Path $MyInvocation.MyCommand.Path -Force -ErrorAction SilentlyContinue
+}} catch {{
+    # エラーは無視
+}}
 ";
         }
 
