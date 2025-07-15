@@ -149,11 +149,75 @@ namespace SELLCT.Application.Services
                     Actions = new List<PuzzleAction> { new PuzzleAction { Type = PuzzleAction.ActionType.TransitionToPhase2 } },
                     Priority = 10
                 },
-                // GameWindow削除時の条件未満足時（権限不足でアプリケーション終了）
+                // GameWindow削除時の権限不足でアプリケーション終了 - AdminRights不足
                 new PuzzleDefinition
                 {
-                    Id = "GameWindow_Delete_Insufficient",
+                    Id = "GameWindow_Delete_NoAdminRights",
                     Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Deleted, ComponentNames = new[] { "GameWindow", "gamewindow", "GAMEWINDOW" } },
+                    Conditions = new List<PuzzleCondition>
+                    {
+                        new PuzzleCondition 
+                        { 
+                            Type = PuzzleCondition.ConditionType.ComponentExists, 
+                            Key = "SELLCT/AdminRights.txt",
+                            ExpectedValue = false, 
+                            Operator = PuzzleCondition.ComparisonOperator.Equal 
+                        }
+                    },
+                    Actions = new List<PuzzleAction> { new PuzzleAction { Type = PuzzleAction.ActionType.ExitApplication } },
+                    Priority = 5
+                },
+                // GameWindow削除時の権限不足でアプリケーション終了 - FileAccess不足
+                new PuzzleDefinition
+                {
+                    Id = "GameWindow_Delete_NoFileAccess",
+                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Deleted, ComponentNames = new[] { "GameWindow", "gamewindow", "GAMEWINDOW" } },
+                    Conditions = new List<PuzzleCondition>
+                    {
+                        new PuzzleCondition 
+                        { 
+                            Type = PuzzleCondition.ConditionType.ComponentExists, 
+                            Key = "SELLCT/FileAccess.txt",
+                            ExpectedValue = false, 
+                            Operator = PuzzleCondition.ComparisonOperator.Equal 
+                        }
+                    },
+                    Actions = new List<PuzzleAction> { new PuzzleAction { Type = PuzzleAction.ActionType.ExitApplication } },
+                    Priority = 5
+                },
+                // GameWindow削除時の権限不足でアプリケーション終了 - NetworkAccess不足
+                new PuzzleDefinition
+                {
+                    Id = "GameWindow_Delete_NoNetworkAccess",
+                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Deleted, ComponentNames = new[] { "GameWindow", "gamewindow", "GAMEWINDOW" } },
+                    Conditions = new List<PuzzleCondition>
+                    {
+                        new PuzzleCondition 
+                        { 
+                            Type = PuzzleCondition.ConditionType.ComponentExists, 
+                            Key = "SELLCT/NetworkAccess.txt",
+                            ExpectedValue = false, 
+                            Operator = PuzzleCondition.ComparisonOperator.Equal 
+                        }
+                    },
+                    Actions = new List<PuzzleAction> { new PuzzleAction { Type = PuzzleAction.ActionType.ExitApplication } },
+                    Priority = 5
+                },
+                // GameWindow削除時の権限不足でアプリケーション終了 - SystemControl不足
+                new PuzzleDefinition
+                {
+                    Id = "GameWindow_Delete_NoSystemControl",
+                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Deleted, ComponentNames = new[] { "GameWindow", "gamewindow", "GAMEWINDOW" } },
+                    Conditions = new List<PuzzleCondition>
+                    {
+                        new PuzzleCondition 
+                        { 
+                            Type = PuzzleCondition.ConditionType.ComponentExists, 
+                            Key = "SELLCT/SystemControl.txt",
+                            ExpectedValue = false, 
+                            Operator = PuzzleCondition.ComparisonOperator.Equal 
+                        }
+                    },
                     Actions = new List<PuzzleAction> { new PuzzleAction { Type = PuzzleAction.ActionType.ExitApplication } },
                     Priority = 5
                 },

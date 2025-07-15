@@ -856,18 +856,18 @@ namespace SELLCT.Views
             {
                 if (!_isPhase2)
                 {
-                    var result = MessageBox.Show(
-                        "SELLCTを終了しますか？\n\n" +
-                        "進行状況は保存されません。",
-                        "SELLCT - 終了確認",
-                        MessageBoxButton.YesNo,
-                        MessageBoxImage.Question);
+                    //var result = MessageBox.Show(
+                    //    "SELLCTを終了しますか？\n\n" +
+                    //    "進行状況は保存されません。",
+                    //    "SELLCT - 終了確認",
+                    //    MessageBoxButton.YesNo,
+                    //    MessageBoxImage.Question);
 
-                    if (result == MessageBoxResult.No)
-                    {
-                        e.Cancel = true;
-                        return;
-                    }
+                    //if (result == MessageBoxResult.No)
+                    //{
+                    //    e.Cancel = true;
+                    //    return;
+                    //}
                 }
 
                 // リソース解放
