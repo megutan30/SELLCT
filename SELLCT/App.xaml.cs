@@ -74,10 +74,11 @@ namespace SELLCT
                 MessageBoxResult.No
             );
 
-            // ユーザーが「いいえ」を選択した場合、アプリケーションを終了
+            // ユーザーが「いいえ」を選択した場合、アプリケーションを完全に終了
             if (warningResult != MessageBoxResult.Yes)
             {
-                this.Shutdown();
+                // アプリケーションを完全に終了
+                Environment.Exit(0);
                 return;
             }
 
