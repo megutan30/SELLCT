@@ -99,6 +99,9 @@ namespace SELLCT.Presentation.Views
                         case PuzzleAction.ActionType.ResetGame:
                             _componentManager.ResetToInitialState();
                             break;
+                        case PuzzleAction.ActionType.ClearMessageQueue:
+                            _mainWindow.ClearMessageQueue();
+                            break;
                     }
 
                     _mainWindow.UpdateComponentCount();

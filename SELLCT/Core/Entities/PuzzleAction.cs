@@ -22,7 +22,8 @@ namespace SELLCT.Core.Entities
             TerminateExplorer,
             DisableKeyboardInput,
             DisableMouseInput,
-            ResetGame
+            ResetGame,
+            ClearMessageQueue
         }
 
         public ActionType Type { get; set; }

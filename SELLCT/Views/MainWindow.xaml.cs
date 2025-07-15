@@ -920,6 +920,20 @@ namespace SELLCT.Views
             TextWindow.Visibility = isVisible ? Visibility.Visible : Visibility.Collapsed;
         }
 
+        /// <summary>
+        /// ダイアログメッセージキューをクリアし、タイピングを停止する
+        /// </summary>
+        public void ClearMessageQueue()
+        {
+            _dialogMessageQueue.Clear();
+            _isTyping = false;
+            _typingTimer.Stop();
+            DialogText.Text = string.Empty;
+            _awaitingChoice = false;
+            // TextWindow全体（枠を含む）を確実に非表示にする
+            TextWindow.Visibility = Visibility.Collapsed;
+        }
+
         public void DisableMouseInput()
         {
             BlockInput(true);

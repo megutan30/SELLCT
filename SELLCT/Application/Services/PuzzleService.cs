@@ -14,12 +14,14 @@ namespace SELLCT.Application.Services
         private readonly List<PuzzleDefinition> _puzzles;
         private readonly IPuzzleActionHandler _actionHandler;
         private readonly IEventDispatcher _eventDispatcher;
+        private readonly GameState _gameState;
 
         public PuzzleService(ComponentManager componentManager, IPuzzleActionHandler actionHandler, IEventDispatcher eventDispatcher)
         {
             _componentManager = componentManager;
             _actionHandler = actionHandler;
             _eventDispatcher = eventDispatcher;
+            _gameState = new GameState();
             _puzzles = LoadPuzzles();
 
             _eventDispatcher.Subscribe<ComponentCreatedEvent>(CheckPuzzlesOnComponentCreated);
@@ -38,18 +40,66 @@ namespace SELLCT.Application.Services
                 new PuzzleDefinition
                 {
                     Id = "Button_Create",
-                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Exists, ComponentNames = new[] { "Button", "button", "BUTTON" } },
-                    Actions = new List<PuzzleAction> { new PuzzleAction { Type = PuzzleAction.ActionType.SetMainButtonVisibility, IsVisible = true } }
+                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Created, ComponentNames = new[] { "Button", "button", "BUTTON" } },
+                    Actions = new List<PuzzleAction> { new PuzzleAction { Type = PuzzleAction.ActionType.SetMainButtonVisibility, IsVisible = true } },
+                    CanRepeat = true,
+                    Priority = 15
                 },
                 new PuzzleDefinition
                 {
-                    Id = "Button_Delete",
+                    Id = "Button_Exists",
+                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Exists, ComponentNames = new[] { "Button", "button", "BUTTON" } },
+                    Actions = new List<PuzzleAction> { new PuzzleAction { Type = PuzzleAction.ActionType.SetMainButtonVisibility, IsVisible = true } },
+                    CanRepeat = true,
+                    Priority = 5
+                },
+                // Button削除 - 1回目
+                new PuzzleDefinition
+                {
+                    Id = "Button_Delete_First",
                     Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Deleted, ComponentNames = new[] { "Button", "button", "BUTTON" } },
+                    Conditions = new List<PuzzleCondition>
+                    {
+                        new PuzzleCondition 
+                        { 
+                            Type = PuzzleCondition.ConditionType.ActionCount, 
+                            Key = "Deleted_Button_button_BUTTON", 
+                            ExpectedValue = 0, 
+                            Operator = PuzzleCondition.ComparisonOperator.Equal 
+                        }
+                    },
                     Actions = new List<PuzzleAction>
                     {
                         new PuzzleAction { Type = PuzzleAction.ActionType.SetMainButtonVisibility, IsVisible = false },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.SetKeyVisibility, IsVisible = true }
-                    }
+                        new PuzzleAction { Type = PuzzleAction.ActionType.SetKeyVisibility, IsVisible = true },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "初回のButton削除です。KEYが現れました。" }
+                    },
+                    CanRepeat = false,
+                    Priority = 10
+                },
+                
+                // Button削除 - 2回目以降
+                new PuzzleDefinition
+                {
+                    Id = "Button_Delete_Repeat",
+                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Deleted, ComponentNames = new[] { "Button", "button", "BUTTON" } },
+                    Conditions = new List<PuzzleCondition>
+                    {
+                        new PuzzleCondition 
+                        { 
+                            Type = PuzzleCondition.ConditionType.ActionCount, 
+                            Key = "Deleted_Button_button_BUTTON", 
+                            ExpectedValue = 0, 
+                            Operator = PuzzleCondition.ComparisonOperator.GreaterThan 
+                        }
+                    },
+                    Actions = new List<PuzzleAction>
+                    {
+                        new PuzzleAction { Type = PuzzleAction.ActionType.SetMainButtonVisibility, IsVisible = false },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "またButtonを削除しましたね。もう慣れましたか？" }
+                    },
+                    CanRepeat = true,
+                    Priority = 5
                 },
                 new PuzzleDefinition
                 {
@@ -133,7 +183,11 @@ namespace SELLCT.Application.Services
                 {
                     Id = "TextWindow_Delete",
                     Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Deleted, ComponentNames = new[] { "TextWindow", "textwindow", "TEXTWINDOW" } },
-                    Actions = new List<PuzzleAction> { new PuzzleAction { Type = PuzzleAction.ActionType.SetTextWindowVisibility, IsVisible = false } }
+                    Actions = new List<PuzzleAction> 
+                    { 
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ClearMessageQueue },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.SetTextWindowVisibility, IsVisible = false }
+                    }
                 },
 
                 // No.txt (複数パターン対応: "NO", "no", "No", "いいえ")
@@ -318,15 +372,68 @@ namespace SELLCT.Application.Services
         private void CheckPuzzles(Func<PuzzleDefinition, bool> predicate)
         {
             System.Diagnostics.Debug.WriteLine($"[PuzzleService] Checking puzzles...");
-            foreach (var puzzle in _puzzles.Where(predicate).ToList())
+            
+            // 条件を満たすパズルを取得し、優先度順にソート
+            var candidatePuzzles = _puzzles.Where(predicate)
+                .Where(puzzle => puzzle.CanRepeat || !puzzle.IsCompleted)
+                .Where(puzzle => AreConditionsSatisfied(puzzle))
+                .OrderByDescending(puzzle => puzzle.Priority)
+                .ToList();
+
+            foreach (var puzzle in candidatePuzzles)
             {
-                if (!puzzle.IsCompleted)
+                System.Diagnostics.Debug.WriteLine($"[PuzzleService] Puzzle triggered: {puzzle.Id}");
+                
+                // アクション実行回数をカウント
+                var actionKey = GetActionKey(puzzle);
+                System.Diagnostics.Debug.WriteLine($"[PuzzleService] Action key: {actionKey}");
+                _gameState.IncrementActionCount(actionKey);
+                System.Diagnostics.Debug.WriteLine($"[PuzzleService] Action count for {actionKey}: {_gameState.GetActionCount(actionKey)}");
+                
+                ExecutePuzzleActions(puzzle);
+                
+                // リピート不可の場合は完了マーク
+                if (!puzzle.CanRepeat)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[PuzzleService] Puzzle triggered: {puzzle.Id}");
-                    ExecutePuzzleActions(puzzle);
-                    puzzle.IsCompleted = true; // 一度完了した謎解きは再度トリガーしない
+                    puzzle.IsCompleted = true;
+                }
+                
+                // イベント完了をマーク
+                _gameState.MarkEventCompleted(puzzle.Id);
+            }
+        }
+
+        /// <summary>
+        /// パズルの条件がすべて満たされているかチェック
+        /// </summary>
+        private bool AreConditionsSatisfied(PuzzleDefinition puzzle)
+        {
+            if (puzzle.Conditions == null || puzzle.Conditions.Count == 0)
+            {
+                System.Diagnostics.Debug.WriteLine($"[PuzzleService] Puzzle {puzzle.Id}: No conditions, returning true");
+                return true; // 条件がない場合は常に満たされている
+            }
+
+            foreach (var condition in puzzle.Conditions)
+            {
+                var satisfied = condition.IsSatisfied(_gameState, _componentManager);
+                System.Diagnostics.Debug.WriteLine($"[PuzzleService] Puzzle {puzzle.Id}: Condition {condition.Type} {condition.Key} {condition.Operator} {condition.ExpectedValue} = {satisfied}");
+                if (!satisfied)
+                {
+                    return false;
                 }
             }
+
+            System.Diagnostics.Debug.WriteLine($"[PuzzleService] Puzzle {puzzle.Id}: All conditions satisfied");
+            return true;
+        }
+
+        /// <summary>
+        /// パズルからアクションキーを生成
+        /// </summary>
+        private string GetActionKey(PuzzleDefinition puzzle)
+        {
+            return $"{puzzle.Trigger.Type}_{string.Join("_", puzzle.Trigger.ComponentNames ?? new[] { puzzle.Trigger.ComponentName })}";
         }
 
         private void ExecutePuzzleActions(PuzzleDefinition puzzle)
