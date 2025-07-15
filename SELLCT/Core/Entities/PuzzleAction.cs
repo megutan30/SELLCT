@@ -22,6 +22,8 @@ namespace SELLCT.Core.Entities
             TerminateExplorer,
             DisableKeyboardInput,
             DisableMouseInput,
+            EnableKeyboardInput,
+            EnableMouseInput,
             ResetGame,
             ClearMessageQueue,
             ExitApplication,

@@ -96,6 +96,12 @@ namespace SELLCT.Presentation.Views
                         case PuzzleAction.ActionType.DisableMouseInput:
                             _mainWindow.DisableMouseInput();
                             break;
+                        case PuzzleAction.ActionType.EnableKeyboardInput:
+                            _mainWindow.EnableKeyboardInput();
+                            break;
+                        case PuzzleAction.ActionType.EnableMouseInput:
+                            _mainWindow.EnableMouseInput();
+                            break;
                         case PuzzleAction.ActionType.ResetGame:
                             _componentManager.ResetToInitialState();
                             break;

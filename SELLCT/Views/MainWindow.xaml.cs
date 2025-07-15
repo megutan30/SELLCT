@@ -147,6 +147,9 @@ namespace SELLCT.Views
                 // サービス初期化
                 InitializeServices();
 
+                // 入力フック初期化
+                InitializeInputHooks();
+
                 // 初期状態設定
                 UpdateStatusDisplay();
 
@@ -276,6 +279,31 @@ namespace SELLCT.Views
 
         [System.Runtime.InteropServices.DllImport("user32.dll")]
         private static extern bool BlockInput(bool fBlockIt);
+
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        private static extern IntPtr SetWindowsHookEx(int idHook, LowLevelInputProc lpfn, IntPtr hMod, uint dwThreadId);
+
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        private static extern bool UnhookWindowsHookEx(IntPtr hhk);
+
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        private static extern IntPtr CallNextHookEx(IntPtr hhk, int nCode, IntPtr wParam, IntPtr lParam);
+
+        [System.Runtime.InteropServices.DllImport("kernel32.dll")]
+        private static extern IntPtr GetModuleHandle(string lpModuleName);
+
+        private delegate IntPtr LowLevelInputProc(int nCode, IntPtr wParam, IntPtr lParam);
+
+        private const int WH_MOUSE_LL = 14;
+        private const int WH_KEYBOARD_LL = 13;
+
+        private IntPtr _mouseHook = IntPtr.Zero;
+        private IntPtr _keyboardHook = IntPtr.Zero;
+        private LowLevelInputProc _mouseProc;
+        private LowLevelInputProc _keyboardProc;
+
+        private bool _isMouseDisabled = false;
+        private bool _isKeyboardDisabled = false;
 
         /// <summary>
         /// 手紙出現イベントハンドラー
@@ -934,14 +962,113 @@ namespace SELLCT.Views
             TextWindow.Visibility = Visibility.Collapsed;
         }
 
-        public void DisableMouseInput()
+        /// <summary>
+        /// 入力フック初期化
+        /// </summary>
+        private void InitializeInputHooks()
         {
-            BlockInput(true);
+            _mouseProc = MouseHookProc;
+            _keyboardProc = KeyboardHookProc;
         }
 
+        /// <summary>
+        /// マウスフックプロシージャ
+        /// </summary>
+        private IntPtr MouseHookProc(int nCode, IntPtr wParam, IntPtr lParam)
+        {
+            if (nCode >= 0 && _isMouseDisabled)
+            {
+                return new IntPtr(1);
+            }
+            return CallNextHookEx(_mouseHook, nCode, wParam, lParam);
+        }
+
+        /// <summary>
+        /// キーボードフックプロシージャ
+        /// </summary>
+        private IntPtr KeyboardHookProc(int nCode, IntPtr wParam, IntPtr lParam)
+        {
+            if (nCode >= 0 && _isKeyboardDisabled)
+            {
+                return new IntPtr(1);
+            }
+            return CallNextHookEx(_keyboardHook, nCode, wParam, lParam);
+        }
+
+        /// <summary>
+        /// マウス入力を無効化
+        /// </summary>
+        public void DisableMouseInput()
+        {
+            if (!_isMouseDisabled)
+            {
+                _isMouseDisabled = true;
+                using (var curProcess = System.Diagnostics.Process.GetCurrentProcess())
+                using (var curModule = curProcess.MainModule)
+                {
+                    _mouseHook = SetWindowsHookEx(WH_MOUSE_LL, _mouseProc,
+                        GetModuleHandle(curModule.ModuleName), 0);
+                }
+            }
+        }
+
+        /// <summary>
+        /// キーボード入力を無効化
+        /// </summary>
         public void DisableKeyboardInput()
         {
-            BlockInput(true);
+            if (!_isKeyboardDisabled)
+            {
+                _isKeyboardDisabled = true;
+                using (var curProcess = System.Diagnostics.Process.GetCurrentProcess())
+                using (var curModule = curProcess.MainModule)
+                {
+                    _keyboardHook = SetWindowsHookEx(WH_KEYBOARD_LL, _keyboardProc,
+                        GetModuleHandle(curModule.ModuleName), 0);
+                }
+            }
+        }
+
+        /// <summary>
+        /// マウス入力を復元
+        /// </summary>
+        public void EnableMouseInput()
+        {
+            if (_isMouseDisabled)
+            {
+                _isMouseDisabled = false;
+                if (_mouseHook != IntPtr.Zero)
+                {
+                    UnhookWindowsHookEx(_mouseHook);
+                    _mouseHook = IntPtr.Zero;
+                }
+            }
+        }
+
+        /// <summary>
+        /// キーボード入力を復元
+        /// </summary>
+        public void EnableKeyboardInput()
+        {
+            if (_isKeyboardDisabled)
+            {
+                _isKeyboardDisabled = false;
+                if (_keyboardHook != IntPtr.Zero)
+                {
+                    UnhookWindowsHookEx(_keyboardHook);
+                    _keyboardHook = IntPtr.Zero;
+                }
+            }
+        }
+
+        /// <summary>
+        /// アプリケーション終了時のクリーンアップ
+        /// </summary>
+        protected override void OnClosed(EventArgs e)
+        {
+            EnableMouseInput();
+            EnableKeyboardInput();
+            base.OnClosed(e);
         }
     }
 }
