@@ -58,6 +58,7 @@ namespace SELLCT.Infrastructure.Services
                 Directory.CreateDirectory(Path.Combine(_componentsPath, "UI"));
                 Directory.CreateDirectory(Path.Combine(_componentsPath, "Text"));
                 Directory.CreateDirectory(Path.Combine(_componentsPath, "Visual"));
+                Directory.CreateDirectory(Path.Combine(_componentsPath, "SELLCT"));
                 
                 // Systemフォルダを作成し、隠しフォルダに設定
                 var systemFolderPath = Path.Combine(_componentsPath, "System");
@@ -67,7 +68,7 @@ namespace SELLCT.Infrastructure.Services
                 var systemFolderInfo = new DirectoryInfo(systemFolderPath);
                 systemFolderInfo.Attributes |= FileAttributes.Hidden;
 
-                System.Diagnostics.Debug.WriteLine("Components folder structure created (System folder hidden)");
+                System.Diagnostics.Debug.WriteLine("Components folder structure created (System folder hidden, SELLCT folder added)");
             }
             catch (Exception ex)
             {
@@ -519,6 +520,23 @@ namespace SELLCT.Infrastructure.Services
         }
 
         /// <summary>
+        /// ファイルパスで構成要素の存在をチェック
+        /// </summary>
+        public bool ComponentExistsByPath(string filePath)
+        {
+            try
+            {
+                var fullPath = Path.Combine(_componentsPath, filePath);
+                return File.Exists(fullPath);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error checking component existence by path: {ex.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
         /// 特定タイプの構成要素を取得
         /// </summary>
         public IEnumerable<GameComponent> GetComponentsByType(ComponentType type)
@@ -662,6 +680,49 @@ namespace SELLCT.Infrastructure.Services
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Error resetting game state: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// フェーズ2移行条件をチェック（SELLCTフォルダ内の必要な権限コンポーネントがすべて存在するか）
+        /// </summary>
+        public bool CheckPhase2TransitionCondition()
+        {
+            try
+            {
+                var sellctFolderPath = Path.Combine(_componentsPath, "SELLCT");
+                if (!Directory.Exists(sellctFolderPath))
+                {
+                    System.Diagnostics.Debug.WriteLine("SELLCT folder does not exist");
+                    return false;
+                }
+
+                // 必要な権限コンポーネント
+                var requiredComponents = new[]
+                {
+                    "AdminRights.txt",
+                    "FileAccess.txt", 
+                    "NetworkAccess.txt",
+                    "SystemControl.txt"
+                };
+
+                foreach (var component in requiredComponents)
+                {
+                    var componentPath = Path.Combine(sellctFolderPath, component);
+                    if (!File.Exists(componentPath))
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Required component missing: {component}");
+                        return false;
+                    }
+                }
+
+                System.Diagnostics.Debug.WriteLine("All required components for Phase 2 transition exist");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error checking Phase 2 transition condition: {ex.Message}");
+                return false;
             }
         }
 

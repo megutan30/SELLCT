@@ -102,6 +102,11 @@ namespace SELLCT.Presentation.Views
                         case PuzzleAction.ActionType.ClearMessageQueue:
                             _mainWindow.ClearMessageQueue();
                             break;
+                        case PuzzleAction.ActionType.ExitApplication:
+                            _mainWindow.Dispatcher.BeginInvoke(() => {
+                                System.Windows.Application.Current.Shutdown();
+                            });
+                            break;
                     }
 
                     _mainWindow.UpdateComponentCount();

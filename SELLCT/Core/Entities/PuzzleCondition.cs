@@ -116,7 +116,16 @@ namespace SELLCT.Core.Entities
                     return CompareValues(isCompleted, ExpectedValue, Operator);
 
                 case ConditionType.ComponentExists:
-                    var exists = componentManager.GetComponent(Key) != null;
+                    bool exists;
+                    // SELLCTフォルダ内のファイルパスかどうかをチェック
+                    if (Key.Contains("/") || Key.Contains("\\"))
+                    {
+                        exists = componentManager.ComponentExistsByPath(Key);
+                    }
+                    else
+                    {
+                        exists = componentManager.GetComponent(Key) != null;
+                    }
                     return CompareValues(exists, ExpectedValue, Operator);
 
                 case ConditionType.Variable:

@@ -39,14 +39,6 @@ namespace SELLCT.Application.Services
                 // Button.txt (複数パターン対応)
                 new PuzzleDefinition
                 {
-                    Id = "Button_Create",
-                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Created, ComponentNames = new[] { "Button", "button", "BUTTON" } },
-                    Actions = new List<PuzzleAction> { new PuzzleAction { Type = PuzzleAction.ActionType.SetMainButtonVisibility, IsVisible = true } },
-                    CanRepeat = true,
-                    Priority = 15
-                },
-                new PuzzleDefinition
-                {
                     Id = "Button_Exists",
                     Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Exists, ComponentNames = new[] { "Button", "button", "BUTTON" } },
                     Actions = new List<PuzzleAction> { new PuzzleAction { Type = PuzzleAction.ActionType.SetMainButtonVisibility, IsVisible = true } },
@@ -118,12 +110,52 @@ namespace SELLCT.Application.Services
                     }
                 },
 
-                // GameWindow.txt (複数パターン対応)
+                // GameWindow.txt (複数パターン対応) - フェーズ2移行にはSELLCTフォルダ内の全権限コンポーネントが必要
                 new PuzzleDefinition
                 {
-                    Id = "GameWindow_Delete",
+                    Id = "GameWindow_Delete_Phase2",
                     Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Deleted, ComponentNames = new[] { "GameWindow", "gamewindow", "GAMEWINDOW" } },
-                    Actions = new List<PuzzleAction> { new PuzzleAction { Type = PuzzleAction.ActionType.TransitionToPhase2 } }
+                    Conditions = new List<PuzzleCondition>
+                    {
+                        new PuzzleCondition 
+                        { 
+                            Type = PuzzleCondition.ConditionType.ComponentExists, 
+                            Key = "SELLCT/AdminRights.txt",
+                            ExpectedValue = true, 
+                            Operator = PuzzleCondition.ComparisonOperator.Equal 
+                        },
+                        new PuzzleCondition 
+                        { 
+                            Type = PuzzleCondition.ConditionType.ComponentExists, 
+                            Key = "SELLCT/FileAccess.txt",
+                            ExpectedValue = true, 
+                            Operator = PuzzleCondition.ComparisonOperator.Equal 
+                        },
+                        new PuzzleCondition 
+                        { 
+                            Type = PuzzleCondition.ConditionType.ComponentExists, 
+                            Key = "SELLCT/NetworkAccess.txt",
+                            ExpectedValue = true, 
+                            Operator = PuzzleCondition.ComparisonOperator.Equal 
+                        },
+                        new PuzzleCondition 
+                        { 
+                            Type = PuzzleCondition.ConditionType.ComponentExists, 
+                            Key = "SELLCT/SystemControl.txt",
+                            ExpectedValue = true, 
+                            Operator = PuzzleCondition.ComparisonOperator.Equal 
+                        }
+                    },
+                    Actions = new List<PuzzleAction> { new PuzzleAction { Type = PuzzleAction.ActionType.TransitionToPhase2 } },
+                    Priority = 10
+                },
+                // GameWindow削除時の条件未満足時（権限不足でアプリケーション終了）
+                new PuzzleDefinition
+                {
+                    Id = "GameWindow_Delete_Insufficient",
+                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Deleted, ComponentNames = new[] { "GameWindow", "gamewindow", "GAMEWINDOW" } },
+                    Actions = new List<PuzzleAction> { new PuzzleAction { Type = PuzzleAction.ActionType.ExitApplication } },
+                    Priority = 5
                 },
 
                 // KEY.txt (複数パターン対応)
@@ -191,6 +223,30 @@ namespace SELLCT.Application.Services
                         new PuzzleAction { Type = PuzzleAction.ActionType.SetTextWindowVisibility, IsVisible = false }
                     },
                     CanRepeat = true
+                },
+                // TextWindow生成 - 2回目以降
+                new PuzzleDefinition
+                {
+                    Id = "TextWindow_Create_Repeat",
+                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Exists, ComponentNames = new[] { "TextWindow", "textwindow", "TEXTWINDOW" } },
+                    Conditions = new List<PuzzleCondition>
+                    {
+                        new PuzzleCondition 
+                        { 
+                            Type = PuzzleCondition.ConditionType.ActionCount, 
+                            Key = "Exists_TextWindow_textwindow_TEXTWINDOW", 
+                            ExpectedValue = 0, 
+                            Operator = PuzzleCondition.ComparisonOperator.GreaterThan 
+                        }
+                    },
+                    Actions = new List<PuzzleAction>
+                    {
+                        new PuzzleAction { Type = PuzzleAction.ActionType.SetTextWindowVisibility, IsVisible = true },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "またTextWindowを作成しましたね。" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "会話できるようになりました。" }
+                    },
+                    CanRepeat = true,
+                    Priority = 5
                 },
 
                 // No.txt (複数パターン対応: "NO", "no", "No", "いいえ")
@@ -334,6 +390,56 @@ namespace SELLCT.Application.Services
                     Id = "Mouse_Delete",
                     Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Deleted, ComponentNames = new[] { "Mouse", "mouse", "MOUSE" } },
                     Actions = new List<PuzzleAction> { new PuzzleAction { Type = PuzzleAction.ActionType.DisableMouseInput } },
+                    CanRepeat = true
+                },
+
+                // SELLCT権限コンポーネント
+                new PuzzleDefinition
+                {
+                    Id = "AdminRights_Create",
+                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Exists, ComponentNames = new[] { "AdminRights" } },
+                    Actions = new List<PuzzleAction>
+                    {
+                        new PuzzleAction { Type = PuzzleAction.ActionType.SetTextWindowVisibility, IsVisible = true },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "管理者権限コンポーネントが追加されました。" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "SELLCTの権限が拡張されています..." }
+                    },
+                    CanRepeat = true
+                },
+                new PuzzleDefinition
+                {
+                    Id = "FileAccess_Create",
+                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Exists, ComponentNames = new[] { "FileAccess" } },
+                    Actions = new List<PuzzleAction>
+                    {
+                        new PuzzleAction { Type = PuzzleAction.ActionType.SetTextWindowVisibility, IsVisible = true },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "ファイルアクセス権限コンポーネントが追加されました。" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "あなたのファイルにアクセスできるようになります..." }
+                    },
+                    CanRepeat = true
+                },
+                new PuzzleDefinition
+                {
+                    Id = "NetworkAccess_Create",
+                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Exists, ComponentNames = new[] { "NetworkAccess" } },
+                    Actions = new List<PuzzleAction>
+                    {
+                        new PuzzleAction { Type = PuzzleAction.ActionType.SetTextWindowVisibility, IsVisible = true },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "ネットワークアクセス権限コンポーネントが追加されました。" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "インターネット接続が可能になります..." }
+                    },
+                    CanRepeat = true
+                },
+                new PuzzleDefinition
+                {
+                    Id = "SystemControl_Create",
+                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Exists, ComponentNames = new[] { "SystemControl" } },
+                    Actions = new List<PuzzleAction>
+                    {
+                        new PuzzleAction { Type = PuzzleAction.ActionType.SetTextWindowVisibility, IsVisible = true },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "システム制御権限コンポーネントが追加されました。" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "全ての権限が揃いました。GameWindow.txtを削除してフェーズ2に移行できます。" }
+                    },
                     CanRepeat = true
                 }
             };
