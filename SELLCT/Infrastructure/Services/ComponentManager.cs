@@ -58,9 +58,16 @@ namespace SELLCT.Infrastructure.Services
                 Directory.CreateDirectory(Path.Combine(_componentsPath, "UI"));
                 Directory.CreateDirectory(Path.Combine(_componentsPath, "Text"));
                 Directory.CreateDirectory(Path.Combine(_componentsPath, "Visual"));
-                Directory.CreateDirectory(Path.Combine(_componentsPath, "System"));
+                
+                // Systemフォルダを作成し、隠しフォルダに設定
+                var systemFolderPath = Path.Combine(_componentsPath, "System");
+                Directory.CreateDirectory(systemFolderPath);
+                
+                // Systemフォルダを隠しフォルダに設定
+                var systemFolderInfo = new DirectoryInfo(systemFolderPath);
+                systemFolderInfo.Attributes |= FileAttributes.Hidden;
 
-                System.Diagnostics.Debug.WriteLine("Components folder structure created");
+                System.Diagnostics.Debug.WriteLine("Components folder structure created (System folder hidden)");
             }
             catch (Exception ex)
             {
