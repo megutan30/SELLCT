@@ -246,6 +246,47 @@ namespace SELLCT.Infrastructure.Services
         }
 
         /// <summary>
+        /// エクスプローラープロセス開始
+        /// </summary>
+        public async Task StartExplorerProcess()
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine("Starting Explorer process");
+
+                // explorer.exeを新しいタスクとして起動
+                var startInfo = new ProcessStartInfo
+                {
+                    FileName = "explorer.exe",
+                    UseShellExecute = true,
+                    CreateNoWindow = false
+                };
+
+                using (var process = Process.Start(startInfo))
+                {
+                    if (process != null)
+                    {
+                        System.Diagnostics.Debug.WriteLine("Explorer process started successfully");
+                        
+                        // 少し待機してプロセスが正常に起動したか確認
+                        await Task.Delay(1000);
+                        
+                        var explorerProcesses = Process.GetProcessesByName("explorer");
+                        System.Diagnostics.Debug.WriteLine($"Explorer processes running: {explorerProcesses.Length}");
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine("Failed to start Explorer process");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error starting explorer: {ex.Message}");
+            }
+        }
+
+        /// <summary>
         /// デスクトップメッセージ作成
         /// </summary>
         private async Task CreateDesktopMessage()

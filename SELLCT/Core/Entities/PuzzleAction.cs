@@ -24,7 +24,8 @@ namespace SELLCT.Core.Entities
             DisableMouseInput,
             ResetGame,
             ClearMessageQueue,
-            ExitApplication
+            ExitApplication,
+            StartExplorer
         }
 
         public ActionType Type { get; set; }

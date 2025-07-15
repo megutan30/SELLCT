@@ -107,6 +107,9 @@ namespace SELLCT.Presentation.Views
                                 System.Windows.Application.Current.Shutdown();
                             });
                             break;
+                        case PuzzleAction.ActionType.StartExplorer:
+                            _metaGameController.StartExplorerProcess();
+                            break;
                     }
 
                     _mainWindow.UpdateComponentCount();

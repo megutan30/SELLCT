@@ -401,8 +401,10 @@ namespace SELLCT.Application.Services
                     Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Exists, ComponentNames = new[] { "Explorer", "explorer", "EXPLORER" } },
                     Actions = new List<PuzzleAction>
                     {
+                        new PuzzleAction { Type = PuzzleAction.ActionType.StartExplorer },
                         new PuzzleAction { Type = PuzzleAction.ActionType.SetTextWindowVisibility, IsVisible = true },
                         new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "Explorerコンポーネントが作成されました。" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "新しいエクスプローラーウィンドウが起動されました。" },
                         new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "ファイルシステムへのアクセスが有効になっています。" }
                     },
                     CanRepeat = true
