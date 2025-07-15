@@ -16,6 +16,7 @@ namespace SELLCT.Infrastructure.Services
     public class ComponentManager : IDisposable
     {
         private readonly Dictionary<string, GameComponent> _components;
+        private readonly Dictionary<string, string> _componentPaths; // 構成要素名 -> 実際のファイルパス
         private FileSystemWatcher _watcher;
         private readonly string _componentsPath;
         private readonly Timer _debounceTimer;
@@ -40,6 +41,7 @@ namespace SELLCT.Infrastructure.Services
             _eventDispatcher = eventDispatcher;
             _componentsPath = "components";
             _components = new Dictionary<string, GameComponent>();
+            _componentPaths = new Dictionary<string, string>();
             _debounceTimer = new Timer(OnDebounceElapsed, null, Timeout.Infinite, Timeout.Infinite);
 
             // 起動時にcomponentsフォルダを初期状態にリセット
@@ -133,6 +135,11 @@ namespace SELLCT.Infrastructure.Services
             }
 
             File.WriteAllText(fullPath, content);
+            
+            // 初期構成要素のパスを記録
+            var componentName = Path.GetFileNameWithoutExtension(relativePath);
+            _componentPaths[componentName] = fullPath;
+            
             System.Diagnostics.Debug.WriteLine($"Created component file: {fullPath}");
         }
 
@@ -165,6 +172,11 @@ namespace SELLCT.Infrastructure.Services
             }
 
             File.WriteAllText(fullPath, content);
+            
+            // 隠しファイルのパスを記録
+            var componentName = Path.GetFileNameWithoutExtension(relativePath);
+            _componentPaths[componentName] = fullPath;
+            
             System.Diagnostics.Debug.WriteLine($"Created hidden file: {fullPath}");
 
             // 隠しファイル属性設定
@@ -189,8 +201,8 @@ namespace SELLCT.Infrastructure.Services
                 _watcher = new FileSystemWatcher(_componentsPath)
                 {
                     IncludeSubdirectories = true,
-                    Filter = "*.txt",
-                    NotifyFilter = NotifyFilters.FileName | NotifyFilters.LastWrite | NotifyFilters.Size
+                    Filter = "*",
+                    NotifyFilter = NotifyFilters.FileName | NotifyFilters.LastWrite | NotifyFilters.Size | NotifyFilters.DirectoryName
                 };
 
                 _watcher.Created += OnFileCreated;
@@ -224,7 +236,8 @@ namespace SELLCT.Infrastructure.Services
                     if (component != null)
                     {
                         _components[component.Name] = component;
-                        System.Diagnostics.Debug.WriteLine($"Loaded existing component: {component.Name}");
+                        _componentPaths[component.Name] = filePath; // 既存構成要素のパスを記録
+                        System.Diagnostics.Debug.WriteLine($"Loaded existing component: {component.Name} at {filePath}");
                     }
                 }
 
@@ -253,6 +266,7 @@ namespace SELLCT.Infrastructure.Services
                     if (component != null)
                     {
                         _components[component.Name] = component;
+                        _componentPaths[component.Name] = e.FullPath; // パスを記録
                         _eventDispatcher.Dispatch(new ComponentCreatedEvent(component));
 
                         // 特定構成要素作成時の特別処理
@@ -267,7 +281,7 @@ namespace SELLCT.Infrastructure.Services
         }
 
         /// <summary>
-        /// ファイル削除イベントハンドラー
+        /// ファイル・ディレクトリ削除イベントハンドラー
         /// </summary>
         private void OnFileDeleted(object sender, FileSystemEventArgs e)
         {
@@ -275,19 +289,26 @@ namespace SELLCT.Infrastructure.Services
 
             try
             {
-                System.Diagnostics.Debug.WriteLine($"File deleted: {e.FullPath}");
+                System.Diagnostics.Debug.WriteLine($"File/Directory deleted: {e.FullPath}");
 
+                // ファイル削除の処理
                 if (e.Name.EndsWith(".txt"))
                 {
                     var componentName = Path.GetFileNameWithoutExtension(e.Name);
                     if (_components.TryGetValue(componentName, out var component))
                     {
                         _components.Remove(componentName);
+                        _componentPaths.Remove(componentName); // パスも削除
                         _eventDispatcher.Dispatch(new ComponentDeletedEvent(component));
 
                         // 特定構成要素削除時の処理
                         HandleSpecialComponentDeletion(component);
                     }
+                }
+                // ディレクトリ削除の処理
+                else if (Directory.Exists(e.FullPath) == false && !e.Name.Contains("."))
+                {
+                    ProcessDirectoryDeletion(e.FullPath);
                 }
             }
             catch (Exception ex)
@@ -342,10 +363,15 @@ namespace SELLCT.Infrastructure.Services
 
                     if (_components.TryGetValue(oldName, out var component))
                     {
+                        // 古いコンポーネントとパスを削除
                         _components.Remove(oldName);
+                        _componentPaths.Remove(oldName);
+                        
+                        // 新しいコンポーネントとパスを追加
                         component.Name = newName;
                         component.FilePath = e.FullPath;
                         _components[newName] = component;
+                        _componentPaths[newName] = e.FullPath;
 
                         _eventDispatcher.Dispatch(new ComponentRenamedEvent(oldName, newName, component));
 
@@ -354,6 +380,36 @@ namespace SELLCT.Infrastructure.Services
 
                         // リネームによって特定のコンポーネントが「作成」されたと見なす
                         HandleSpecialComponentCreation(component);
+                        
+                        System.Diagnostics.Debug.WriteLine($"Component renamed and path updated: {oldName} -> {newName} at {e.FullPath}");
+                    }
+                    // ファイル移動（名前変更なし）の場合
+                    else if (oldName == newName)
+                    {
+                        // 既存のコンポーネントのパスを更新
+                        if (_componentPaths.ContainsKey(oldName))
+                        {
+                            _componentPaths[oldName] = e.FullPath;
+                            // 既存コンポーネントのFilePathプロパティも更新
+                            if (_components.TryGetValue(oldName, out var existingComponent))
+                            {
+                                existingComponent.FilePath = e.FullPath;
+                            }
+                            System.Diagnostics.Debug.WriteLine($"Component path updated: {oldName} moved to {e.FullPath}");
+                        }
+                        // 新しいコンポーネントとして追加
+                        else
+                        {
+                            var newComponent = ParseComponentFile(e.FullPath);
+                            if (newComponent != null)
+                            {
+                                _components[newComponent.Name] = newComponent;
+                                _componentPaths[newComponent.Name] = e.FullPath;
+                                _eventDispatcher.Dispatch(new ComponentCreatedEvent(newComponent));
+                                HandleSpecialComponentCreation(newComponent);
+                                System.Diagnostics.Debug.WriteLine($"New component detected via rename: {newComponent.Name} at {e.FullPath}");
+                            }
+                        }
                     }
                 }
             }
@@ -727,6 +783,54 @@ namespace SELLCT.Infrastructure.Services
         }
 
         /// <summary>
+        /// ディレクトリ削除時の子要素削除処理
+        /// </summary>
+        private void ProcessDirectoryDeletion(string deletedDirectoryPath)
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine($"[ComponentManager] Processing directory deletion: {deletedDirectoryPath}");
+
+                // 削除されたディレクトリ内の構成要素を検索
+                var componentsToDelete = new List<string>();
+                
+                foreach (var kvp in _componentPaths)
+                {
+                    var componentName = kvp.Key;
+                    var componentPath = kvp.Value;
+                    
+                    // 実際のファイルパスが削除されたディレクトリ内にあるかチェック
+                    if (componentPath.StartsWith(deletedDirectoryPath, StringComparison.OrdinalIgnoreCase))
+                    {
+                        componentsToDelete.Add(componentName);
+                        System.Diagnostics.Debug.WriteLine($"[ComponentManager] Found component in deleted directory: {componentName} at {componentPath}");
+                    }
+                }
+
+                // 子要素の削除処理を実行
+                foreach (var componentName in componentsToDelete)
+                {
+                    if (_components.TryGetValue(componentName, out var component))
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[ComponentManager] Simulating deletion of child component: {componentName}");
+                        
+                        _components.Remove(componentName);
+                        _componentPaths.Remove(componentName); // パスも削除
+                        _eventDispatcher.Dispatch(new ComponentDeletedEvent(component));
+                        
+                        // 特定構成要素削除時の処理
+                        HandleSpecialComponentDeletion(component);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[ComponentManager] Error in ProcessDirectoryDeletion: {ex.Message}");
+            }
+        }
+
+
+        /// <summary>
         /// リソース解放
         /// </summary>
         public void Dispose()
@@ -749,6 +853,7 @@ namespace SELLCT.Infrastructure.Services
                 }
 
                 _components.Clear();
+                _componentPaths.Clear();
                 System.Diagnostics.Debug.WriteLine("ComponentManager disposed");
             }
         }
