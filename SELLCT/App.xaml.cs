@@ -59,6 +59,28 @@ namespace SELLCT
         {
             base.OnStartup(e);
 
+            // 起動時警告メッセージを表示
+            var warningResult = MessageBox.Show(
+                "⚠️ このゲームは実験的なメタゲームです。\n" +
+                "以下の点にご注意ください：\n\n" +
+                "• ファイルシステムへの直接操作を行います\n" +
+                "• 一部のシステム機能を制御する可能性があります\n" +
+                "• Explorer終了、入力デバイス無効化などの機能が含まれます\n" +
+                "• 予期しない動作が発生する場合があります\n\n" +
+                "続行しますか？",
+                "SELLCT - 重要な警告",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning,
+                MessageBoxResult.No
+            );
+
+            // ユーザーが「いいえ」を選択した場合、アプリケーションを終了
+            if (warningResult != MessageBoxResult.Yes)
+            {
+                this.Shutdown();
+                return;
+            }
+
             // ComponentManagerを初期化
             _componentManager = new ComponentManager(_eventDispatcher);
 
