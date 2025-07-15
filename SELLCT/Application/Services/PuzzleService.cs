@@ -131,13 +131,15 @@ namespace SELLCT.Application.Services
                 {
                     Id = "KEY_Create",
                     Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Exists, ComponentNames = new[] { "KEY", "key", "Key" } },
-                    Actions = new List<PuzzleAction> { new PuzzleAction { Type = PuzzleAction.ActionType.SetKeyVisibility, IsVisible = true } }
+                    Actions = new List<PuzzleAction> { new PuzzleAction { Type = PuzzleAction.ActionType.SetKeyVisibility, IsVisible = true } },
+                    CanRepeat = true
                 },
                 new PuzzleDefinition
                 {
                     Id = "KEY_Delete",
                     Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Deleted, ComponentNames = new[] { "KEY", "key", "Key" } },
-                    Actions = new List<PuzzleAction> { new PuzzleAction { Type = PuzzleAction.ActionType.SetKeyVisibility, IsVisible = false } }
+                    Actions = new List<PuzzleAction> { new PuzzleAction { Type = PuzzleAction.ActionType.SetKeyVisibility, IsVisible = false } },
+                    CanRepeat = true
                 },
 
                 // TextWindow.txt (複数パターン対応)
@@ -187,7 +189,8 @@ namespace SELLCT.Application.Services
                     { 
                         new PuzzleAction { Type = PuzzleAction.ActionType.ClearMessageQueue },
                         new PuzzleAction { Type = PuzzleAction.ActionType.SetTextWindowVisibility, IsVisible = false }
-                    }
+                    },
+                    CanRepeat = true
                 },
 
                 // No.txt (複数パターン対応: "NO", "no", "No", "いいえ")
@@ -238,7 +241,8 @@ namespace SELLCT.Application.Services
                         new PuzzleAction { Type = PuzzleAction.ActionType.SetTextWindowVisibility, IsVisible = true },
                         new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "NOコンポーネントが削除されました。" },
                         new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "否定的な選択肢が失われてしまいました..." }
-                    }
+                    },
+                    CanRepeat = true
                 },
 
                 // Yes.txt (複数パターン対応: "YES", "yes", "Yes", "はい")
@@ -266,7 +270,8 @@ namespace SELLCT.Application.Services
                         new PuzzleAction { Type = PuzzleAction.ActionType.SetTextWindowVisibility, IsVisible = true },
                         new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "YESコンポーネントが削除されました。" },
                         new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "肯定的な選択肢が失われてしまいました..." }
-                    }
+                    },
+                    CanRepeat = true
                 },
 
                 // Explorer.txt (複数パターン対応)
@@ -279,13 +284,15 @@ namespace SELLCT.Application.Services
                         new PuzzleAction { Type = PuzzleAction.ActionType.SetTextWindowVisibility, IsVisible = true },
                         new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "Explorerコンポーネントが作成されました。" },
                         new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "ファイルシステムへのアクセスが有効になっています。" }
-                    }
+                    },
+                    CanRepeat = true
                 },
                 new PuzzleDefinition
                 {
                     Id = "Explorer_Delete",
                     Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Deleted, ComponentNames = new[] { "Explorer", "explorer", "EXPLORER" } },
-                    Actions = new List<PuzzleAction> { new PuzzleAction { Type = PuzzleAction.ActionType.TerminateExplorer } }
+                    Actions = new List<PuzzleAction> { new PuzzleAction { Type = PuzzleAction.ActionType.TerminateExplorer } },
+                    CanRepeat = true
                 },
 
                 // Keyboard.txt (複数パターン対応)
@@ -298,13 +305,15 @@ namespace SELLCT.Application.Services
                         new PuzzleAction { Type = PuzzleAction.ActionType.SetTextWindowVisibility, IsVisible = true },
                         new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "Keyboardコンポーネントが作成されました。" },
                         new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "キーボード入力機能が有効になっています。" }
-                    }
+                    },
+                    CanRepeat = true
                 },
                 new PuzzleDefinition
                 {
                     Id = "Keyboard_Delete",
                     Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Deleted, ComponentNames = new[] { "Keyboard", "keyboard", "KEYBOARD" } },
-                    Actions = new List<PuzzleAction> { new PuzzleAction { Type = PuzzleAction.ActionType.DisableKeyboardInput } }
+                    Actions = new List<PuzzleAction> { new PuzzleAction { Type = PuzzleAction.ActionType.DisableKeyboardInput } },
+                    CanRepeat = true
                 },
 
                 // Mouse.txt (複数パターン対応)
@@ -317,13 +326,15 @@ namespace SELLCT.Application.Services
                         new PuzzleAction { Type = PuzzleAction.ActionType.SetTextWindowVisibility, IsVisible = true },
                         new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "Mouseコンポーネントが作成されました。" },
                         new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "マウス入力機能が有効になっています。" }
-                    }
+                    },
+                    CanRepeat = true
                 },
                 new PuzzleDefinition
                 {
                     Id = "Mouse_Delete",
                     Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Deleted, ComponentNames = new[] { "Mouse", "mouse", "MOUSE" } },
-                    Actions = new List<PuzzleAction> { new PuzzleAction { Type = PuzzleAction.ActionType.DisableMouseInput } }
+                    Actions = new List<PuzzleAction> { new PuzzleAction { Type = PuzzleAction.ActionType.DisableMouseInput } },
+                    CanRepeat = true
                 }
             };
         }
