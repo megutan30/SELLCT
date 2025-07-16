@@ -555,6 +555,47 @@ namespace SELLCT.Application.Services
                     },
                     CanRepeat = false,
                     Priority = 15
+                },
+
+                // BackGround.txt が削除されたとき
+                new PuzzleDefinition
+                {
+                    Id = "Background_Deleted",
+                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Deleted, ComponentNames = new[] { "Background", "background", "BACKGROUND" } },
+                    Actions = new List<PuzzleAction>
+                    {
+                        new PuzzleAction { Type = PuzzleAction.ActionType.SetBackgroundVisibility, IsVisible = false },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "背景が消失しました。" }
+                    },
+                    CanRepeat = true,
+                    Priority = 10
+                },
+
+                // BackGround.txt が作成されたとき
+                new PuzzleDefinition
+                {
+                    Id = "Background_Created",
+                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Created, ComponentNames = new[] { "Background", "background", "BACKGROUND" } },
+                    Actions = new List<PuzzleAction>
+                    {
+                        new PuzzleAction { Type = PuzzleAction.ActionType.SetBackgroundVisibility, IsVisible = true },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "背景が復元されました。" }
+                    },
+                    CanRepeat = true,
+                    Priority = 10
+                },
+
+                // BackGround.txt が存在するとき（初期状態）
+                new PuzzleDefinition
+                {
+                    Id = "Background_Exists",
+                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Exists, ComponentNames = new[] { "Background", "background", "BACKGROUND" } },
+                    Actions = new List<PuzzleAction>
+                    {
+                        new PuzzleAction { Type = PuzzleAction.ActionType.SetBackgroundVisibility, IsVisible = true }
+                    },
+                    CanRepeat = true,
+                    Priority = 5
                 }
             };
         }

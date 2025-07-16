@@ -19,6 +19,7 @@ namespace SELLCT.Core.Entities
             SetMainButtonVisibility,
             SetKeyVisibility,
             SetTextWindowVisibility,
+            SetBackgroundVisibility,
             TerminateExplorer,
             DisableKeyboardInput,
             DisableMouseInput,

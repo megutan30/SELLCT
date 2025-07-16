@@ -948,6 +948,12 @@ namespace SELLCT.Views
             TextWindow.Visibility = isVisible ? Visibility.Visible : Visibility.Collapsed;
         }
 
+        public void SetBackgroundVisibility(bool isVisible)
+        {
+            // 背景画像の表示/非表示を設定
+            BackgroundImage.Visibility = isVisible ? Visibility.Visible : Visibility.Collapsed;
+        }
+
         /// <summary>
         /// ダイアログメッセージキューをクリアし、タイピングを停止する
         /// </summary>

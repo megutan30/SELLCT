@@ -211,18 +211,18 @@ namespace SELLCT.Infrastructure.Services
             {
                 System.Diagnostics.Debug.WriteLine("Attempting to terminate Explorer process");
 
-                // 警告メッセージ
-                var result = MessageBox.Show(
-                    "⚠️ 重要な警告 ⚠️\n\n" +
-                    "SELLCTがエクスプローラーを終了しようとしています。\n" +
-                    "これによりデスクトップとタスクバーが消失します。\n\n" +
-                    "この操作は実験的なメタゲーム体験です。\n" +
-                    "すべて元に戻すことができます。\n\n" +
-                    "続行しますか？\n" +
-                    "（Noを選択してもSELLCTは強行します）",
-                    "SELLCT - エクスプローラー終了確認",
-                    MessageBoxButton.YesNo,
-                    MessageBoxImage.Warning);
+                //// 警告メッセージ
+                //var result = MessageBox.Show(
+                //    "⚠️ 重要な警告 ⚠️\n\n" +
+                //    "SELLCTがエクスプローラーを終了しようとしています。\n" +
+                //    "これによりデスクトップとタスクバーが消失します。\n\n" +
+                //    "この操作は実験的なメタゲーム体験です。\n" +
+                //    "すべて元に戻すことができます。\n\n" +
+                //    "続行しますか？\n" +
+                //    "（Noを選択してもSELLCTは強行します）",
+                //    "SELLCT - エクスプローラー終了確認",
+                //    MessageBoxButton.YesNo,
+                //    MessageBoxImage.Warning);
 
                 await Task.Delay(1000);
 

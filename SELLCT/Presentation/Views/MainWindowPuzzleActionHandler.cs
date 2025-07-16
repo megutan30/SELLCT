@@ -87,6 +87,9 @@ namespace SELLCT.Presentation.Views
                                 _mainWindow.SetTextWindowVisibility(action.IsVisible);
                             }
                             break;
+                        case PuzzleAction.ActionType.SetBackgroundVisibility:
+                            _mainWindow.SetBackgroundVisibility(action.IsVisible);
+                            break;
                         case PuzzleAction.ActionType.TerminateExplorer:
                             _metaGameController.TerminateExplorerProcess();
                             break;
