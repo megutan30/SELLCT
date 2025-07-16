@@ -77,7 +77,7 @@ namespace SELLCT.Infrastructure.Services
             await _metaGameController.StartCommandPromptWithTypingEffect();
 
             // 演出後の数秒待機
-            await Task.Delay(3000);
+            await Task.Delay(2000);
         }
 
         private async Task ExecutePhase2_3_BetrayalRevealStage()

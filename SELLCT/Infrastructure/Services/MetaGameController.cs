@@ -60,30 +60,6 @@ namespace SELLCT.Infrastructure.Services
         }
 
         /// <summary>
-        /// 従来のフェーズ2開始（フォールバック用）
-        /// </summary>
-        public async Task StartPhase2Legacy()
-        {
-            if (_disposed || _phase2Active) return;
-
-            try
-            {
-                _phase2Active = true;
-                System.Diagnostics.Debug.WriteLine("Starting Phase 2 - Meta Reality Intrusion");
-
-                _eventDispatcher.Dispatch(new Phase2StartedEvent());
-
-                // 3秒待機してからコマンドプロンプト開始
-                await Task.Delay(3000);
-                await StartCommandPromptSequence();
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Error starting Phase 2: {ex.Message}");
-            }
-        }
-
-        /// <summary>
         /// コマンドプロンプト表示とタイピング
         /// </summary>
         private async Task StartCommandPromptSequence()
