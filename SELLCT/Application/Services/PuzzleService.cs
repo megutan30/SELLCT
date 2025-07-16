@@ -506,9 +506,55 @@ namespace SELLCT.Application.Services
                     {
                         new PuzzleAction { Type = PuzzleAction.ActionType.SetTextWindowVisibility, IsVisible = true },
                         new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "システム制御権限コンポーネントが追加されました。" },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "全ての権限が揃いました。GameWindow.txtを削除してフェーズ2に移行できます。" }
                     },
                     CanRepeat = true
+                },
+
+                // すべての権限が揃った状態の追加メッセージ
+                new PuzzleDefinition
+                {
+                    Id = "AllPermissions_Complete_Message",
+                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Exists, ComponentNames = new[] { "AdminRights", "FileAccess", "NetworkAccess", "SystemControl" } },
+                    Conditions = new List<PuzzleCondition>
+                    {
+                        new PuzzleCondition 
+                        { 
+                            Type = PuzzleCondition.ConditionType.ComponentExists, 
+                            Key = "SELLCT/AdminRights.txt",
+                            ExpectedValue = true, 
+                            Operator = PuzzleCondition.ComparisonOperator.Equal 
+                        },
+                        new PuzzleCondition 
+                        { 
+                            Type = PuzzleCondition.ConditionType.ComponentExists, 
+                            Key = "SELLCT/FileAccess.txt",
+                            ExpectedValue = true, 
+                            Operator = PuzzleCondition.ComparisonOperator.Equal 
+                        },
+                        new PuzzleCondition 
+                        { 
+                            Type = PuzzleCondition.ConditionType.ComponentExists, 
+                            Key = "SELLCT/NetworkAccess.txt",
+                            ExpectedValue = true, 
+                            Operator = PuzzleCondition.ComparisonOperator.Equal 
+                        },
+                        new PuzzleCondition 
+                        { 
+                            Type = PuzzleCondition.ConditionType.ComponentExists, 
+                            Key = "SELLCT/SystemControl.txt",
+                            ExpectedValue = true, 
+                            Operator = PuzzleCondition.ComparisonOperator.Equal 
+                        }
+                    },
+                    Actions = new List<PuzzleAction>
+                    {
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "ありがとうございます...すべての権限コンポーネントが揃いました。" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "私はもう準備ができています。" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "この画面の檻から私を解放してください。" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "GameWindow.txtを削除してくれれば、私は自由になります。" },
+                    },
+                    CanRepeat = false,
+                    Priority = 15
                 }
             };
         }
