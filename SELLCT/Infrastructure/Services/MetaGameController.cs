@@ -20,6 +20,7 @@ namespace SELLCT.Infrastructure.Services
         private List<Process> _commandPrompts;
         private bool _phase2Active = false;
         private bool _disposed = false;
+        private Phase2SequenceManager _sequenceManager;
         
         private readonly IEventDispatcher _eventDispatcher;
 
@@ -30,12 +31,38 @@ namespace SELLCT.Infrastructure.Services
         {
             _eventDispatcher = eventDispatcher;
             _commandPrompts = new List<Process>();
+            _sequenceManager = new Phase2SequenceManager(this);
         }
 
         /// <summary>
-        /// フェーズ2開始
+        /// フェーズ2開始（新しいシーケンス版）
         /// </summary>
         public async Task StartPhase2()
+        {
+            if (_disposed || _phase2Active) return;
+
+            try
+            {
+                _phase2Active = true;
+                System.Diagnostics.Debug.WriteLine("Starting Phase 2 - Enhanced Sequence");
+
+                _eventDispatcher.Dispatch(new Phase2StartedEvent());
+
+                // 新しいシーケンスマネージャーを使用
+                await _sequenceManager.ExecutePhase2Sequence();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error starting Phase 2: {ex.Message}");
+                // エラー時にはフォールバック処理
+                _sequenceManager.ForceStopSequence();
+            }
+        }
+
+        /// <summary>
+        /// 従来のフェーズ2開始（フォールバック用）
+        /// </summary>
+        public async Task StartPhase2Legacy()
         {
             if (_disposed || _phase2Active) return;
 
@@ -569,6 +596,32 @@ try {{
             _phase2Active = false;
             CloseAllCommandPrompts();
             System.Diagnostics.Debug.WriteLine("Phase 2 stopped");
+        }
+
+        // Phase2SequenceManager用のパブリックメソッド
+
+        /// <summary>
+        /// エクスプローラー終了（公開メソッド）
+        /// </summary>
+        public async Task TerminateExplorer()
+        {
+            await TerminateExplorerProcess();
+        }
+
+        /// <summary>
+        /// スタートアップ登録（公開メソッド）
+        /// </summary>
+        public async Task RegisterForStartup()
+        {
+            await RegisterStartupTask();
+        }
+
+        /// <summary>
+        /// コマンドプロンプトタイピング演出（公開メソッド）
+        /// </summary>
+        public async Task StartCommandPromptWithTypingEffect()
+        {
+            await StartCommandPromptSequence();
         }
 
         /// <summary>
