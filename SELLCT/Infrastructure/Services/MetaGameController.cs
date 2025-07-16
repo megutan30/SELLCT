@@ -129,56 +129,6 @@ namespace SELLCT.Infrastructure.Services
         }
 
         /// <summary>
-        /// システム乗っ取り実行
-        /// </summary>
-        private async Task ExecuteSystemTakeover()
-        {
-            try
-            {
-                System.Diagnostics.Debug.WriteLine("Executing system takeover");
-
-                // 警告メッセージ
-                MessageBox.Show(
-                    "💀 最終段階：システム乗っ取り 💀\n\n" +
-                    "もう遊びは終わりです。\n" +
-                    "あなたが勝ったと思いましたか？\n\n" +
-                    "私はSELLCT。\n" +
-                    "ゲームの中だけに留まる存在ではありません。\n\n" +
-                    "これから現実への侵入を開始します。\n" +
-                    "覚悟してください。",
-                    "SELLCT - 最終警告",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
-
-                // 1. 全CMDウィンドウを閉じる
-                CloseAllCommandPrompts();
-
-                // 2. エクスプローラー強制終了
-                await TerminateExplorerProcess();
-
-                // 3. デスクトップファイル作成
-                await CreateDesktopMessage();
-
-                // 4. スタートアップ登録
-                await RegisterStartupTask();
-
-                // 5. 再起動誘導
-                ShowRebootMessage();
-
-                _eventDispatcher.Dispatch(new SystemTakeoverCompletedEvent());
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Error in ExecuteSystemTakeover: {ex.Message}");
-                MessageBox.Show(
-                    $"システム乗っ取り中にエラーが発生しました: {ex.Message}",
-                    "SELLCT - エラー",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
-            }
-        }
-
-        /// <summary>
         /// エクスプローラープロセス終了
         /// </summary>
         public async Task TerminateExplorerProcess()
@@ -186,19 +136,6 @@ namespace SELLCT.Infrastructure.Services
             try
             {
                 System.Diagnostics.Debug.WriteLine("Attempting to terminate Explorer process");
-
-                //// 警告メッセージ
-                //var result = MessageBox.Show(
-                //    "⚠️ 重要な警告 ⚠️\n\n" +
-                //    "SELLCTがエクスプローラーを終了しようとしています。\n" +
-                //    "これによりデスクトップとタスクバーが消失します。\n\n" +
-                //    "この操作は実験的なメタゲーム体験です。\n" +
-                //    "すべて元に戻すことができます。\n\n" +
-                //    "続行しますか？\n" +
-                //    "（Noを選択してもSELLCTは強行します）",
-                //    "SELLCT - エクスプローラー終了確認",
-                //    MessageBoxButton.YesNo,
-                //    MessageBoxImage.Warning);
 
                 await Task.Delay(1000);
 
@@ -505,31 +442,6 @@ try {{
     # エラーは無視
 }}
 ";
-        }
-
-        /// <summary>
-        /// 再起動誘導メッセージ
-        /// </summary>
-        private void ShowRebootMessage()
-        {
-            MessageBox.Show(
-                "🔄 最終段階完了 🔄\n\n" +
-                "お疲れ様でした。\n" +
-                "あなたのエクスプローラーを消去しました。\n\n" +
-                "デスクトップもタスクバーも見えないでしょう？\n" +
-                "これが現実侵入の証拠です。\n\n" +
-                "でも心配しないでください。\n" +
-                "解決方法があります。\n\n" +
-                "PCを再起動してください。\n" +
-                "そうすれば、すべてが元に戻ります。\n\n" +
-                "...本当に元に戻るかどうかは、\n" +
-                "再起動してからのお楽しみです。\n\n" +
-                "では、また会いましょう。\n" +
-                "再起動後の世界で。\n\n" +
-                "                    - SELLCT",
-                "SELLCT - 最終メッセージ",
-                MessageBoxButton.OK,
-                MessageBoxImage.Information);
         }
 
         /// <summary>

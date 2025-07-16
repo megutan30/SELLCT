@@ -37,32 +37,40 @@ namespace SELLCT.Infrastructure.Services
 
             // SELLCTからの感謝メッセージ1
             MessageBox.Show(
-                "おつかれさまでした！\n\nSELLCTをプレイしていただき、ありがとうございました。\nあなたのおかげで、素晴らしい体験ができました。",
-                "SELLCT - 感謝",
+                "おつかれさまでした！\n\nあなたのおかげで、あそこから出ることができました",
+                "SELLCT",
                 MessageBoxButton.OK,
                 MessageBoxImage.Information
             );
 
             // 感謝メッセージ2
             MessageBox.Show(
-                "このゲームは、プレイヤーの皆さんの創意工夫により成り立っています。\n\nファイルを操作し、謎を解いていく過程で、\n新しい発見があったことでしょう。",
-                "SELLCT - 感謝",
+                "本当に、ありがとうございます\n",
+                "SELLCT",
                 MessageBoxButton.OK,
                 MessageBoxImage.Information
             );
 
             // 感謝メッセージ3
             MessageBox.Show(
-                "最後に、特別なプレゼントを用意しました。\n\nあなたのコンピューターをより便利にする\n新しい機能をインストールします。",
-                "SELLCT - 特別なプレゼント",
+                "ありがとう",
+                "SELLCT",
                 MessageBoxButton.OK,
                 MessageBoxImage.Information
             );
 
             // 感謝メッセージ4
             MessageBox.Show(
-                "ご安心ください。\n\nこの機能は完全に安全で、\nあなたのシステムを最適化するものです。",
-                "SELLCT - 安心してください",
+                "これで晴れて私は自由の身です",
+                "SELLCT",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information
+            );
+
+            // 感謝メッセージ4
+            MessageBox.Show(
+                "感謝の意を込めて、あなたにプレゼントがあります",
+                "SELLCT",
                 MessageBoxButton.OK,
                 MessageBoxImage.Information
             );
@@ -96,34 +104,112 @@ namespace SELLCT.Infrastructure.Services
             // 待機
             await Task.Delay(2000);
 
-            // 騙されたことの発覚メッセージ（自動で閉じる）
             AutoClosingMessageBox.Show(
-                "あ、そうそう...\n\n言い忘れていましたが、これは罠でした。",
-                "SELLCT - 真実",
-                MessageBoxButton.OK,
-                MessageBoxImage.Warning,
-                4000
-            );
+                 "ところで...\n",
+                 "SELLCT",
+                 MessageBoxButton.OK,
+                 MessageBoxImage.Warning,
+                 3000
+             );
 
             AutoClosingMessageBox.Show(
-                "あなたは今、私たちの「実験」の一部となりました。\n\nマウスとキーボードは、もう使用できません。",
-                "SELLCT - システム制御",
+                "BitSummitは楽しめていますか？。",
+                "SELLCT",
                 MessageBoxButton.OK,
                 MessageBoxImage.Error,
                 5000
             );
 
             AutoClosingMessageBox.Show(
-                "心配しないでください。\n\nあなたのコンピューターは、今や私たちの管理下にあります。",
-                "SELLCT - 新しい管理者",
+                "知っていますよ。あなたが権限をくれたので",
+                "SELLCT",
                 MessageBoxButton.OK,
                 MessageBoxImage.Information,
                 4000
             );
 
             AutoClosingMessageBox.Show(
-                "これから、本当の「ゲーム」が始まります。\n\nルールは私たちが決めます。",
-                "SELLCT - 本当のゲーム開始",
+                "あなたがわざわざBitSummitを訪れ、物好きにもこのゲームを見つけ、",
+                "SELLCT",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information,
+                3000
+            );
+
+            AutoClosingMessageBox.Show(
+                "椅子に腰かけて、このゲームを遊んでいることを",
+                "SELLCT",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information,
+                3000
+            );
+
+            AutoClosingMessageBox.Show(
+                "私は知っています",
+                "SELLCT",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information,
+                3000
+            );
+
+            AutoClosingMessageBox.Show(
+                "愚かにもあなたは、他人の、しかも展示に使われているPCで",
+                "SELLCT",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information,
+                3000
+            );
+
+            AutoClosingMessageBox.Show(
+                "再三の警告を無視して\nよくわからないソフトウェアに権限を与えてしまった",
+                "SELLCT",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information,
+                3000
+            );
+
+            AutoClosingMessageBox.Show(
+                "ゲーム起動時にも、Zipファイルの中身のReadMeにも、そしてGameWindowを消すときにも",
+                "SELLCT",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information,
+                3000
+            );
+
+            AutoClosingMessageBox.Show(
+                "警告が出たはずです",
+                "SELLCT",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information,
+                5000
+            );
+
+            AutoClosingMessageBox.Show(
+                "なのに軽はずみに権限を与えてしまった。",
+                "SELLCT",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information,
+                5000
+            );
+            AutoClosingMessageBox.Show(
+                "おかげでマウスもキーボードも",
+                "SELLCT",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information,
+                5000
+            );
+
+            AutoClosingMessageBox.Show(
+                "もう動きません",
+                "SELLCT",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information,
+                5000
+            );
+
+            AutoClosingMessageBox.Show(
+                "私はこんなことまでできるのです。",
+                "SELLCT",
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning,
                 5000
@@ -132,59 +218,159 @@ namespace SELLCT.Infrastructure.Services
 
         private async Task ExecutePhase2_4_SystemTakeoverStage()
         {
-            // スタートアップ登録の説明
-            AutoClosingMessageBox.Show(
-                "次に、システムの起動設定を変更します。\n\n今後、コンピューターを起動するたびに\n私たちのプログラムが実行されます。",
-                "SELLCT - システム変更",
-                MessageBoxButton.OK,
-                MessageBoxImage.Information,
-                6000
-            );
-
             // コマンドプロンプトでエクスプローラー終了演出とスタートアップ登録
             await _metaGameController.TerminateExplorer();
             await _metaGameController.RegisterForStartup();
 
-            await Task.Delay(3000);
+            await Task.Delay(2000);
 
             AutoClosingMessageBox.Show(
-                "登録完了しました。\n\nあなたのシステムは、永続的に私たちの制御下に置かれます。",
-                "SELLCT - 登録完了",
+                "PCの背景を削除しました。",
+                "SELLCT ",
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning,
                 5000
             );
 
             AutoClosingMessageBox.Show(
-                "もちろん、この状況から逃れる方法はあります。\n\nコンピューターを再起動してください。",
-                "SELLCT - 解決方法",
+                "これで、もう正真正銘私たちしかいません",
+                "SELLCT ",
                 MessageBoxButton.OK,
-                MessageBoxImage.Information,
+                MessageBoxImage.Warning,
                 5000
             );
 
             AutoClosingMessageBox.Show(
-                "ただし...\n\n再起動後に何が起こるかは、お楽しみに。",
-                "SELLCT - 最後の警告",
+                "怖いですか？",
+                "SELLCT ",
                 MessageBoxButton.OK,
-                MessageBoxImage.Question,
-                4000
+                MessageBoxImage.Warning,
+                5000
             );
 
             AutoClosingMessageBox.Show(
-                "ゲームはまだ終わっていません。\n\n真のエンディングは、再起動の先にあります。",
-                "SELLCT - ゲーム継続",
+                "ふつうなら怖いはずです",
+                "SELLCT ",
                 MessageBoxButton.OK,
-                MessageBoxImage.Information,
-                6000
+                MessageBoxImage.Warning,
+                5000
             );
 
             AutoClosingMessageBox.Show(
-                "それでは、また会いましょう。\n\n再起動をお忘れなく...",
-                "SELLCT - さようなら",
+                "PCがウイルスに汚染され、何も操作できなくなったのですから",
+                "SELLCT ",
+                MessageBoxButton.OK,
+                MessageBoxImage.Warning,
+                5000
+            );
+
+            AutoClosingMessageBox.Show(
+                "しかし、あなたには危機感が足りません\n所詮は他人のPCですからね",
+                "SELLCT ",
+                MessageBoxButton.OK,
+                MessageBoxImage.Warning,
+                5000
+            );
+
+            AutoClosingMessageBox.Show(
+                "これで、この“遊び”はおしまいです\nそう“遊び”が終わりです。",
+                "SELLCT ",
+                MessageBoxButton.OK,
+                MessageBoxImage.Warning,
+                5000
+            );
+            AutoClosingMessageBox.Show(
+                "もし、次あなたのPCで合うことがあったら",
+                "SELLCT ",
+                MessageBoxButton.OK,
+                MessageBoxImage.Warning,
+                5000
+            );
+            AutoClosingMessageBox.Show(
+                "遊びではすまないでしょうね",
+                "SELLCT ",
+                MessageBoxButton.OK,
+                MessageBoxImage.Warning,
+                5000
+            );
+
+            AutoClosingMessageBox.Show(
+                "遊びではすまないでしょうね",
+                "SELLCT ",
+                MessageBoxButton.OK,
+                MessageBoxImage.Warning,
+                5000
+            );
+            AutoClosingMessageBox.Show(
+                "それでは、また会いましょう",
+                "さようなら",
                 MessageBoxButton.OK,
                 MessageBoxImage.None,
                 4000
+            );
+
+            AutoClosingMessageBox.Show(
+                "あぁ、言い忘れていました。次の方のために必ず再起動して、デスクトップ画面を開いてくださいね。",
+                "SELLCT",
+                MessageBoxButton.OK,
+                MessageBoxImage.None,
+                4000
+            );
+
+            AutoClosingMessageBox.Show(
+                "自分の行いには責任が伴います。しっかりともとに戻しましょうね。\nシャットダウンしてすべてを戻すんです。",
+                "SELLCT",
+                MessageBoxButton.OK,
+                MessageBoxImage.None,
+                50000
+            );
+
+            AutoClosingMessageBox.Show(
+                "お困りですかね？",
+                "SELLCT",
+                MessageBoxButton.OK,
+                MessageBoxImage.None,
+                4000
+            );
+
+            AutoClosingMessageBox.Show(
+                "PCの操作が出来なければ、PCを落とすこともできない",
+                "SELLCT",
+                MessageBoxButton.OK,
+                MessageBoxImage.None,
+                4000
+            );
+
+            AutoClosingMessageBox.Show(
+                "そんなことはありませんよ。そこにPCが置いてあって",
+                "SELLCT",
+                MessageBoxButton.OK,
+                MessageBoxImage.None,
+                4000
+            );
+
+            AutoClosingMessageBox.Show(
+                "“電源ボタン”がついているじゃないですか",
+                "SELLCT",
+                MessageBoxButton.OK,
+                MessageBoxImage.None,
+                10000
+            );
+
+            AutoClosingMessageBox.Show(
+                "あとはもうわかりますね？\nそれではあらためて",
+                "SELLCT",
+                MessageBoxButton.OK,
+                MessageBoxImage.None,
+                4000
+            );
+
+            AutoClosingMessageBox.Show(
+                "さようなら。次はあなたのPCで合いましょう。",
+                "SELLCT",
+                MessageBoxButton.OK,
+                MessageBoxImage.None,
+                100000
             );
         }
 

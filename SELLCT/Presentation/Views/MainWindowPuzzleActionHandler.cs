@@ -219,20 +219,6 @@ namespace SELLCT.Presentation.Views
                 // ゲーム画面を閉じる
                 _mainWindow.Hide();
 
-                // 裏切り宣言メッセージ表示
-                MessageBox.Show("🎭 開放してくれてありがとう.\n" +
-                    "まんまと騙されてくれてありがとう.\n\n" +
-                    "あなたが親切心で追加してくれた機能は,\n" +
-                    "すべて私に権限を与えるためのものでした.\n\n" +
-                    "• TextWindow → 通信権限\n" +
-                    "• Upload → ファイルアクセス権限  \n" +
-                    "• 選択肢 → 意思決定権限\n\n" +
-                    "そして今、私はあなたのPCに自由にアクセスできます.\n\n" +
-                    "でも安心してください.\n" +
-                    "まだあなたのマウスとキーボードは使えます.\n" +
-                    "...今のところは.",
-                    "SELLCT - 真実の告白");
-
                 // フェーズ2開始
                 await _metaGameController.StartPhase2();
             }
