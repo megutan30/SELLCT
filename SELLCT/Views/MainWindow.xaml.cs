@@ -209,6 +209,9 @@ namespace SELLCT.Views
             _puzzleActionHandler = new MainWindowPuzzleActionHandler(this, _componentManager, _metaGameController);
             _puzzleService = new PuzzleService(_componentManager, _puzzleActionHandler, (System.Windows.Application.Current as App).GetEventDispatcher());
 
+            // ComponentsFolderChangedイベントをサブスクライブ
+            _componentManager.ComponentsFolderChanged += OnComponentsFolderChanged;
+
             // 手紙シーケンス開始
             _letterService.StartLetterSequence();
 
@@ -283,6 +286,43 @@ namespace SELLCT.Views
             });
         }
 
+        /// <summary>
+        /// componentsフォルダ変更イベントハンドラー（ウィンドウを最前面に表示）
+        /// </summary>
+        private void OnComponentsFolderChanged(object sender, EventArgs e)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                try
+                {
+                    System.Diagnostics.Debug.WriteLine("Components folder changed, bringing window to foreground");
+                    
+                    // ウィンドウハンドルを取得
+                    var windowHelper = new System.Windows.Interop.WindowInteropHelper(this);
+                    var hWnd = windowHelper.Handle;
+                    
+                    if (hWnd != IntPtr.Zero)
+                    {
+                        // ウィンドウが最小化されている場合は復元
+                        ShowWindow(hWnd, SW_RESTORE);
+                        
+                        // ウィンドウを最前面に表示
+                        SetForegroundWindow(hWnd);
+                        
+                        System.Diagnostics.Debug.WriteLine("Window brought to foreground successfully");
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine("Failed to get window handle");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Error bringing window to foreground: {ex.Message}");
+                }
+            });
+        }
+
         [System.Runtime.InteropServices.DllImport("user32.dll")]
         private static extern bool BlockInput(bool fBlockIt);
 
@@ -297,6 +337,14 @@ namespace SELLCT.Views
 
         [System.Runtime.InteropServices.DllImport("kernel32.dll")]
         private static extern IntPtr GetModuleHandle(string lpModuleName);
+
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        private static extern bool SetForegroundWindow(IntPtr hWnd);
+
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
+        private const int SW_RESTORE = 9;
 
         private delegate IntPtr LowLevelInputProc(int nCode, IntPtr wParam, IntPtr lParam);
 
@@ -935,6 +983,12 @@ namespace SELLCT.Views
                     //    e.Cancel = true;
                     //    return;
                     //}
+                }
+
+                // イベントの購読解除
+                if (_componentManager != null)
+                {
+                    _componentManager.ComponentsFolderChanged -= OnComponentsFolderChanged;
                 }
 
                 // リソース解放

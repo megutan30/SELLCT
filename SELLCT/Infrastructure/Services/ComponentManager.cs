@@ -29,6 +29,11 @@ namespace SELLCT.Infrastructure.Services
         public event EventHandler<GameComponent> ComponentChanged;
 
         /// <summary>
+        /// componentsフォルダ変更イベント（ウィンドウ最前面表示用）
+        /// </summary>
+        public event EventHandler ComponentsFolderChanged;
+
+        /// <summary>
         /// 管理中の構成要素
         /// </summary>
         public IReadOnlyDictionary<string, GameComponent> Components => _components;
@@ -309,6 +314,8 @@ namespace SELLCT.Infrastructure.Services
 
                         // 特定構成要素削除時の処理
                         HandleSpecialComponentDeletion(component);
+
+                        ComponentsFolderChanged?.Invoke(this, EventArgs.Empty);
                     }
                 }
                 // ディレクトリ削除の処理
@@ -387,6 +394,9 @@ namespace SELLCT.Infrastructure.Services
                         // リネームによって特定のコンポーネントが「作成」されたと見なす
                         HandleSpecialComponentCreation(component);
                         
+                        // ウィンドウ最前面表示イベントを発火（リネーム時）
+                        ComponentsFolderChanged?.Invoke(this, EventArgs.Empty);
+                        
                         System.Diagnostics.Debug.WriteLine($"Component renamed and path updated: {oldName} -> {newName} at {e.FullPath}");
                     }
                     // ファイル移動（名前変更なし）の場合
@@ -413,6 +423,10 @@ namespace SELLCT.Infrastructure.Services
                                 _componentPaths[newComponent.Name] = e.FullPath;
                                 _eventDispatcher.Dispatch(new ComponentCreatedEvent(newComponent));
                                 HandleSpecialComponentCreation(newComponent);
+                                
+                                // ウィンドウ最前面表示イベントを発火（新規コンポーネント作成時）
+                                ComponentsFolderChanged?.Invoke(this, EventArgs.Empty);
+                                
                                 System.Diagnostics.Debug.WriteLine($"New component detected via rename: {newComponent.Name} at {e.FullPath}");
                             }
                         }
