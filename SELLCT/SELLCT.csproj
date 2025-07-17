@@ -27,25 +27,18 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Resource Remove="Resources\Background.png" />
-    <Resource Remove="Resources\Button.png" />
-    <Resource Remove="Resources\KEY.png" />
-    <Resource Remove="Resources\Letter.png" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Include="Resources\Background.png">
+    <Resource Update="Resources\Background.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Resources\Button.png">
+    </Resource>
+    <Resource Update="Resources\Button.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Resources\KEY.png">
+    </Resource>
+    <Resource Update="Resources\KEY.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Resources\Letter.png">
+    </Resource>
+    <Resource Update="Resources\Letter.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </EmbeddedResource>
+    </Resource>
   </ItemGroup>
 
 </Project>
