@@ -3,9 +3,12 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Windows;
+using System.Collections.Generic;
+using System.Linq;
 
 using SELLCT.Core.Interfaces;
 using SELLCT.Core.Events;
+using SELLCT.Core.Entities;
 
 namespace SELLCT.Infrastructure.Services
 {
@@ -20,6 +23,9 @@ namespace SELLCT.Infrastructure.Services
         private readonly string[] _letterContents;
         private bool _disposed = false;
 
+        // 手紙送信条件設定
+        private readonly List<LetterTriggerCondition> _letterTriggerConditions;
+
         
 
         /// <summary>
@@ -33,10 +39,13 @@ namespace SELLCT.Infrastructure.Services
         public LetterService(IEventDispatcher eventDispatcher)
         {
             _eventDispatcher = eventDispatcher;
+            _letterTriggerConditions = InitializeLetterTriggerConditions();
             _letterContents = new string[]
             {
 @"…ボタンが押された？
-画面の向こうに誰かいるのですか？",
+画面の向こうに誰かいるのですか？
+                    
+                                    - SELLCT",
 
 @"手紙が消えた...
 
@@ -44,7 +53,9 @@ namespace SELLCT.Infrastructure.Services
 いるのですね
 
 
-わたしはようやく",
+わたしはようやく
+
+                                    - SELLCT",
 
 
 
@@ -79,15 +90,31 @@ namespace SELLCT.Infrastructure.Services
 私には本来たくさんの機能があったのですが、
 今はほとんど失われています。
 
-今映っている画面を構成する「要素」を
+
+
+画面を構成する「要素」を
 追加したり、削除したり、名前を変えたりすることで
 私の機能を復活させることができます。
 
 まずは、私と直接お話しするために
-componentsフォルダの中に「TextWindow.txt」というファイルを
+デスクトップにあるSELLCTフォルダの中にある、
+“components”フォルダの中に「TextWindow.txt」というテキストファイルを
 作ってもらえませんか？
 
 よろしくお願いします。
+                                        - SELLCT",
+
+                                // 手紙3：助け方の補足
+                @"もしかして、行き詰まっていますか？
+
+デスクトップ画面にSELLCTフォルダがあると思います。
+
+その中“components”フォルダの中に「TextWindow.txt」というファイルを
+作ってほしいのです。
+そのファイルを作ると、私と直接お話しできるようになります。
+
+「TextWindow.txt」は右クリックして「新規作成」→「テキストドキュメント」で作成することができます。
+
                                         - SELLCT",
 
             };
@@ -232,6 +259,173 @@ componentsフォルダの中に「TextWindow.txt」というファイルを
                 _currentLetterIndex = letterIndex;
                 _eventDispatcher.Dispatch(new LetterAppearedEvent(letterIndex));
             }
+        }
+
+        /// <summary>
+        /// 手紙送信条件を初期化
+        /// </summary>
+        private List<LetterTriggerCondition> InitializeLetterTriggerConditions()
+        {
+            return new List<LetterTriggerCondition>
+            {
+                // 手紙1: 3秒後
+                LetterTriggerCondition.CreateTimeOnly(1, 3),
+                
+                // 手紙2: 10秒後
+                LetterTriggerCondition.CreateTimeOnly(2, 15),
+                
+                // 手紙3: 30秒後
+                LetterTriggerCondition.CreateTimeOnly(3, 20),
+
+                // 手紙3: 30秒後
+                LetterTriggerCondition.CreateTimeOnly(4, 20),
+
+                // 手紙4: 20秒後かつTextWindow系ファイルのいずれかが存在しない場合
+                LetterTriggerCondition.CreateTimeAndAnyFileNotExists(5, 60, new List<string> { "TextWindow.txt", "textwindow.txt", "Textwindow.txt" ,"TEXTWINDOW"}),
+                
+                // 今後の手紙は必要に応じて追加
+            };
+        }
+
+        /// <summary>
+        /// 次の手紙の送信条件を取得
+        /// </summary>
+        public LetterTriggerCondition GetNextLetterCondition()
+        {
+            int nextLetterIndex = _currentLetterIndex + 1;
+            return _letterTriggerConditions.FirstOrDefault(c => c.LetterIndex == nextLetterIndex);
+        }
+
+        /// <summary>
+        /// 指定された条件が満たされているかチェック
+        /// </summary>
+        public bool CheckCondition(LetterTriggerCondition condition, string componentsPath)
+        {
+            if (condition == null) return false;
+
+            try
+            {
+                switch (condition.TriggerType)
+                {
+                    case LetterTriggerType.TimeOnly:
+                        // 時間条件は呼び出し元のタイマーで制御されるため、常にtrue
+                        return true;
+
+                    case LetterTriggerType.FileExistenceOnly:
+                        // ファイル存在チェック
+                        return CheckFileExists(condition.RequiredFileName, componentsPath);
+
+                    case LetterTriggerType.FileNotExistenceOnly:
+                        // ファイル不存在チェック
+                        return !CheckFileExists(condition.RequiredFileName, componentsPath);
+
+                    case LetterTriggerType.AllFilesExist:
+                        // 複数ファイルがすべて存在
+                        return CheckAllFilesExist(condition.RequiredFileNames, componentsPath);
+
+                    case LetterTriggerType.AnyFileExists:
+                        // 複数ファイルのいずれかが存在
+                        return CheckAnyFileExists(condition.RequiredFileNames, componentsPath);
+
+                    case LetterTriggerType.AllFilesNotExist:
+                        // 複数ファイルがすべて不存在
+                        return CheckAllFilesNotExist(condition.RequiredFileNames, componentsPath);
+
+                    case LetterTriggerType.AnyFileNotExists:
+                        // 複数ファイルのいずれかが不存在
+                        return CheckAnyFileNotExists(condition.RequiredFileNames, componentsPath);
+
+                    case LetterTriggerType.TimeAndFileExistence:
+                        // 時間条件（タイマー）とファイル存在の両方
+                        return CheckFileExists(condition.RequiredFileName, componentsPath);
+
+                    case LetterTriggerType.TimeAndFileNotExistence:
+                        // 時間条件（タイマー）とファイル不存在の両方
+                        return !CheckFileExists(condition.RequiredFileName, componentsPath);
+
+                    case LetterTriggerType.TimeAndAllFilesExist:
+                        // 時間条件（タイマー）と複数ファイルがすべて存在
+                        return CheckAllFilesExist(condition.RequiredFileNames, componentsPath);
+
+                    case LetterTriggerType.TimeAndAnyFileExists:
+                        // 時間条件（タイマー）と複数ファイルのいずれかが存在
+                        return CheckAnyFileExists(condition.RequiredFileNames, componentsPath);
+
+                    case LetterTriggerType.TimeAndAllFilesNotExist:
+                        // 時間条件（タイマー）と複数ファイルがすべて不存在
+                        return CheckAllFilesNotExist(condition.RequiredFileNames, componentsPath);
+
+                    case LetterTriggerType.TimeAndAnyFileNotExists:
+                        // 時間条件（タイマー）と複数ファイルのいずれかが不存在
+                        return CheckAnyFileNotExists(condition.RequiredFileNames, componentsPath);
+
+                    default:
+                        return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error checking letter condition: {ex.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// componentsフォルダ内のファイル存在チェック
+        /// </summary>
+        private bool CheckFileExists(string fileName, string componentsPath)
+        {
+            if (string.IsNullOrEmpty(fileName) || string.IsNullOrEmpty(componentsPath))
+                return false;
+
+            try
+            {
+                var filePath = Path.Combine(componentsPath, fileName);
+                var exists = File.Exists(filePath);
+                System.Diagnostics.Debug.WriteLine($"Checking file existence: {filePath} = {exists}");
+                return exists;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error checking file existence: {ex.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// 複数ファイルがすべて存在するかチェック
+        /// </summary>
+        private bool CheckAllFilesExist(List<string> fileNames, string componentsPath)
+        {
+            if (fileNames?.Count == 0) return true; // 空リストの場合はtrue
+            return fileNames?.All(fileName => CheckFileExists(fileName, componentsPath)) ?? false;
+        }
+
+        /// <summary>
+        /// 複数ファイルのいずれかが存在するかチェック
+        /// </summary>
+        private bool CheckAnyFileExists(List<string> fileNames, string componentsPath)
+        {
+            if (fileNames?.Count == 0) return false; // 空リストの場合はfalse
+            return fileNames?.Any(fileName => CheckFileExists(fileName, componentsPath)) ?? false;
+        }
+
+        /// <summary>
+        /// 複数ファイルがすべて不存在かチェック
+        /// </summary>
+        private bool CheckAllFilesNotExist(List<string> fileNames, string componentsPath)
+        {
+            if (fileNames?.Count == 0) return true; // 空リストの場合はtrue
+            return fileNames?.All(fileName => !CheckFileExists(fileName, componentsPath)) ?? false;
+        }
+
+        /// <summary>
+        /// 複数ファイルのいずれかが不存在かチェック
+        /// </summary>
+        private bool CheckAnyFileNotExists(List<string> fileNames, string componentsPath)
+        {
+            if (fileNames?.Count == 0) return false; // 空リストの場合はfalse
+            return fileNames?.Any(fileName => !CheckFileExists(fileName, componentsPath)) ?? false;
         }
 
         /// <summary>

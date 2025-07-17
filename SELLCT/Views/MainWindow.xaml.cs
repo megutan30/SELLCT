@@ -799,6 +799,12 @@ namespace SELLCT.Views
                 // 最初の手紙タイマーを開始
                 if (!_initialLetterTimer.IsEnabled && _letterService.CurrentLetterIndex == 0)
                 {
+                    var firstCondition = _letterService.GetNextLetterCondition();
+                    if (firstCondition != null)
+                    {
+                        _initialLetterTimer.Interval = TimeSpan.FromSeconds(firstCondition.TimeIntervalSeconds);
+                        System.Diagnostics.Debug.WriteLine($"First letter timer set for {firstCondition.TimeIntervalSeconds} seconds");
+                    }
                     _initialLetterTimer.Start();
                     StatusText.Text = "手紙の到着を待っています...";
                 }
@@ -914,7 +920,7 @@ namespace SELLCT.Views
         private void InitialLetterTimer_Tick(object sender, EventArgs e)
         {
             _initialLetterTimer.Stop();
-            _letterService.ShowNextLetter();
+            TryShowNextLetterWithCondition();
         }
 
         /// <summary>
@@ -923,7 +929,93 @@ namespace SELLCT.Views
         private void SubsequentLetterTimer_Tick(object sender, EventArgs e)
         {
             _subsequentLetterTimer.Stop();
-            _letterService.ShowNextLetter();
+            TryShowNextLetterWithCondition();
+        }
+
+        /// <summary>
+        /// 条件をチェックして次の手紙を表示
+        /// </summary>
+        private void TryShowNextLetterWithCondition()
+        {
+            try
+            {
+                var condition = _letterService.GetNextLetterCondition();
+                if (condition == null)
+                {
+                    // 条件が設定されていない場合は従来通り表示
+                    _letterService.ShowNextLetter();
+                    return;
+                }
+
+                // componentsフォルダのパスを取得
+                var componentsPath = "components";
+                
+                // 条件チェック
+                bool conditionMet = _letterService.CheckCondition(condition, componentsPath);
+                
+                System.Diagnostics.Debug.WriteLine($"Letter condition check: {condition.GetDescription()} = {conditionMet}");
+
+                if (conditionMet)
+                {
+                    _letterService.ShowNextLetter();
+                    SetupNextLetterTimer();
+                }
+                else
+                {
+                    // 条件が満たされていない場合は少し待ってから再チェック
+                    System.Diagnostics.Debug.WriteLine("Letter condition not met, retrying in 2 seconds...");
+                    var retryTimer = new DispatcherTimer();
+                    retryTimer.Interval = TimeSpan.FromSeconds(2);
+                    retryTimer.Tick += (s, e) =>
+                    {
+                        retryTimer.Stop();
+                        TryShowNextLetterWithCondition();
+                    };
+                    retryTimer.Start();
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error in TryShowNextLetterWithCondition: {ex.Message}");
+                // エラー時は従来通り表示
+                _letterService.ShowNextLetter();
+                SetupNextLetterTimer();
+            }
+        }
+
+        /// <summary>
+        /// 次の手紙のタイマーを設定
+        /// </summary>
+        private void SetupNextLetterTimer()
+        {
+            try
+            {
+                var nextCondition = _letterService.GetNextLetterCondition();
+                if (nextCondition != null && HasTimeComponent(nextCondition.TriggerType))
+                {
+                    _subsequentLetterTimer.Interval = TimeSpan.FromSeconds(nextCondition.TimeIntervalSeconds);
+                    _subsequentLetterTimer.Start();
+                    System.Diagnostics.Debug.WriteLine($"Next letter timer set for {nextCondition.TimeIntervalSeconds} seconds");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error setting up next letter timer: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// 条件タイプが時間コンポーネントを持つかチェック
+        /// </summary>
+        private bool HasTimeComponent(SELLCT.Core.Entities.LetterTriggerType triggerType)
+        {
+            return triggerType == SELLCT.Core.Entities.LetterTriggerType.TimeOnly ||
+                   triggerType == SELLCT.Core.Entities.LetterTriggerType.TimeAndFileExistence ||
+                   triggerType == SELLCT.Core.Entities.LetterTriggerType.TimeAndFileNotExistence ||
+                   triggerType == SELLCT.Core.Entities.LetterTriggerType.TimeAndAllFilesExist ||
+                   triggerType == SELLCT.Core.Entities.LetterTriggerType.TimeAndAnyFileExists ||
+                   triggerType == SELLCT.Core.Entities.LetterTriggerType.TimeAndAllFilesNotExist ||
+                   triggerType == SELLCT.Core.Entities.LetterTriggerType.TimeAndAnyFileNotExists;
         }
 
         /// <summary>
@@ -947,7 +1039,7 @@ namespace SELLCT.Views
                     // ダウンロード成功後、次の手紙のタイマーを開始
                     if (!_letterService.IsSequenceComplete)
                     {
-                        _subsequentLetterTimer.Start();
+                        SetupNextLetterTimer();
                         StatusText.Text = "次の手紙の到着を待っています...";
                     }
                 }
