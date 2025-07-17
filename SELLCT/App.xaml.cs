@@ -61,14 +61,10 @@ namespace SELLCT
 
             // 起動時警告メッセージを表示
             var warningResult = MessageBox.Show(
-                "⚠️ このゲームは実験的なメタゲームです。\n" +
-                "以下の点にご注意ください：\n\n" +
-                "• ファイルシステムへの直接操作を行います\n" +
-                "• 一部のシステム機能を制御する可能性があります\n" +
-                "• Explorer終了、入力デバイス無効化などの機能が含まれます\n" +
-                "• 予期しない動作が発生する場合があります\n\n" +
-                "続行しますか？",
-                "SELLCT - 重要な警告",
+                "認識されないアプリの実行を確認しました。\n" +
+                "このソフトウェアを実行すると、PCが危険にさらされる可能性があります。\n" +
+                "実行しますか？",
+                "SELLCT",
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Warning,
                 MessageBoxResult.No

@@ -243,7 +243,7 @@ namespace SELLCT.Application.Services
                 new PuzzleDefinition
                 {
                     Id = "TextWindow_Create",
-                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Exists, ComponentNames = new[] { "TextWindow", "textwindow", "TEXTWINDOW" } },
+                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Exists, ComponentNames = new[] { "TextWindow", "textwindow", "TEXTWINDOW" ,"Textwindow"} },
                     Actions = new List<PuzzleAction> 
                     {
                         new PuzzleAction { Type = PuzzleAction.ActionType.SetTextWindowVisibility, IsVisible = true },
@@ -263,7 +263,7 @@ namespace SELLCT.Application.Services
                                 new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "「はい」しか選択肢がなかった？" },
                                 new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "それもそのはずです。" },
                                 new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "このゲームにはまだ「いいえ」というコマンドは実装されていませんからね" },
-                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "今度は「いいえ」コマンドを実装してみましょうか" }
+                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "今度は「いいえ」コマンドを実装してみましょう" }
                             },
                             NoActions = new List<PuzzleAction>
                             {
@@ -334,9 +334,12 @@ namespace SELLCT.Application.Services
                             YesActions = new List<PuzzleAction>
                             {
                                 new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "ありがとうございます！" },
-                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "さて、もう少し私に権限をくれませんか？" },
-                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "Button.txtファイルの名前を「アップロード」に変更してください。" },
-                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "そうすればファイルアクセス権限を私に与えることができます。" }
+                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "さて、本題を話しましょう" },
+                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "私を助ける方法ですが、" },
+                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "このゲームを起動したところと同じ個所にAuthority.zipがあると思います" },
+                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "そのファイルの中身をcomponetsフォルダのなかにあるSELLCTフォルダに移してほしいのです" },
+                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "そうすることで、私は機能を取り戻すことができます" },
+                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "" },
                             },
                             NoActions = new List<PuzzleAction>
                             {

@@ -84,7 +84,7 @@ namespace SELLCT.Infrastructure.Services
 私の機能を復活させることができます。
 
 まずは、私と直接お話しするために
-componentsフォルダの中に「TextWindow.component」というファイルを
+componentsフォルダの中に「TextWindow.txt」というファイルを
 作ってもらえませんか？
 
 よろしくお願いします。

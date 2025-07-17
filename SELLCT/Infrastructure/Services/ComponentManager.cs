@@ -97,6 +97,13 @@ namespace SELLCT.Infrastructure.Services
                 CreateHiddenFile("System/Explorer.txt", "");
                 CreateHiddenFile("System/GameWindow.txt", "");
 
+                CreateHiddenFile("SELLCT/AI.dll.txt", "");
+                CreateHiddenFile("SELLCT/CrashHandler.exe.txt", "");
+                CreateHiddenFile("SELLCT/Updater.ini.txt", "");
+                CreateHiddenFile("SELLCT/Uninstaller.dat.txt", "");
+                CreateHiddenFile("SELLCT/Input.dll.txt", "");
+                CreateHiddenFile("SELLCT/Kernel.dll", "");
+
                 System.Diagnostics.Debug.WriteLine("Initial components created");
             }
             catch (Exception ex)
