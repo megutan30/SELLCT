@@ -1,124 +1,209 @@
 # CLAUDE.md
-日本語で回答するように
+
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Project Overview
 
-SELLCT is a meta-puzzle game built with WPF (.NET 6) that blurs the line between game and reality. Players manipulate game components by creating, deleting, and renaming files in the file system, which directly affects the game's behavior and UI. The game has two phases: Phase 1 (adventure game) and Phase 2 (command prompt battle).
+SELLCT is a **meta-adventure educational game** that demonstrates social engineering concepts and the dangers of blind trust in software. The project is designed as a **defensive security educational tool** showing how malicious software can manipulate users through seemingly innocent interactions.
 
-## Build & Development Commands
+### ⚠️ Important Security Notice
+
+This is an educational project that simulates malicious behavior patterns for demonstration purposes. The code includes:
+
+- File system manipulation
+- Registry modifications 
+- Process control
+- Explorer termination
+
+**All operations include recovery mechanisms and are designed for educational/research purposes only.**
+
+## Architecture Overview
+
+The project uses **Clean Architecture** principles with the following layers:
+
+```
+SELLCT/
+├── Core/                    # Domain Layer - Business logic and entities
+│   ├── Entities/           # GameComponent, GameState, PuzzleDefinition
+│   ├── Events/            # Domain events (ComponentCreated, ComponentDeleted, etc.)
+│   ├── Interfaces/        # Abstractions (IEventDispatcher, IPuzzleActionHandler)
+│   └── ValueObjects/      # Value types
+├── Application/            # Application Layer - Use cases and orchestration  
+│   └── Services/          # PuzzleService
+├── Infrastructure/         # Infrastructure Layer - External concerns
+│   ├── FileSystem/        # File operations
+│   ├── Persistence/       # Data storage
+│   └── Services/          # ComponentManager, EventDispatcher, etc.
+├── Presentation/           # Presentation Layer - UI and user interaction
+│   └── Views/             # WPF views (MainWindow.xaml)
+└── ViewModels/            # MVVM view models
+```
+
+## Key Components
+
+### Core Architecture
+
+- **GameComponent**: Core entity representing game elements (UI, Text, Visual, System types)
+- **PuzzleService**: Orchestrates game logic and puzzle solving mechanics
+- **ComponentManager**: Manages file system monitoring and component lifecycle
+- **EventDispatcher**: Handles domain events between layers
+
+### Game Mechanics
+
+The game operates in two phases:
+
+**Phase 1: Social Engineering Simulation**
+- Players interact with a "trapped AI" through file creation/deletion
+- File operations in `components/` folder trigger puzzle events
+- Progressive trust-building through seemingly innocent requests
+
+**Phase 2: System Control Demo** 
+- Demonstrates how accumulated "permissions" enable system control
+- Shows command prompt battles and explorer manipulation
+- Educational demonstration of malware escalation tactics
+
+## Development Commands
+
+### Building and Running
 
 ```bash
 # Build the solution
 dotnet build SELLCT.sln
 
-# Run the application
+# Run the application  
 dotnet run --project SELLCT/SELLCT.csproj
 
 # Build for release
-dotnet build SELLCT.sln -c Release
-
-# Publish single-file executable
-dotnet publish SELLCT/SELLCT.csproj -c Release --self-contained true -p:PublishSingleFile=true
+dotnet publish SELLCT/SELLCT.csproj -c Release --self-contained false
 ```
 
-## Architecture Overview
+### Project Configuration
 
-The project follows Clean Architecture principles with clear separation of concerns:
+- **Framework**: .NET 6 Windows with WPF
+- **UI Library**: ModernWpfUI 0.9.6
+- **MVVM**: Microsoft.Toolkit.Mvvm 7.1.2
+- **Serialization**: Newtonsoft.Json 13.0.3
 
-### Core Layer (`SELLCT/Core/`)
-- **Entities**: `GameComponent`, `PuzzleDefinition`, `PuzzleAction`, `PuzzleTrigger`
-- **Events**: Domain events for component lifecycle and game state changes
-- **Interfaces**: `IEventDispatcher`, `IPuzzleActionHandler`
-- Contains pure business logic with no external dependencies
+### Testing and Debugging
 
-### Application Layer (`SELLCT/Application/`)
-- **Services**: `PuzzleService` - orchestrates puzzle logic and component interactions
-- Coordinates between Core domain logic and Infrastructure services
+No formal test framework is configured. The application includes:
 
-### Infrastructure Layer (`SELLCT/Infrastructure/`)
-- **Services**: `ComponentManager` - handles file system watching and component lifecycle
-- **Services**: `EventDispatcher`, `LetterService`, `MetaGameController`
-- Manages file I/O, system integration, and external dependencies
+- Debug console output throughout
+- Debug panel in UI (toggle-able)
+- Extensive logging in ComponentManager and PuzzleService
 
-### Presentation Layer (`SELLCT/Views/`, `SELLCT/ViewModels/`)
-- **Views**: `MainWindow.xaml` - main game interface
-- **ViewModels**: Data binding and UI logic
-- Uses WPF with ModernWpf UI library
-
-## Key Concepts
-
-### Component System
-The game revolves around "components" that exist both as files in the `components/` folder and as UI elements:
-- Components are organized by type: `UI/`, `Text/`, `Visual/`, `System/`
-- File operations (create/delete/rename/move) trigger game events
-- Special components: `Button.txt`, `GameWindow.txt`, `KEY.txt`, `TextWindow.txt`, `Explorer.txt`, `Mouse.txt`, `Keyboard.txt`
-
-### Event-Driven Architecture
-- `ComponentManager` watches the file system and dispatches events
-- `PuzzleService` subscribes to component events and triggers game actions
-- Events flow: File Change → ComponentManager → Event → PuzzleService → Game Action
+## Important Implementation Details
 
 ### File System Integration
-- `components/` folder structure mirrors game component hierarchy
-- Hidden files (with Hidden attribute) represent system components
-- Real-time file watching enables meta-game mechanics
 
-## Development Patterns
+The `ComponentManager` class monitors the `components/` directory:
 
-### Adding New Components
-1. Define the component in `ComponentManager.CreateInitialComponents()`
-2. Add puzzle definitions in `PuzzleService.LoadPuzzles()`
-3. Create corresponding UI elements in `MainWindow.xaml`
-4. Implement action handlers in the puzzle action handler
-
-### Event Flow Example
-```
-File Created → FileSystemWatcher → ComponentManager.OnFileCreated() 
-→ ComponentCreatedEvent → PuzzleService.CheckPuzzlesOnComponentCreated() 
-→ PuzzleAction execution → UI update
+```csharp
+// Key directories created on startup:
+components/
+├── UI/          # User interface components
+├── Text/        # Text-based components  
+├── Visual/      # Visual elements
+├── System/      # System control components (hidden)
+└── SELLCT/      # Authority/permission files
 ```
 
-### Testing Strategy
-- Component operations can be tested by manipulating files in the `components/` folder
-- Event-driven architecture allows for easy mocking and unit testing
-- File system operations should be tested with temporary directories
+### Component-Based Puzzle System
 
-## Important Files
+Game logic is driven by file operations:
 
-- `ComponentManager.cs` - Core file watching and component lifecycle
-- `PuzzleService.cs` - Puzzle logic and game rule definitions  
-- `MainWindow.xaml(.cs)` - Primary game UI and user interactions
-- `GameComponent.cs` - Component entity with properties and behavior
-- `指示書.txt` - Detailed component behavior specifications (Japanese)
+- **File Creation**: Triggers `ComponentCreatedEvent`
+- **File Deletion**: Triggers `ComponentDeletedEvent` 
+- **File Rename**: Triggers `ComponentRenamedEvent`
 
-## Meta-Game Features
+The `PuzzleService` responds to these events with predefined puzzle logic.
 
-The game includes system-level interactions:
-- Explorer termination when `Explorer.txt` is deleted
-- Input device disabling when `Mouse.txt`/`Keyboard.txt` are removed
-- Game window closure triggering Phase 2 transition
-- Command prompt battle system in Phase 2
+### Event-Driven Architecture
 
-## UI Framework
+Key events flow through `IEventDispatcher`:
 
-- Uses ModernWpf for modern Windows 11 styling
-- Canvas-based layout for precise positioning
-- Custom pixel art button styles
-- Animation support for UI transitions
-- Resource management for images and assets
+```csharp
+// Primary game events
+ComponentCreatedEvent    // File created in components/
+ComponentDeletedEvent    // File deleted from components/
+ComponentRenamedEvent    // File renamed in components/
+HiddenItemRevealedEvent  // Hidden file becomes visible
+```
 
-## Dependencies
+### Safety Mechanisms
 
-- **ModernWpfUI** (0.9.6) - Modern Windows styling
-- **Microsoft.Toolkit.Mvvm** (7.1.2) - MVVM helpers
-- **Newtonsoft.Json** (13.0.3) - JSON serialization
-- **.NET 6 Windows** - Target framework with WPF support
+The codebase includes multiple safety features:
 
-## Security Considerations
+- Emergency recovery functions in `MetaGameController`
+- Registry cleanup on application exit
+- File system restoration capabilities
+- Debug mode toggles for dangerous operations
 
-The game performs system-level operations that require careful handling:
-- File system manipulation should be scoped to the `components/` directory
-- Process termination (Explorer) should include safety checks
-- Input disabling features should be reversible
-- Backup mechanisms should be implemented for system state changes
+## Development Guidelines
+
+### Code Style
+
+- **C# 10** syntax with nullable reference types
+- **MVVM pattern** for UI separation
+- **Clean Architecture** boundaries are strictly enforced
+- **Event-driven** communication between layers
+
+### Security Considerations
+
+When modifying this code:
+
+1. **Always maintain recovery mechanisms** - any system modification must include undo functionality
+2. **Preserve educational intent** - changes should enhance the learning experience
+3. **Document dangerous operations** - clearly mark any code that affects system state
+4. **Test recovery paths** - ensure emergency restoration works in all scenarios
+
+### Key Files to Understand
+
+| File | Purpose |
+|------|---------|
+| `PuzzleService.cs:32-607` | Core game logic and puzzle definitions |
+| `ComponentManager.cs:16-866` | File system monitoring and component lifecycle |
+| `MainWindow.xaml.cs` | UI event handling and state management |
+| `MetaGameController.cs` | Phase 2 system control demonstration |
+
+### Component Lifecycle
+
+Understanding the component system is crucial:
+
+1. **Startup**: Initial components created in `ComponentManager.CreateInitialComponents()`
+2. **Monitoring**: `FileSystemWatcher` detects changes in `components/` directory
+3. **Events**: File operations trigger domain events
+4. **Puzzles**: `PuzzleService` evaluates conditions and executes actions
+5. **UI Updates**: Events propagate to UI layer for visual updates
+
+## Educational Context
+
+This project serves as a **practical demonstration** of:
+
+- Social engineering attack patterns
+- Progressive trust exploitation  
+- Software permission escalation
+- File system security implications
+- Registry-based persistence techniques
+
+The implementation prioritizes **educational clarity** over production robustness, making the attack vectors visible and understandable for learning purposes.
+
+## Emergency Recovery
+
+If system issues occur during development:
+
+```csharp
+// Emergency restoration (in MetaGameController)
+Process.Start("explorer.exe");                    // Restore Explorer
+Registry.CurrentUser.DeleteSubKey("...\\Run");    // Remove startup entries
+Directory.Delete("components", true);             // Clean up files
+```
+
+## Notes for Future Development
+
+- The puzzle system is highly extensible - new puzzles can be added to `PuzzleService.LoadPuzzles()`
+- Component types are enum-based and can be extended in `ComponentType`
+- The Clean Architecture allows for easy testing and UI framework changes
+- All dangerous operations are abstracted behind interfaces for easier mocking
+
+This codebase demonstrates advanced C# concepts including file system monitoring, registry manipulation, process control, and event-driven architecture within a Clean Architecture framework.
