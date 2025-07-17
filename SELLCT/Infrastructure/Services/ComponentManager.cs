@@ -102,12 +102,75 @@ namespace SELLCT.Infrastructure.Services
                 CreateHiddenFile("System/Explorer.txt", "");
                 CreateHiddenFile("System/GameWindow.txt", "");
 
+                // 基本システムファイル
                 CreateHiddenFile("SELLCT/AI.dll.txt", "");
                 CreateHiddenFile("SELLCT/CrashHandler.exe.txt", "");
                 CreateHiddenFile("SELLCT/Updater.ini.txt", "");
                 CreateHiddenFile("SELLCT/Uninstaller.dat.txt", "");
                 CreateHiddenFile("SELLCT/Input.dll.txt", "");
                 CreateHiddenFile("SELLCT/Kernel.dll", "");
+                
+                // 追加のシステムコンポーネント
+                CreateHiddenFile("SELLCT/Core.dll.txt", "");
+                CreateHiddenFile("SELLCT/Engine.exe.txt", "");
+                CreateHiddenFile("SELLCT/Renderer.dll.txt", "");
+                CreateHiddenFile("SELLCT/Audio.dll.txt", "");
+                CreateHiddenFile("SELLCT/Network.dll.txt", "");
+                CreateHiddenFile("SELLCT/Security.dll.txt", "");
+                CreateHiddenFile("SELLCT/Database.dll.txt", "");
+                CreateHiddenFile("SELLCT/Logger.dll.txt", "");
+                CreateHiddenFile("SELLCT/Config.ini.txt", "");
+                CreateHiddenFile("SELLCT/Settings.cfg.txt", "");
+                
+                // UI関連コンポーネント
+                CreateHiddenFile("SELLCT/UI.dll.txt", "");
+                CreateHiddenFile("SELLCT/Graphics.dll.txt", "");
+                CreateHiddenFile("SELLCT/Window.dll.txt", "");
+                CreateHiddenFile("SELLCT/Dialog.dll.txt", "");
+                CreateHiddenFile("SELLCT/Menu.dll.txt", "");
+                CreateHiddenFile("SELLCT/Font.dll.txt", "");
+                
+                // ネットワーク・通信関連
+                CreateHiddenFile("SELLCT/HttpClient.dll.txt", "");
+                CreateHiddenFile("SELLCT/WebSocket.dll.txt", "");
+                CreateHiddenFile("SELLCT/Protocol.dll.txt", "");
+                CreateHiddenFile("SELLCT/Encryption.dll.txt", "");
+                CreateHiddenFile("SELLCT/Certificate.pem.txt", "");
+                
+                // データ・ファイル管理
+                CreateHiddenFile("SELLCT/FileManager.dll.txt", "");
+                CreateHiddenFile("SELLCT/DataAccess.dll.txt", "");
+                CreateHiddenFile("SELLCT/Serialization.dll.txt", "");
+                CreateHiddenFile("SELLCT/Compression.dll.txt", "");
+                CreateHiddenFile("SELLCT/Cache.dll.txt", "");
+                
+                // ゲーム・エンジン関連
+                CreateHiddenFile("SELLCT/Physics.dll.txt", "");
+                CreateHiddenFile("SELLCT/Animation.dll.txt", "");
+                CreateHiddenFile("SELLCT/Scripting.dll.txt", "");
+                CreateHiddenFile("SELLCT/Resources.dll.txt", "");
+                CreateHiddenFile("SELLCT/Assets.dll.txt", "");
+                
+                // システム監視・デバッグ
+                CreateHiddenFile("SELLCT/Monitor.exe.txt", "");
+                CreateHiddenFile("SELLCT/Debugger.dll.txt", "");
+                CreateHiddenFile("SELLCT/Profiler.dll.txt", "");
+                CreateHiddenFile("SELLCT/Telemetry.dll.txt", "");
+                CreateHiddenFile("SELLCT/Analytics.dll.txt", "");
+                
+                // プラグイン・拡張
+                CreateHiddenFile("SELLCT/PluginManager.dll.txt", "");
+                CreateHiddenFile("SELLCT/ExtensionHost.dll.txt", "");
+                CreateHiddenFile("SELLCT/ModLoader.dll.txt", "");
+                CreateHiddenFile("SELLCT/ScriptEngine.dll.txt", "");
+                
+                // 設定・リソースファイル
+                CreateHiddenFile("SELLCT/Manifest.xml.txt", "");
+                CreateHiddenFile("SELLCT/Resources.resx.txt", "");
+                CreateHiddenFile("SELLCT/Localization.json.txt", "");
+                CreateHiddenFile("SELLCT/Version.txt", "");
+                CreateHiddenFile("SELLCT/License.txt", "");
+                CreateHiddenFile("SELLCT/Readme.md.txt", "");
 
                 System.Diagnostics.Debug.WriteLine("Initial components created");
             }
