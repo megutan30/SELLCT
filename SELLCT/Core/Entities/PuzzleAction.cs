@@ -30,7 +30,8 @@ namespace SELLCT.Core.Entities
             ExitApplication,
             ExitWithMessageBox,
             DelayedExitWithMessageBox,
-            StartExplorer
+            StartExplorer,
+            BetrayalEnding
         }
 
         public ActionType Type { get; set; }

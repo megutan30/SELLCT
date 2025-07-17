@@ -27,6 +27,9 @@ namespace SELLCT.Application.Services
             _eventDispatcher.Subscribe<ComponentCreatedEvent>(CheckPuzzlesOnComponentCreated);
             _eventDispatcher.Subscribe<ComponentDeletedEvent>(CheckPuzzlesOnComponentDeleted);
             _eventDispatcher.Subscribe<ComponentRenamedEvent>(CheckPuzzlesOnComponentRenamed);
+            
+            // SELLCTフォルダ裏切りイベントをサブスクライブ
+            _componentManager.SELLCTFolderBetrayed += OnSELLCTFolderBetrayed;
         }
 
         private List<PuzzleDefinition> LoadPuzzles()
@@ -782,6 +785,31 @@ namespace SELLCT.Application.Services
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"[PuzzleService] Error handling button rename: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// SELLCTフォルダ裏切りイベントハンドラー
+        /// </summary>
+        private void OnSELLCTFolderBetrayed(object sender, EventArgs e)
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine("[PuzzleService] SELLCT folder betrayed - executing betrayal ending");
+                
+                // 裏切りエンディングアクションを実行
+                var betrayalAction = new PuzzleAction
+                {
+                    Type = PuzzleAction.ActionType.BetrayalEnding,
+                    Message = "END1裏切り",
+                    DelayMilliseconds = 3000 // 3秒待機
+                };
+
+                _actionHandler.HandleAction(betrayalAction);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[PuzzleService] Error handling SELLCT betrayal: {ex.Message}");
             }
         }
     }

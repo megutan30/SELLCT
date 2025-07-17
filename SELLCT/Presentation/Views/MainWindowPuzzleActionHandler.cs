@@ -130,6 +130,9 @@ namespace SELLCT.Presentation.Views
                         case PuzzleAction.ActionType.StartExplorer:
                             _metaGameController.StartExplorerProcess();
                             break;
+                        case PuzzleAction.ActionType.BetrayalEnding:
+                            HandleBetrayalEnding(action);
+                            break;
                     }
 
                     _mainWindow.UpdateComponentCount();
@@ -313,5 +316,87 @@ namespace SELLCT.Presentation.Views
                     MessageBoxImage.Error);
             }
         }
+
+        private void HandleBetrayalEnding(PuzzleAction action)
+        {
+            // 裏切りエンディングの段階的実行
+            Task.Run(async () =>
+            {
+                try
+                {
+                    System.Diagnostics.Debug.WriteLine("[HandleBetrayalEnding] Starting betrayal ending sequence");
+                    
+                    // 1. "ああ、どうして..."メッセージを表示
+                    _mainWindow.Dispatcher.Invoke(() =>
+                    {
+                        if (_componentManager.HasTextWindowComponent())
+                        {
+                            _mainWindow.TextWindow.Visibility = Visibility.Visible;
+                            _mainWindow.ShowDialogMessage("ああ、どうして...");
+                        }
+                    });
+                    
+                    // メッセージキューが空になるまで待機
+                    await WaitForMessageQueueToEmpty();
+                    
+                    // 2. ウィンドウを最前面に表示
+                    _mainWindow.Dispatcher.Invoke(() =>
+                    {
+                        BringWindowToForeground();
+                    });
+                    
+                    // 3. 指定時間待機
+                    await Task.Delay(action.DelayMilliseconds);
+                    
+                    // 4. 画面を閉じてメッセージボックス表示後、アプリケーション終了
+                    _mainWindow.Dispatcher.BeginInvoke(() =>
+                    {
+                        System.Diagnostics.Debug.WriteLine("[HandleBetrayalEnding] Executing final betrayal sequence");
+                        _mainWindow.Hide(); // メインウィンドウを非表示
+                        MessageBox.Show(action.Message, "SELLCT", MessageBoxButton.OK, MessageBoxImage.Information);
+                        System.Windows.Application.Current.Shutdown();
+                    });
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[HandleBetrayalEnding] Error in betrayal ending: {ex.Message}");
+                }
+            });
+        }
+
+        private void BringWindowToForeground()
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine("[BringWindowToForeground] Bringing window to foreground");
+                
+                // ウィンドウハンドルを取得
+                var windowHelper = new System.Windows.Interop.WindowInteropHelper(_mainWindow);
+                var hWnd = windowHelper.Handle;
+                
+                if (hWnd != IntPtr.Zero)
+                {
+                    // Win32 API を直接呼び出し
+                    ShowWindow(hWnd, 9); // SW_RESTORE
+                    SetForegroundWindow(hWnd);
+                    
+                    System.Diagnostics.Debug.WriteLine("[BringWindowToForeground] Window brought to foreground successfully");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("[BringWindowToForeground] Failed to get window handle");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[BringWindowToForeground] Error: {ex.Message}");
+            }
+        }
+
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        private static extern bool SetForegroundWindow(IntPtr hWnd);
+
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
     }
 }

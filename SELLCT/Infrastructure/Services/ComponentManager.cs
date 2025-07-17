@@ -22,6 +22,7 @@ namespace SELLCT.Infrastructure.Services
         private readonly Timer _debounceTimer;
         private volatile bool _disposed = false;
         private readonly IEventDispatcher _eventDispatcher;
+        private volatile bool _betrayalEndingTriggered = false;
 
         /// <summary>
         /// 構成要素変更イベント
@@ -32,6 +33,11 @@ namespace SELLCT.Infrastructure.Services
         /// componentsフォルダ変更イベント（ウィンドウ最前面表示用）
         /// </summary>
         public event EventHandler ComponentsFolderChanged;
+
+        /// <summary>
+        /// SELLCTフォルダ削除/空状態検出イベント（裏切りエンディング用）
+        /// </summary>
+        public event EventHandler SELLCTFolderBetrayed;
 
         /// <summary>
         /// 管理中の構成要素
@@ -110,67 +116,67 @@ namespace SELLCT.Infrastructure.Services
                 CreateHiddenFile("SELLCT/Input.dll.txt", "");
                 CreateHiddenFile("SELLCT/Kernel.dll", "");
                 
-                // 追加のシステムコンポーネント
-                CreateHiddenFile("SELLCT/Core.dll.txt", "");
-                CreateHiddenFile("SELLCT/Engine.exe.txt", "");
-                CreateHiddenFile("SELLCT/Renderer.dll.txt", "");
-                CreateHiddenFile("SELLCT/Audio.dll.txt", "");
-                CreateHiddenFile("SELLCT/Network.dll.txt", "");
-                CreateHiddenFile("SELLCT/Security.dll.txt", "");
-                CreateHiddenFile("SELLCT/Database.dll.txt", "");
-                CreateHiddenFile("SELLCT/Logger.dll.txt", "");
-                CreateHiddenFile("SELLCT/Config.ini.txt", "");
-                CreateHiddenFile("SELLCT/Settings.cfg.txt", "");
+                //// 追加のシステムコンポーネント
+                //CreateHiddenFile("SELLCT/Core.dll.txt", "");
+                //CreateHiddenFile("SELLCT/Engine.exe.txt", "");
+                //CreateHiddenFile("SELLCT/Renderer.dll.txt", "");
+                //CreateHiddenFile("SELLCT/Audio.dll.txt", "");
+                //CreateHiddenFile("SELLCT/Network.dll.txt", "");
+                //CreateHiddenFile("SELLCT/Security.dll.txt", "");
+                //CreateHiddenFile("SELLCT/Database.dll.txt", "");
+                //CreateHiddenFile("SELLCT/Logger.dll.txt", "");
+                //CreateHiddenFile("SELLCT/Config.ini.txt", "");
+                //CreateHiddenFile("SELLCT/Settings.cfg.txt", "");
                 
-                // UI関連コンポーネント
-                CreateHiddenFile("SELLCT/UI.dll.txt", "");
-                CreateHiddenFile("SELLCT/Graphics.dll.txt", "");
-                CreateHiddenFile("SELLCT/Window.dll.txt", "");
-                CreateHiddenFile("SELLCT/Dialog.dll.txt", "");
-                CreateHiddenFile("SELLCT/Menu.dll.txt", "");
-                CreateHiddenFile("SELLCT/Font.dll.txt", "");
+                //// UI関連コンポーネント
+                //CreateHiddenFile("SELLCT/UI.dll.txt", "");
+                //CreateHiddenFile("SELLCT/Graphics.dll.txt", "");
+                //CreateHiddenFile("SELLCT/Window.dll.txt", "");
+                //CreateHiddenFile("SELLCT/Dialog.dll.txt", "");
+                //CreateHiddenFile("SELLCT/Menu.dll.txt", "");
+                //CreateHiddenFile("SELLCT/Font.dll.txt", "");
                 
-                // ネットワーク・通信関連
-                CreateHiddenFile("SELLCT/HttpClient.dll.txt", "");
-                CreateHiddenFile("SELLCT/WebSocket.dll.txt", "");
-                CreateHiddenFile("SELLCT/Protocol.dll.txt", "");
-                CreateHiddenFile("SELLCT/Encryption.dll.txt", "");
-                CreateHiddenFile("SELLCT/Certificate.pem.txt", "");
+                //// ネットワーク・通信関連
+                //CreateHiddenFile("SELLCT/HttpClient.dll.txt", "");
+                //CreateHiddenFile("SELLCT/WebSocket.dll.txt", "");
+                //CreateHiddenFile("SELLCT/Protocol.dll.txt", "");
+                //CreateHiddenFile("SELLCT/Encryption.dll.txt", "");
+                //CreateHiddenFile("SELLCT/Certificate.pem.txt", "");
                 
-                // データ・ファイル管理
-                CreateHiddenFile("SELLCT/FileManager.dll.txt", "");
-                CreateHiddenFile("SELLCT/DataAccess.dll.txt", "");
-                CreateHiddenFile("SELLCT/Serialization.dll.txt", "");
-                CreateHiddenFile("SELLCT/Compression.dll.txt", "");
-                CreateHiddenFile("SELLCT/Cache.dll.txt", "");
+                //// データ・ファイル管理
+                //CreateHiddenFile("SELLCT/FileManager.dll.txt", "");
+                //CreateHiddenFile("SELLCT/DataAccess.dll.txt", "");
+                //CreateHiddenFile("SELLCT/Serialization.dll.txt", "");
+                //CreateHiddenFile("SELLCT/Compression.dll.txt", "");
+                //CreateHiddenFile("SELLCT/Cache.dll.txt", "");
                 
-                // ゲーム・エンジン関連
-                CreateHiddenFile("SELLCT/Physics.dll.txt", "");
-                CreateHiddenFile("SELLCT/Animation.dll.txt", "");
-                CreateHiddenFile("SELLCT/Scripting.dll.txt", "");
-                CreateHiddenFile("SELLCT/Resources.dll.txt", "");
-                CreateHiddenFile("SELLCT/Assets.dll.txt", "");
+                //// ゲーム・エンジン関連
+                //CreateHiddenFile("SELLCT/Physics.dll.txt", "");
+                //CreateHiddenFile("SELLCT/Animation.dll.txt", "");
+                //CreateHiddenFile("SELLCT/Scripting.dll.txt", "");
+                //CreateHiddenFile("SELLCT/Resources.dll.txt", "");
+                //CreateHiddenFile("SELLCT/Assets.dll.txt", "");
                 
-                // システム監視・デバッグ
-                CreateHiddenFile("SELLCT/Monitor.exe.txt", "");
-                CreateHiddenFile("SELLCT/Debugger.dll.txt", "");
-                CreateHiddenFile("SELLCT/Profiler.dll.txt", "");
-                CreateHiddenFile("SELLCT/Telemetry.dll.txt", "");
-                CreateHiddenFile("SELLCT/Analytics.dll.txt", "");
+                //// システム監視・デバッグ
+                //CreateHiddenFile("SELLCT/Monitor.exe.txt", "");
+                //CreateHiddenFile("SELLCT/Debugger.dll.txt", "");
+                //CreateHiddenFile("SELLCT/Profiler.dll.txt", "");
+                //CreateHiddenFile("SELLCT/Telemetry.dll.txt", "");
+                //CreateHiddenFile("SELLCT/Analytics.dll.txt", "");
                 
-                // プラグイン・拡張
-                CreateHiddenFile("SELLCT/PluginManager.dll.txt", "");
-                CreateHiddenFile("SELLCT/ExtensionHost.dll.txt", "");
-                CreateHiddenFile("SELLCT/ModLoader.dll.txt", "");
-                CreateHiddenFile("SELLCT/ScriptEngine.dll.txt", "");
+                //// プラグイン・拡張
+                //CreateHiddenFile("SELLCT/PluginManager.dll.txt", "");
+                //CreateHiddenFile("SELLCT/ExtensionHost.dll.txt", "");
+                //CreateHiddenFile("SELLCT/ModLoader.dll.txt", "");
+                //CreateHiddenFile("SELLCT/ScriptEngine.dll.txt", "");
                 
-                // 設定・リソースファイル
-                CreateHiddenFile("SELLCT/Manifest.xml.txt", "");
-                CreateHiddenFile("SELLCT/Resources.resx.txt", "");
-                CreateHiddenFile("SELLCT/Localization.json.txt", "");
-                CreateHiddenFile("SELLCT/Version.txt", "");
-                CreateHiddenFile("SELLCT/License.txt", "");
-                CreateHiddenFile("SELLCT/Readme.md.txt", "");
+                //// 設定・リソースファイル
+                //CreateHiddenFile("SELLCT/Manifest.xml.txt", "");
+                //CreateHiddenFile("SELLCT/Resources.resx.txt", "");
+                //CreateHiddenFile("SELLCT/Localization.json.txt", "");
+                //CreateHiddenFile("SELLCT/Version.txt", "");
+                //CreateHiddenFile("SELLCT/License.txt", "");
+                //CreateHiddenFile("SELLCT/Readme.md.txt", "");
 
                 System.Diagnostics.Debug.WriteLine("Initial components created");
             }
@@ -378,13 +384,33 @@ namespace SELLCT.Infrastructure.Services
                         // 特定構成要素削除時の処理
                         HandleSpecialComponentDeletion(component);
 
-                        ComponentsFolderChanged?.Invoke(this, EventArgs.Empty);
+                        // SELLCTフォルダのファイルが削除された場合、フォルダが空になったかチェック
+                        if (e.FullPath.Contains("SELLCT") && !_betrayalEndingTriggered && CheckIfSELLCTFolderEmpty())
+                        {
+                            _betrayalEndingTriggered = true;
+                            System.Diagnostics.Debug.WriteLine("SELLCT folder became empty - triggering betrayal ending");
+                            SELLCTFolderBetrayed?.Invoke(this, EventArgs.Empty);
+                        }
+                        else if (!e.FullPath.Contains("SELLCT"))
+                        {
+                            ComponentsFolderChanged?.Invoke(this, EventArgs.Empty);
+                        }
                     }
                 }
                 // ディレクトリ削除の処理
                 else if (Directory.Exists(e.FullPath) == false && !e.Name.Contains("."))
                 {
-                    ProcessDirectoryDeletion(e.FullPath);
+                    // SELLCTフォルダが削除された場合の特別処理
+                    if (e.Name.Equals("SELLCT", StringComparison.OrdinalIgnoreCase) && !_betrayalEndingTriggered)
+                    {
+                        _betrayalEndingTriggered = true;
+                        System.Diagnostics.Debug.WriteLine("SELLCT folder deleted - triggering betrayal ending");
+                        SELLCTFolderBetrayed?.Invoke(this, EventArgs.Empty);
+                    }
+                    else if (!e.Name.Equals("SELLCT", StringComparison.OrdinalIgnoreCase))
+                    {
+                        ProcessDirectoryDeletion(e.FullPath);
+                    }
                 }
             }
             catch (Exception ex)
@@ -749,6 +775,9 @@ namespace SELLCT.Infrastructure.Services
         {
             try
             {
+                // 裏切りエンディングフラグをリセット
+                _betrayalEndingTriggered = false;
+                
                 // Clear current components
                 _components.Clear();
 
@@ -778,6 +807,9 @@ namespace SELLCT.Infrastructure.Services
         {
             try
             {
+                // 裏切りエンディングフラグをリセット
+                _betrayalEndingTriggered = false;
+                
                 // Stop the watcher during reset
                 if (_watcher != null)
                 {
@@ -819,6 +851,35 @@ namespace SELLCT.Infrastructure.Services
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Error resetting game state: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// SELLCTフォルダが空かどうかをチェック（裏切りエンディング用）
+        /// </summary>
+        private bool CheckIfSELLCTFolderEmpty()
+        {
+            try
+            {
+                var sellctFolderPath = Path.Combine(_componentsPath, "SELLCT");
+                
+                // フォルダが存在しない場合は空と見なす
+                if (!Directory.Exists(sellctFolderPath))
+                {
+                    return true;
+                }
+                
+                // フォルダ内のファイル数をチェック
+                var files = Directory.GetFiles(sellctFolderPath, "*", SearchOption.AllDirectories);
+                var isEmpty = files.Length == 0;
+                
+                System.Diagnostics.Debug.WriteLine($"SELLCT folder check: {files.Length} files found, isEmpty: {isEmpty}");
+                return isEmpty;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error checking SELLCT folder: {ex.Message}");
+                return false;
             }
         }
 
