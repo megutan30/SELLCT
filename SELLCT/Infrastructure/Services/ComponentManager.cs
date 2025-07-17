@@ -103,9 +103,9 @@ namespace SELLCT.Infrastructure.Services
                 CreateComponentFile("Visual/Background.txt", "");
 
                 // 隠しファイル（.hidden拡張子）
-                CreateHiddenFile("System/Mouse.txt", "");
-                CreateHiddenFile("System/Keyboard.txt", "");
-                CreateHiddenFile("System/Explorer.txt", "");
+                //CreateHiddenFile("System/Mouse.txt", "");
+                //CreateHiddenFile("System/Keyboard.txt", "");
+                //CreateHiddenFile("System/Explorer.txt", "");
                 CreateHiddenFile("System/GameWindow.txt", "");
 
                 // 基本システムファイル

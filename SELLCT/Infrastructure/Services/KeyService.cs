@@ -34,12 +34,7 @@ namespace SELLCT.Infrastructure.Services
             bool success = false;
             try
             {
-                var passwordContent = @"PassWord: SELLCT_2024_Secret
-
-この鍵には重要な情報が含まれています。
-真の解放のためには...GameWindow.componentを削除してください。
-
-- SELLCT System -";
+                var passwordContent = @"PassWord : SELLCT_Literacy";
 
                 System.Windows.Application.Current?.Dispatcher.Invoke(() =>
                 {
