@@ -537,22 +537,8 @@ namespace SELLCT.Views
                 _isTyping = false;
                 _typingTimer.Stop();
                 
-                // タイピング完了時に次のメッセージがある場合は自動処理
-                if (_dialogMessageQueue.Count > 0 && !_awaitingChoice)
-                {
-                    // 少し遅延を設けて自然な流れにする
-                    var delayTimer = new DispatcherTimer();
-                    delayTimer.Interval = TimeSpan.FromMilliseconds(1000);
-                    delayTimer.Tick += (s, args) =>
-                    {
-                        delayTimer.Stop();
-                        if (_dialogMessageQueue.Count > 0 && !_awaitingChoice && !_isTyping)
-                        {
-                            ProcessNextDialogMessage();
-                        }
-                    };
-                    delayTimer.Start();
-                }
+                // タイピング完了後はクリック待ちとなる（自動進行を削除）
+                System.Diagnostics.Debug.WriteLine("[TypingTimer_Tick] Typing completed. Waiting for click to continue.");
             }
         }
 
