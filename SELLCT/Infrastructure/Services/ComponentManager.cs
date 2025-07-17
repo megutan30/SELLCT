@@ -87,8 +87,7 @@ namespace SELLCT.Infrastructure.Services
             {
                 // 表示される初期構成要素
                 CreateComponentFile("UI/Button.txt", "");
-                CreateComponentFile("UI/GameWindow.txt", "");
-                CreateComponentFile("Text/Hiragana.txt", "");
+                //CreateComponentFile("UI/GameWindow.txt", "");
                 CreateComponentFile("Text/YES.txt", "");
                 CreateComponentFile("Visual/Background.txt", "");
 
@@ -96,7 +95,7 @@ namespace SELLCT.Infrastructure.Services
                 CreateHiddenFile("System/Mouse.txt", "");
                 CreateHiddenFile("System/Keyboard.txt", "");
                 CreateHiddenFile("System/Explorer.txt", "");
-                CreateHiddenFile("System/WindowsShell.txt", "");
+                CreateHiddenFile("System/GameWindow.txt", "");
 
                 System.Diagnostics.Debug.WriteLine("Initial components created");
             }

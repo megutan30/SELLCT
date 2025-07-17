@@ -469,9 +469,9 @@ namespace SELLCT.Application.Services
                     Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Exists, ComponentNames = new[] { "AdminRights" } },
                     Actions = new List<PuzzleAction>
                     {
-                        new PuzzleAction { Type = PuzzleAction.ActionType.SetTextWindowVisibility, IsVisible = true },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "管理者権限コンポーネントが追加されました。" },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "SELLCTの権限が拡張されています..." }
+                        //new PuzzleAction { Type = PuzzleAction.ActionType.SetTextWindowVisibility, IsVisible = true },
+                        //new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "管理者権限コンポーネントが追加されました。" },
+                        //new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "SELLCTの権限が拡張されています..." }
                     },
                     CanRepeat = true
                 },
@@ -481,9 +481,9 @@ namespace SELLCT.Application.Services
                     Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Exists, ComponentNames = new[] { "FileAccess" } },
                     Actions = new List<PuzzleAction>
                     {
-                        new PuzzleAction { Type = PuzzleAction.ActionType.SetTextWindowVisibility, IsVisible = true },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "ファイルアクセス権限コンポーネントが追加されました。" },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "あなたのファイルにアクセスできるようになります..." }
+                        //new PuzzleAction { Type = PuzzleAction.ActionType.SetTextWindowVisibility, IsVisible = true },
+                        //new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "ファイルアクセス権限コンポーネントが追加されました。" },
+                        //new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "あなたのファイルにアクセスできるようになります..." }
                     },
                     CanRepeat = true
                 },
@@ -493,9 +493,9 @@ namespace SELLCT.Application.Services
                     Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Exists, ComponentNames = new[] { "NetworkAccess" } },
                     Actions = new List<PuzzleAction>
                     {
-                        new PuzzleAction { Type = PuzzleAction.ActionType.SetTextWindowVisibility, IsVisible = true },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "ネットワークアクセス権限コンポーネントが追加されました。" },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "インターネット接続が可能になります..." }
+                        //new PuzzleAction { Type = PuzzleAction.ActionType.SetTextWindowVisibility, IsVisible = true },
+                        //new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "ネットワークアクセス権限コンポーネントが追加されました。" },
+                        //new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "インターネット接続が可能になります..." }
                     },
                     CanRepeat = true
                 },
@@ -505,8 +505,8 @@ namespace SELLCT.Application.Services
                     Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Exists, ComponentNames = new[] { "SystemControl" } },
                     Actions = new List<PuzzleAction>
                     {
-                        new PuzzleAction { Type = PuzzleAction.ActionType.SetTextWindowVisibility, IsVisible = true },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "システム制御権限コンポーネントが追加されました。" },
+                        //new PuzzleAction { Type = PuzzleAction.ActionType.SetTextWindowVisibility, IsVisible = true },
+                        //new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "システム制御権限コンポーネントが追加されました。" },
                     },
                     CanRepeat = true
                 },
