@@ -132,25 +132,85 @@
                     Panel.ZIndex="3" HorizontalAlignment="Left" VerticalAlignment="Top">
                 <Grid>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="28*"/>
-                        <ColumnDefinition Width="489*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="11*"/>
-                        <RowDefinition Height="48*"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-
+                    
                     <!-- メッセージテキスト -->
                     <TextBlock Name="DialogText" 
                                TextWrapping="Wrap"
                                FontSize="16"
                                LineHeight="16"
                                Margin="15,5,15,5"
-                               Foreground="White" Grid.RowSpan="4" Grid.ColumnSpan="2"/>
+                               Foreground="White" 
+                               Grid.Column="0"/>
 
-                    <!-- クリックイベントを捕捉するための透明なボタン -->
+                    <!-- ログボタン -->
+                    <Button Name="LogButton" 
+                            Content="ログ" 
+                            Width="40" Height="20"
+                            FontSize="12"
+                            Margin="5,5,10,5"
+                            Background="#2D2D30"
+                            Foreground="White"
+                            BorderBrush="#3F3F46"
+                            BorderThickness="1"
+                            Click="LogButton_Click"
+                            Grid.Column="1"
+                            VerticalAlignment="Top"
+                            HorizontalAlignment="Right"/>
+                </Grid>
+            </Border>
+
+            <!--：ログ表示パネル -->
+            <Border Name="LogPanel" 
+                    Style="{StaticResource TextWindowStyle}"
+                    Width="500" Height="300"
+                    Canvas.Left="300" Canvas.Top="180"
+                    Visibility="Collapsed"
+                    Panel.ZIndex="4" HorizontalAlignment="Left" VerticalAlignment="Top">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    
+                    <!-- ログパネルヘッダー -->
+                    <TextBlock Text="メッセージ履歴" 
+                               FontSize="16" 
+                               FontWeight="Bold"
+                               Foreground="White"
+                               Margin="15,10,15,5"
+                               Grid.Row="0"/>
+                    
+                    <!-- ログコンテンツ -->
+                    <ScrollViewer Name="LogScrollViewer" 
+                                  Grid.Row="1"
+                                  Margin="15,5,15,5"
+                                  VerticalScrollBarVisibility="Auto"
+                                  HorizontalScrollBarVisibility="Disabled">
+                        <TextBlock Name="LogText" 
+                                   TextWrapping="Wrap"
+                                   FontSize="14"
+                                   LineHeight="18"
+                                   Foreground="White"
+                                   Background="Transparent"/>
+                    </ScrollViewer>
+                    
+                    <!-- ログパネル閉じるボタン -->
+                    <Button Name="CloseLogButton" 
+                            Content="閉じる" 
+                            Width="60" Height="25"
+                            FontSize="12"
+                            Margin="5,5,15,10"
+                            Background="#2D2D30"
+                            Foreground="White"
+                            BorderBrush="#3F3F46"
+                            BorderThickness="1"
+                            Click="CloseLogButton_Click"
+                            Grid.Row="2"
+                            HorizontalAlignment="Right"/>
                 </Grid>
             </Border>
             <!--：KEY画像 -->

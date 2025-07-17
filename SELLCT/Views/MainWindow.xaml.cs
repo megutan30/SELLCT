@@ -10,6 +10,7 @@ using System.Windows.Media.Animation;
 using System.Windows.Threading;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Text;
 using SELLCT.Core.Entities;
 using SELLCT.Infrastructure.Services;
 using SELLCT.Presentation.Views;
@@ -47,6 +48,9 @@ namespace SELLCT.Views
         private string _currentFullMessage;
         private int _currentMessageCharIndex;
         private bool _awaitingChoice;
+
+        // ログ機能関連
+        private List<string> _messageHistory = new List<string>();
 
         private DispatcherTimer _initialLetterTimer;
         private DispatcherTimer _subsequentLetterTimer;
@@ -590,6 +594,9 @@ namespace SELLCT.Views
                 _isTyping = false;
                 _typingTimer.Stop();
                 
+                // タイピング完了時にメッセージを履歴に追加
+                AddMessageToHistory(_currentFullMessage);
+                
                 // タイピング完了後はクリック待ちとなる（自動進行を削除）
                 System.Diagnostics.Debug.WriteLine("[TypingTimer_Tick] Typing completed. Waiting for click to continue.");
             }
@@ -645,6 +652,10 @@ namespace SELLCT.Views
                 _currentMessageCharIndex = _currentFullMessage.Length;
                 _isTyping = false;
                 _typingTimer.Stop();
+                
+                // タイピングスキップ時にもメッセージを履歴に追加
+                AddMessageToHistory(_currentFullMessage);
+                
                 System.Diagnostics.Debug.WriteLine("[MainWindow_MouseDown] Text typing skipped.");
             }
             else
@@ -669,8 +680,9 @@ namespace SELLCT.Views
                 // ボタン要素の判定
                 if (current is Button button)
                 {
-                    // MainButton、YesButton、NoButtonは優先度が高い
-                    if (button.Name == "MainButton" || button.Name == "YesButton" || button.Name == "NoButton")
+                    // MainButton、YesButton、NoButton、LogButton、CloseLogButtonは優先度が高い
+                    if (button.Name == "MainButton" || button.Name == "YesButton" || button.Name == "NoButton" || 
+                        button.Name == "LogButton" || button.Name == "CloseLogButton")
                     {
                         return true;
                     }
@@ -1014,6 +1026,114 @@ namespace SELLCT.Views
             else
             {
                 _puzzleActionHandler.HandleYesClick(); // NO機能が無効な場合はYESとして扱う
+            }
+        }
+
+        /// <summary>
+        /// ログボタンクリック
+        /// </summary>
+        private void LogButton_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine("[LogButton_Click] Log button clicked.");
+                
+                // ログパネルの表示/非表示を切り替え
+                if (LogPanel.Visibility == Visibility.Visible)
+                {
+                    LogPanel.Visibility = Visibility.Collapsed;
+                }
+                else
+                {
+                    UpdateLogDisplay();
+                    LogPanel.Visibility = Visibility.Visible;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error in LogButton_Click: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// ログパネル閉じるボタンクリック
+        /// </summary>
+        private void CloseLogButton_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine("[CloseLogButton_Click] Close log button clicked.");
+                LogPanel.Visibility = Visibility.Collapsed;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error in CloseLogButton_Click: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// ログ表示を更新
+        /// </summary>
+        private void UpdateLogDisplay()
+        {
+            try
+            {
+                if (_messageHistory.Count == 0)
+                {
+                    LogText.Text = "まだメッセージはありません。";
+                    return;
+                }
+
+                var logContent = new StringBuilder();
+                for (int i = 0; i < _messageHistory.Count; i++)
+                {
+                    logContent.AppendLine($"[{i + 1:D2}] {_messageHistory[i]}");
+                    if (i < _messageHistory.Count - 1)
+                    {
+                        logContent.AppendLine();
+                    }
+                }
+
+                LogText.Text = logContent.ToString();
+                
+                // スクロールを最下部に移動
+                LogScrollViewer.ScrollToEnd();
+                
+                System.Diagnostics.Debug.WriteLine($"[UpdateLogDisplay] Log updated with {_messageHistory.Count} messages.");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error in UpdateLogDisplay: {ex.Message}");
+                LogText.Text = "ログの表示中にエラーが発生しました。";
+            }
+        }
+
+        /// <summary>
+        /// メッセージを履歴に追加
+        /// </summary>
+        private void AddMessageToHistory(string message)
+        {
+            if (string.IsNullOrWhiteSpace(message)) return;
+
+            try
+            {
+                // 改行を統一し、空白行を削除
+                var cleanMessage = message.Replace("\r\n", "\n").Replace("\r", "\n").Trim();
+                if (string.IsNullOrEmpty(cleanMessage)) return;
+
+                // 重複チェック（直前のメッセージと同じ場合は追加しない）
+                if (_messageHistory.Count > 0 && _messageHistory[_messageHistory.Count - 1] == cleanMessage)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[AddMessageToHistory] Duplicate message ignored: {cleanMessage}");
+                    return;
+                }
+
+                _messageHistory.Add(cleanMessage);
+                System.Diagnostics.Debug.WriteLine($"[AddMessageToHistory] Message added to history: {cleanMessage}");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error in AddMessageToHistory: {ex.Message}");
             }
         }
 
