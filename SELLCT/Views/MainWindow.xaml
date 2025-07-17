@@ -272,6 +272,7 @@
         <StackPanel HorizontalAlignment="Right" 
                     VerticalAlignment="Bottom" 
                     Margin="0,0,10,10"
+                    Visibility="Collapsed"
                     Panel.ZIndex="5" Grid.Column="2">
             <TextBlock Name="StatusText" 
                        Text="SELLCT 起動中..."
