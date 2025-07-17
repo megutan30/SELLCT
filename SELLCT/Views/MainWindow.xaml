@@ -99,9 +99,9 @@
             <Button Name="MainButton" 
                     Content="?" 
                     Style="{StaticResource PixelButtonStyle}"
-                    Width="200" Height="59" Canvas.Top="504"
+                    Width="200" Height="69" Canvas.Top="489"
                     Click="MainButton_Click"
-                    Visibility="Visible" HorizontalAlignment="Left" VerticalAlignment="Top" Canvas.Left="57"
+                    Visibility="Visible" HorizontalAlignment="Center" VerticalAlignment="Top" Canvas.Left="52"
                     Panel.ZIndex="3"/>
 
             <!--手紙画像 -->
@@ -135,7 +135,7 @@
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    
+
                     <!-- メッセージテキスト -->
                     <TextBlock Name="DialogText" 
                                TextWrapping="Wrap"
@@ -148,9 +148,9 @@
                     <!-- ログボタン -->
                     <Button Name="LogButton" 
                             Content="ログ" 
-                            Width="40" Height="20"
+                            Width="40" Height="35"
                             FontSize="12"
-                            Margin="5,5,10,5"
+                            Margin="0,5,10,0"
                             Background="#2D2D30"
                             Foreground="White"
                             BorderBrush="#3F3F46"
@@ -175,7 +175,7 @@
                         <RowDefinition Height="*"/>
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
-                    
+
                     <!-- ログパネルヘッダー -->
                     <TextBlock Text="メッセージ履歴" 
                                FontSize="16" 
@@ -183,7 +183,7 @@
                                Foreground="White"
                                Margin="15,10,15,5"
                                Grid.Row="0"/>
-                    
+
                     <!-- ログコンテンツ -->
                     <ScrollViewer Name="LogScrollViewer" 
                                   Grid.Row="1"
@@ -197,12 +197,12 @@
                                    Foreground="White"
                                    Background="Transparent"/>
                     </ScrollViewer>
-                    
+
                     <!-- ログパネル閉じるボタン -->
                     <Button Name="CloseLogButton" 
                             Content="閉じる" 
                             Width="60" Height="25"
-                            FontSize="12"
+                            FontSize="10"
                             Margin="5,5,15,10"
                             Background="#2D2D30"
                             Foreground="White"

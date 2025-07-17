@@ -68,18 +68,18 @@ namespace SELLCT.Infrastructure.Services
             try
             {
                 Directory.CreateDirectory(_componentsPath);
-                Directory.CreateDirectory(Path.Combine(_componentsPath, "UI"));
-                Directory.CreateDirectory(Path.Combine(_componentsPath, "Text"));
-                Directory.CreateDirectory(Path.Combine(_componentsPath, "Visual"));
-                Directory.CreateDirectory(Path.Combine(_componentsPath, "SELLCT"));
+                //Directory.CreateDirectory(Path.Combine(_componentsPath, "UI"));
+                //Directory.CreateDirectory(Path.Combine(_componentsPath, "Text"));
+                //Directory.CreateDirectory(Path.Combine(_componentsPath, "Visual"));
+                //Directory.CreateDirectory(Path.Combine(_componentsPath, "SELLCT"));
                 
                 // Systemフォルダを作成し、隠しフォルダに設定
-                var systemFolderPath = Path.Combine(_componentsPath, "System");
-                Directory.CreateDirectory(systemFolderPath);
+                //var systemFolderPath = Path.Combine(_componentsPath, "System");
+                //Directory.CreateDirectory(systemFolderPath);
                 
                 // Systemフォルダを隠しフォルダに設定
-                var systemFolderInfo = new DirectoryInfo(systemFolderPath);
-                systemFolderInfo.Attributes |= FileAttributes.Hidden;
+                //var systemFolderInfo = new DirectoryInfo(systemFolderPath);
+                //systemFolderInfo.Attributes |= FileAttributes.Hidden;
 
                 System.Diagnostics.Debug.WriteLine("Components folder structure created (System folder hidden, SELLCT folder added)");
             }
@@ -97,24 +97,24 @@ namespace SELLCT.Infrastructure.Services
             try
             {
                 // 表示される初期構成要素
-                CreateComponentFile("UI/Button.txt", "");
+                CreateComponentFile("Button.txt", "");
                 //CreateComponentFile("UI/GameWindow.txt", "");
-                CreateComponentFile("Text/YES.txt", "");
-                CreateComponentFile("Visual/Background.txt", "");
+                CreateComponentFile("YES.txt", "");
+                CreateComponentFile("Background.txt", "");
 
                 // 隠しファイル（.hidden拡張子）
                 //CreateHiddenFile("System/Mouse.txt", "");
                 //CreateHiddenFile("System/Keyboard.txt", "");
                 //CreateHiddenFile("System/Explorer.txt", "");
-                CreateHiddenFile("System/GameWindow.txt", "");
+                CreateHiddenFile("GameWindow.txt", "");
 
                 // 基本システムファイル
-                CreateHiddenFile("SELLCT/AI.dll.txt", "");
-                CreateHiddenFile("SELLCT/CrashHandler.exe.txt", "");
-                CreateHiddenFile("SELLCT/Updater.ini.txt", "");
-                CreateHiddenFile("SELLCT/Uninstaller.dat.txt", "");
-                CreateHiddenFile("SELLCT/Input.dll.txt", "");
-                CreateHiddenFile("SELLCT/Kernel.dll", "");
+                //CreateHiddenFile("SELLCT/AI.dll.txt", "");
+                //CreateHiddenFile("SELLCT/CrashHandler.exe.txt", "");
+                //CreateHiddenFile("SELLCT/Updater.ini.txt", "");
+                //CreateHiddenFile("SELLCT/Uninstaller.dat.txt", "");
+                //CreateHiddenFile("SELLCT/Input.dll.txt", "");
+                //CreateHiddenFile("SELLCT/Kernel.dll", "");
                 
                 //// 追加のシステムコンポーネント
                 //CreateHiddenFile("SELLCT/Core.dll.txt", "");

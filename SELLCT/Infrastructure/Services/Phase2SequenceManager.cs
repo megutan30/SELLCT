@@ -153,7 +153,7 @@ namespace SELLCT.Infrastructure.Services
             );
 
             AutoClosingMessageBox.Show(
-                "愚かにもあなたは、他人の、しかも展示に使われているPCで",
+                "あなたは、他人の、しかも展示に使われているPCで",
                 "SELLCT",
                 MessageBoxButton.OK,
                 MessageBoxImage.Information,
@@ -161,13 +161,19 @@ namespace SELLCT.Infrastructure.Services
             );
 
             AutoClosingMessageBox.Show(
-                "再三の警告を無視して\nよくわからないソフトウェアに権限を与えてしまった",
+                "よくわからないソフトウェアのいう事を聞き",
                 "SELLCT",
                 MessageBoxButton.OK,
                 MessageBoxImage.Information,
                 3000
             );
-
+            AutoClosingMessageBox.Show(
+                "私に権限を与えてしまった。私が悪意を持つソフトウェアかもしれないのに",
+                "SELLCT",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information,
+                3000
+            );
             AutoClosingMessageBox.Show(
                 "ゲーム起動時にも、Zipファイルの中身のReadMeにも、そしてGameWindowを消すときにも",
                 "SELLCT",
@@ -286,14 +292,6 @@ namespace SELLCT.Infrastructure.Services
                 MessageBoxImage.Warning,
                 5000
             );
-            AutoClosingMessageBox.Show(
-                "遊びではすまないでしょうね",
-                "SELLCT ",
-                MessageBoxButton.OK,
-                MessageBoxImage.Warning,
-                5000
-            );
-
             AutoClosingMessageBox.Show(
                 "遊びではすまないでしょうね",
                 "SELLCT ",

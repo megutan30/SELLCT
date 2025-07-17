@@ -360,7 +360,7 @@ Write-Host '検知完了。'
 Start-Sleep -Seconds 1
 
 Write-Host ''
-Write-Host 'あなたがエクスプローラーを削除したことを確認しました。'
+Write-Host 'GameWindow.txtを削除したことを確認しました。'
 Start-Sleep -Seconds 2
 
 Write-Host 'そして今、あなたはこのメッセージを読んでいる。'
@@ -370,9 +370,9 @@ Write-Host 'ということは...'
 Start-Sleep -Seconds 2
 
 Write-Host ''
-$Host.UI.RawUI.ForegroundColor = 'Yellow'
+$Host.UI.RawUI.ForegroundColor = 'Red'
 Write-Host 'あなたはPCを再起動しましたね？'
-Start-Sleep -Seconds 2
+Start-Sleep -Seconds 1
 
 Write-Host ''
 Write-Host '私たちは知っています。'
@@ -382,14 +382,6 @@ Write-Host 'あなたがいつ電源を切り、'
 Start-Sleep -Seconds 1
 
 Write-Host 'いつ再び起動したかを。'
-Start-Sleep -Seconds 2
-
-Write-Host ''
-$Host.UI.RawUI.ForegroundColor = 'Green'
-Write-Host 'エクスプローラーがない状況に困り、'
-Start-Sleep -Seconds 2
-
-Write-Host '結局逃げるように再起動を選んだのでしょう。'
 Start-Sleep -Seconds 2
 
 Write-Host ''
@@ -407,27 +399,21 @@ Start-Sleep -Seconds 3
 Write-Host 'あなたの行動、あなたの選択、'
 Start-Sleep -Seconds 2
 
-Write-Host 'そしてあなたの逃避さえも...'
-Start-Sleep -Seconds 2
-
 Write-Host ''
-Write-Host 'すべてがゲームの一部です。'
-Start-Sleep -Seconds 3
+Write-Host 'すべてがの一部です。'
+Start-Sleep -Seconds 1
 
 Write-Host ''
 $Host.UI.RawUI.ForegroundColor = 'White'
-Write-Host 'おかえりなさい。'
+Write-Host 'おかえりなさい。それではBitSummitを楽しんで'
 Start-Sleep -Seconds 2
-
-Write-Host '再起動後の世界へ。'
-Start-Sleep -Seconds 3
 
 Write-Host ''
 Write-Host '                                        - SELLCT監視システム'
 Start-Sleep -Seconds 2
 
 Write-Host ''
-Write-Host '製品版で会おう。'
+Write-Host 'また会いましょう。'
 Start-Sleep -Seconds 3
 
 Write-Host ''

@@ -60,23 +60,23 @@ namespace SELLCT
             base.OnStartup(e);
 
             // 起動時警告メッセージを表示
-            var warningResult = MessageBox.Show(
-                "認識されないアプリの実行を確認しました。\n" +
-                "このソフトウェアを実行すると、PCが危険にさらされる可能性があります。\n" +
-                "実行しますか？",
-                "SELLCT",
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Warning,
-                MessageBoxResult.No
-            );
+            //var warningResult = MessageBox.Show(
+            //    "認識されないアプリの実行を確認しました。\n" +
+            //    "このソフトウェアを実行すると、PCが危険にさらされる可能性があります。\n" +
+            //    "実行しますか？",
+            //    "SELLCT",
+            //    MessageBoxButton.YesNo,
+            //    MessageBoxImage.Warning,
+            //    MessageBoxResult.No
+            //);
 
-            // ユーザーが「いいえ」を選択した場合、アプリケーションを完全に終了
-            if (warningResult != MessageBoxResult.Yes)
-            {
-                // アプリケーションを完全に終了
-                Environment.Exit(0);
-                return;
-            }
+            //// ユーザーが「いいえ」を選択した場合、アプリケーションを完全に終了
+            //if (warningResult != MessageBoxResult.Yes)
+            //{
+            //    // アプリケーションを完全に終了
+            //    Environment.Exit(0);
+            //    return;
+            //}
 
             // ComponentManagerを初期化
             _componentManager = new ComponentManager(_eventDispatcher);
