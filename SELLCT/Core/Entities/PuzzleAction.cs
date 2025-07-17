@@ -28,6 +28,8 @@ namespace SELLCT.Core.Entities
             ResetGame,
             ClearMessageQueue,
             ExitApplication,
+            ExitWithMessageBox,
+            DelayedExitWithMessageBox,
             StartExplorer
         }
 
@@ -43,5 +45,8 @@ namespace SELLCT.Core.Entities
         
         // 新しい可視性アクションのパラメータ
         public bool IsVisible { get; set; }
+        
+        // 遅延時間（ミリ秒）
+        public int DelayMilliseconds { get; set; } = 3000; // デフォルト3秒
     }
 }

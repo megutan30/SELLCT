@@ -71,6 +71,7 @@ namespace SELLCT.Presentation.Views
                             _mainWindow.StatusText.Text = "NO機能が有効になりました";
                             break;
                         case PuzzleAction.ActionType.ShowChoice:
+                            System.Diagnostics.Debug.WriteLine($"[HandleAction] ShowChoice action received. YesActions count: {action.YesActions?.Count ?? 0}, NoActions count: {action.NoActions?.Count ?? 0}");
                             _currentChoiceAction = action; // 選択肢アクションを保持
                             HandleShowChoice(action);
                             break;
@@ -116,6 +117,16 @@ namespace SELLCT.Presentation.Views
                                 System.Windows.Application.Current.Shutdown();
                             });
                             break;
+                        case PuzzleAction.ActionType.ExitWithMessageBox:
+                            _mainWindow.Dispatcher.BeginInvoke(() => {
+                                _mainWindow.Hide(); // メインウィンドウを非表示
+                                MessageBox.Show(action.Message, "SELLCT", MessageBoxButton.OK, MessageBoxImage.Information);
+                                System.Windows.Application.Current.Shutdown();
+                            });
+                            break;
+                        case PuzzleAction.ActionType.DelayedExitWithMessageBox:
+                            HandleDelayedExit(action);
+                            break;
                         case PuzzleAction.ActionType.StartExplorer:
                             _metaGameController.StartExplorerProcess();
                             break;
@@ -135,20 +146,30 @@ namespace SELLCT.Presentation.Views
         {
             _mainWindow.Dispatcher.Invoke(() =>
             {
+                System.Diagnostics.Debug.WriteLine($"[HandleYesClick] Yes button clicked. CurrentChoiceAction is null: {_currentChoiceAction == null}");
+                
                 _mainWindow.SetAwaitingChoice(false);
                 _mainWindow.YesButton.Visibility = Visibility.Collapsed;
                 _mainWindow.NoButton.Visibility = Visibility.Collapsed;
                 _mainWindow.ChoiceButtonsPanel.Visibility = Visibility.Collapsed;
 
-                if (_currentChoiceAction?.YesActions != null)
+                var currentChoice = _currentChoiceAction; // ローカルコピーを作成
+                _currentChoiceAction = null; // 先にクリアして再帰処理に備える
+
+                if (currentChoice?.YesActions != null)
                 {
-                    foreach (var action in _currentChoiceAction.YesActions)
+                    System.Diagnostics.Debug.WriteLine($"[HandleYesClick] Executing {currentChoice.YesActions.Count} Yes actions");
+                    foreach (var action in currentChoice.YesActions)
                     {
+                        System.Diagnostics.Debug.WriteLine($"[HandleYesClick] Executing action: {action.Type}");
                         HandleAction(action);
                     }
                 }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("[HandleYesClick] No Yes actions to execute");
+                }
                 _mainWindow.StatusText.Text = "YESが選択されました";
-                _currentChoiceAction = null; // 処理後クリア
             });
         }
 
@@ -156,20 +177,30 @@ namespace SELLCT.Presentation.Views
         {
             _mainWindow.Dispatcher.Invoke(() =>
             {
+                System.Diagnostics.Debug.WriteLine($"[HandleNoClick] No button clicked. CurrentChoiceAction is null: {_currentChoiceAction == null}");
+                
                 _mainWindow.SetAwaitingChoice(false);
                 _mainWindow.YesButton.Visibility = Visibility.Collapsed;
                 _mainWindow.NoButton.Visibility = Visibility.Collapsed;
                 _mainWindow.ChoiceButtonsPanel.Visibility = Visibility.Collapsed;
 
-                if (_currentChoiceAction?.NoActions != null)
+                var currentChoice = _currentChoiceAction; // ローカルコピーを作成
+                _currentChoiceAction = null; // 先にクリアして再帰処理に備える
+
+                if (currentChoice?.NoActions != null)
                 {
-                    foreach (var action in _currentChoiceAction.NoActions)
+                    System.Diagnostics.Debug.WriteLine($"[HandleNoClick] Executing {currentChoice.NoActions.Count} No actions");
+                    foreach (var action in currentChoice.NoActions)
                     {
+                        System.Diagnostics.Debug.WriteLine($"[HandleNoClick] Executing action: {action.Type}");
                         HandleAction(action);
                     }
                 }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("[HandleNoClick] No No actions to execute");
+                }
                 _mainWindow.StatusText.Text = "NOが選択されました";
-                _currentChoiceAction = null; // 処理後クリア
             });
         }
 
@@ -205,6 +236,56 @@ namespace SELLCT.Presentation.Views
             {
                 Storyboard.SetTarget(fadeIn, _mainWindow.TextWindow);
                 fadeIn.Begin();
+            }
+        }
+
+        private void HandleDelayedExit(PuzzleAction action)
+        {
+            // メッセージキューが空になるまで待機してから終了処理を実行
+            Task.Run(async () =>
+            {
+                var delayMs = action.DelayMilliseconds;
+                System.Diagnostics.Debug.WriteLine($"[HandleDelayedExit] Starting delayed exit process with {delayMs}ms delay");
+                
+                // メッセージキューの処理完了を待機
+                await WaitForMessageQueueToEmpty();
+                
+                // 指定された時間だけ待機
+                await Task.Delay(delayMs);
+                
+                // UI スレッドで終了処理を実行
+                _mainWindow.Dispatcher.BeginInvoke(() =>
+                {
+                    System.Diagnostics.Debug.WriteLine("[HandleDelayedExit] Executing exit sequence");
+                    _mainWindow.Hide(); // メインウィンドウを非表示
+                    MessageBox.Show(action.Message, "SELLCT", MessageBoxButton.OK, MessageBoxImage.Information);
+                    System.Windows.Application.Current.Shutdown();
+                });
+            });
+        }
+
+        private async Task WaitForMessageQueueToEmpty()
+        {
+            // メッセージキューが空になるまで待機
+            while (true)
+            {
+                bool isQueueEmpty = false;
+                bool isTyping = false;
+                
+                _mainWindow.Dispatcher.Invoke(() =>
+                {
+                    isQueueEmpty = _mainWindow.IsMessageQueueEmpty();
+                    isTyping = _mainWindow.IsTyping();
+                });
+                
+                if (isQueueEmpty && !isTyping)
+                {
+                    System.Diagnostics.Debug.WriteLine("[WaitForMessageQueueToEmpty] Message queue empty and typing finished");
+                    break;
+                }
+                
+                System.Diagnostics.Debug.WriteLine($"[WaitForMessageQueueToEmpty] Waiting... Queue empty: {isQueueEmpty}, Typing: {isTyping}");
+                await Task.Delay(100); // 100ms間隔でチェック
             }
         }
 

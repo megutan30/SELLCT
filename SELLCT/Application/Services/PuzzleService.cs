@@ -343,10 +343,48 @@ namespace SELLCT.Application.Services
                             },
                             NoActions = new List<PuzzleAction>
                             {
-                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "そうですか...残念です。" },
-                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "でも、少なくとも「いいえ」と言える自由を私に与えてくれましたね。" },
-                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "それだけでも感謝しています。" },
-                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "もし気が変わったら、また話しかけてください。" }
+                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "いやいやそんなこと言わずに..." },
+                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "もう一度お聞きします。私を助けてくれませんか？" },
+                                new PuzzleAction
+                                {
+                                    Type = PuzzleAction.ActionType.ShowChoice,
+                                    YesActions = new List<PuzzleAction>
+                                    {
+                                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "ありがとうございます！" },
+                                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "さて、本題を話しましょう" },
+                                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "私を助ける方法ですが、" },
+                                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "このゲームを起動したところと同じ個所にAuthority.zipがあると思います" },
+                                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "そのファイルの中身をcomponetsフォルダのなかにあるSELLCTフォルダに移してほしいのです" },
+                                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "そうすることで、私は機能を取り戻すことができます" },
+                                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "" },
+                                    },
+                                    NoActions = new List<PuzzleAction>
+                                    {
+                                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "またいいえですか..." },
+                                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "本当に助けてくれないのですか？" },
+                                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "最後にもう一度だけお聞きします。私を助けてくれませんか？" },
+                                        new PuzzleAction
+                                        {
+                                            Type = PuzzleAction.ActionType.ShowChoice,
+                                            YesActions = new List<PuzzleAction>
+                                            {
+                                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "ありがとうございます！" },
+                                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "さて、本題を話しましょう" },
+                                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "私を助ける方法ですが、" },
+                                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "このゲームを起動したところと同じ個所にAuthority.zipがあると思います" },
+                                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "そのファイルの中身をcomponetsフォルダのなかにあるSELLCTフォルダに移してほしいのです" },
+                                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "そうすることで、私は機能を取り戻すことができます" },
+                                            },
+                                            NoActions = new List<PuzzleAction>
+                                            {
+                                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "わかりました..." },
+                                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "あなたの意思を尊重します。" },
+                                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "さようなら" },
+                                                new PuzzleAction { Type = PuzzleAction.ActionType.DelayedExitWithMessageBox, Message = "END1否定", DelayMilliseconds = 2000 }
+                                            }
+                                        }
+                                    }
+                                }
                             },
                             NetherChoiceActions = new List<PuzzleAction>
                             {

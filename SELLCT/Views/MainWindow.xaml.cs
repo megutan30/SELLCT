@@ -420,12 +420,10 @@ namespace SELLCT.Views
             _dialogMessageQueue.Enqueue(new DialogItem { Type = DialogItemType.Choice });
             if (!_isTyping && !_awaitingChoice)
             {
-                TextWindow.Visibility = Visibility.Collapsed;
                 ProcessNextDialogMessage();
             }
             else if (TextWindow.Visibility != Visibility.Visible)
             {
-                TextWindow.Visibility = Visibility.Collapsed;
                 // グローバルクリックキャッチャーを廃止し、MainWindow_MouseDownで処理
                 StartDialogFadeIn();
             }
@@ -460,7 +458,7 @@ namespace SELLCT.Views
                     ChoiceButtonsPanel.Visibility = Visibility.Visible;
                     YesButton.Visibility = Visibility.Visible; // 個別ボタンの可視性を復元
                     NoButton.Visibility = Visibility.Visible; // 個別ボタンの可視性を復元
-                    TextWindow.Visibility = Visibility.Collapsed;
+                    // テキストウィンドウは表示したまま
                     // グローバルクリックキャッチャーを廃止し、MainWindow_MouseDownで処理 
                     _awaitingChoice = true;
                     _typingTimer.Stop(); // テキストの自動進行を停止
@@ -1106,6 +1104,22 @@ namespace SELLCT.Views
                     _keyboardHook = IntPtr.Zero;
                 }
             }
+        }
+
+        /// <summary>
+        /// メッセージキューが空かどうかをチェック
+        /// </summary>
+        public bool IsMessageQueueEmpty()
+        {
+            return _dialogMessageQueue?.Count == 0;
+        }
+
+        /// <summary>
+        /// 現在タイピング中かどうかをチェック
+        /// </summary>
+        public bool IsTyping()
+        {
+            return _isTyping;
         }
 
         /// <summary>
