@@ -26,6 +26,7 @@ namespace SELLCT.Views
     {
         private ComponentManager _componentManager;
         private LetterService _letterService;
+        private KeyService _keyService;
         private MetaGameController _metaGameController;
         private bool _isPhase2 = false;
 
@@ -187,9 +188,14 @@ namespace SELLCT.Views
 
             // LetterService初期化
             _letterService = new LetterService((System.Windows.Application.Current as App).GetEventDispatcher());
+            
+            // KeyService初期化
+            _keyService = new KeyService((System.Windows.Application.Current as App).GetEventDispatcher());
+            
             var eventDispatcher = (System.Windows.Application.Current as App).GetEventDispatcher();
             eventDispatcher.Subscribe<LetterAppearedEvent>(OnLetterAppeared);
             eventDispatcher.Subscribe<LetterClickedEvent>(OnLetterClicked);
+            eventDispatcher.Subscribe<KeyClickedEvent>(OnKeyClicked);
             eventDispatcher.Subscribe<Phase2StartedEvent>(OnPhase2Started);
             eventDispatcher.Subscribe<SystemTakeoverCompletedEvent>(OnSystemTakeoverCompleted);
             eventDispatcher.Subscribe<MouseComponentDeletionEvent>(OnMouseComponentDeletion);
@@ -347,6 +353,25 @@ namespace SELLCT.Views
                 catch (Exception ex)
                 {
                     System.Diagnostics.Debug.WriteLine($"Error in OnLetterClicked: {ex.Message}");
+                }
+            });
+        }
+
+        /// <summary>
+        /// 鍵クリックイベントハンドラー
+        /// </summary>
+        private void OnKeyClicked(KeyClickedEvent @event)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                try
+                {
+                    StatusText.Text = "PassWord.txtをダウンロードしました";
+                    UpdateDebugInfo();
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Error in OnKeyClicked: {ex.Message}");
                 }
             });
         }
@@ -835,20 +860,36 @@ namespace SELLCT.Views
         {
             try
             {
-                // KEYクリック処理：手紙同様に消失
+                if (_keyService == null) return;
+
+                // 鍵を即座に非表示
                 KeyImage.Visibility = Visibility.Collapsed;
 
-                if (TextWindow.Visibility == Visibility.Visible)
-                {
-                    ShowDialogMessage("鍵を手に入れました！でも、真の解放のためには...GameWindow.componentを削除してください。");
-                }
+                // PassWord.txtダウンロード処理
+                bool success = _keyService.OnKeyClicked();
 
-                StatusText.Text = "隠された鍵を取得しました";
-                UpdateDebugInfo();
+                if (success)
+                {
+                    // ダウンロード成功時
+                    StatusText.Text = "PassWord.txtをダウンロードしました";
+                    if (TextWindow.Visibility == Visibility.Visible)
+                    {
+                        ShowDialogMessage("パスワードファイルをダウンロードしました！真の解放のためには...GameWindow.componentを削除してください。");
+                    }
+                    UpdateDebugInfo();
+                }
+                else
+                {
+                    // ダウンロード失敗またはキャンセル時は鍵を再表示
+                    KeyImage.Visibility = Visibility.Visible;
+                    StatusText.Text = "パスワードファイルのダウンロードがキャンセルされました";
+                }
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Error in Key_Click: {ex.Message}");
+                // エラー時も鍵を再表示
+                KeyImage.Visibility = Visibility.Visible;
             }
         }
 

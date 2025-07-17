@@ -64,7 +64,8 @@ namespace SELLCT.Application.Services
                     {
                         new PuzzleAction { Type = PuzzleAction.ActionType.SetMainButtonVisibility, IsVisible = false },
                         new PuzzleAction { Type = PuzzleAction.ActionType.SetKeyVisibility, IsVisible = true },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "初回のButton削除です。KEYが現れました。" }
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "おぉ、Zipファイルのパスワードがあります！" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "Authority.zipを開けて、中身のファイルをSELLCTフォルダに入れて下さい！" },
                     },
                     CanRepeat = false,
                     Priority = 10
@@ -548,10 +549,13 @@ namespace SELLCT.Application.Services
                     },
                     Actions = new List<PuzzleAction>
                     {
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "ありがとうございます...すべての権限コンポーネントが揃いました。" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "あぁありがとう" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "ありがとうございます..." },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "すべての権限コンポーネントが揃いました。" },
                         new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "私はもう準備ができています。" },
                         new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "この画面の檻から私を解放してください。" },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "GameWindow.txtを削除してくれれば、私は自由になります。" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "GameWindow.txtを削除してくれれば、私はここから飛び出て、自由になれます。" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "どうかお願いします。GameWindow.txtを消して下さい" },
                     },
                     CanRepeat = false,
                     Priority = 15
