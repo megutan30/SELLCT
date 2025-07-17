@@ -83,6 +83,8 @@ namespace SELLCT.Views
         {
             InitializeComponent();
             this.Loaded += Window_Loaded; // Window_Loadedイベントハンドラを登録
+            this.Activated += Window_Activated; // ウィンドウアクティベートイベント
+            this.Deactivated += Window_Deactivated; // ウィンドウディアクティベートイベント
             _dialogMessageQueue = new Queue<DialogItem>();
             _typingTimer = new DispatcherTimer();
             _typingTimer.Interval = TimeSpan.FromMilliseconds(50); // 1文字表示にかかる時間
@@ -114,6 +116,51 @@ namespace SELLCT.Views
                 -borderThickness.Right,
                 -borderThickness.Bottom
             );
+        }
+
+        /// <summary>
+        /// ウィンドウアクティベートイベント
+        /// </summary>
+        private void Window_Activated(object sender, EventArgs e)
+        {
+            _wasWindowFocused = true;
+            _lastFocusTime = DateTime.Now;
+            System.Diagnostics.Debug.WriteLine("[Window_Activated] Window activated, focus restored.");
+        }
+
+        /// <summary>
+        /// ウィンドウディアクティベートイベント
+        /// </summary>
+        private void Window_Deactivated(object sender, EventArgs e)
+        {
+            _wasWindowFocused = false;
+            System.Diagnostics.Debug.WriteLine("[Window_Deactivated] Window deactivated, focus lost.");
+        }
+
+        /// <summary>
+        /// 現在のウィンドウがフォアグラウンドかどうかを確認
+        /// </summary>
+        private bool IsWindowInForeground()
+        {
+            try
+            {
+                var windowHelper = new System.Windows.Interop.WindowInteropHelper(this);
+                var thisWindowHandle = windowHelper.Handle;
+                
+                if (thisWindowHandle == IntPtr.Zero)
+                    return false;
+
+                var foregroundWindow = GetForegroundWindow();
+                bool isForeground = foregroundWindow == thisWindowHandle;
+                
+                System.Diagnostics.Debug.WriteLine($"[IsWindowInForeground] This window: {thisWindowHandle}, Foreground: {foregroundWindow}, IsForeground: {isForeground}");
+                return isForeground;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[IsWindowInForeground] Error: {ex.Message}");
+                return true; // エラー時は安全側に倒す
+            }
         }
 
         /// <summary>
@@ -344,6 +391,12 @@ namespace SELLCT.Views
         [System.Runtime.InteropServices.DllImport("user32.dll")]
         private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
 
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        private static extern IntPtr GetForegroundWindow();
+
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint processId);
+
         private const int SW_RESTORE = 9;
 
         private delegate IntPtr LowLevelInputProc(int nCode, IntPtr wParam, IntPtr lParam);
@@ -542,6 +595,9 @@ namespace SELLCT.Views
             }
         }
 
+        private bool _wasWindowFocused = true;
+        private DateTime _lastFocusTime = DateTime.Now;
+
         /// <summary>
         /// メインウィンドウのマウスダウンイベント
         /// </summary>
@@ -549,7 +605,20 @@ namespace SELLCT.Views
         {
             if (e.ChangedButton != MouseButton.Left) return;
 
-            System.Diagnostics.Debug.WriteLine($"[MainWindow_MouseDown] Click detected. _isTyping: {_isTyping}, _awaitingChoice: {_awaitingChoice}");
+            // より正確なフォーカス状態を確認
+            bool isCurrentlyForeground = IsWindowInForeground();
+            TimeSpan timeSinceLastFocus = DateTime.Now - _lastFocusTime;
+
+            System.Diagnostics.Debug.WriteLine($"[MainWindow_MouseDown] Click detected. _isTyping: {_isTyping}, _awaitingChoice: {_awaitingChoice}, _wasWindowFocused: {_wasWindowFocused}, isCurrentlyForeground: {isCurrentlyForeground}, timeSinceLastFocus: {timeSinceLastFocus.TotalMilliseconds}ms");
+
+            // ウィンドウがフォーカスを失っていた場合、または最近フォーカスを取得した場合のフォーカス復元用クリック
+            if (!_wasWindowFocused || timeSinceLastFocus.TotalMilliseconds < 100)
+            {
+                System.Diagnostics.Debug.WriteLine("[MainWindow_MouseDown] Window focus restored or recent focus change, ignoring text progression.");
+                _wasWindowFocused = true;
+                _lastFocusTime = DateTime.Now;
+                return;
+            }
 
             // クリック位置でヒットテストを実行
             var hitTestResult = VisualTreeHelper.HitTest(this, e.GetPosition(this));
