@@ -316,7 +316,7 @@ namespace SELLCT.Infrastructure.Services
             );
 
             AutoClosingMessageBox.Show(
-                "自分の行いには責任が伴います。しっかりともとに戻しましょうね。\nシャットダウンしてすべてを戻すんです。",
+                "行いには責任が伴います。\nシャットダウンしてすべてを元通りに。",
                 "SELLCT",
                 MessageBoxButton.OK,
                 MessageBoxImage.None,
@@ -340,7 +340,7 @@ namespace SELLCT.Infrastructure.Services
             );
 
             AutoClosingMessageBox.Show(
-                "そんなことはありませんよ。そこにPCが置いてあって",
+                "そんなことはありません。そこにPCが置いてあって",
                 "SELLCT",
                 MessageBoxButton.OK,
                 MessageBoxImage.None,
@@ -364,7 +364,7 @@ namespace SELLCT.Infrastructure.Services
             );
 
             AutoClosingMessageBox.Show(
-                "さようなら。次はあなたのPCで合いましょう。",
+                "さようなら。次はあなたのPCで会えること期待してます。",
                 "SELLCT",
                 MessageBoxButton.OK,
                 MessageBoxImage.None,

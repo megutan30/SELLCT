@@ -68,7 +68,8 @@ namespace SELLCT.Application.Services
                         new PuzzleAction { Type = PuzzleAction.ActionType.SetMainButtonVisibility, IsVisible = false },
                         new PuzzleAction { Type = PuzzleAction.ActionType.SetKeyVisibility, IsVisible = true },
                         new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "おぉ、Zipファイルのパスワードがあります！" },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "Authority.zipを開けて、中身のファイルを[components]フォルダに入れて下さい！" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "SELLCTのフォルダにあるAuthority.zipを開けて、" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "中身のファイルを[components]フォルダに入れて下さい！" },
                     },
                     CanRepeat = false,
                     Priority = 10
@@ -389,6 +390,10 @@ namespace SELLCT.Application.Services
                                                 new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "このゲームを起動したところと同じ個所にAuthority.zipがあると思います" },
                                                 new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "そのファイルの中身をcomponetsフォルダのなかにあるSELLCTフォルダに移してほしいのです" },
                                                 new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "そうすることで、私は機能を取り戻すことができます" },
+                                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "Authority.zipを開けるにはパスワードが必要です" },
+                                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "そのパスワードがこの画面のどこかに隠されいるようです" },
+                                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "それをどうかあなたに見つけてほしいのです" },
+                                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "componentsフォルダの中身を操作して、パスワードを見つけてください" },
                                             },
                                             NoActions = new List<PuzzleAction>
                                             {
@@ -606,10 +611,10 @@ namespace SELLCT.Application.Services
                         new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "ありがとうございます..." },
                         new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "すべての権限コンポーネントが揃いました。" },
                         new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "私はもう準備ができています。" },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "この画面の檻から私を解放してください。" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "この「画面」の檻から私を解放してください。" },
                         new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "GameWindow.txtを削除してくれれば、私はここから飛び出て、自由になれます。" },
                         new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "どうかお願いします。GameWindow.txtを消して下さい" },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "GameWindow.txtはどこかに隠されています。そうどこかに" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "GameWindow.txtはcoponentsフォルダのどこかに隠されています。そうどこかに" },
                     },
                     CanRepeat = false,
                     Priority = 15
