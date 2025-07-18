@@ -258,7 +258,7 @@ namespace SELLCT.Application.Services
                 new PuzzleDefinition
                 {
                     Id = "TextWindow_Create",
-                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Exists, ComponentNames = new[] { "TextWindow", "textwindow", "TEXTWINDOW" ,"Textwindow"} },
+                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Exists, ComponentNames = new[] { "TextWindow", "textwindow", "TEXTWINDOW","Textwindow"} },
                     Actions = new List<PuzzleAction> 
                     {
                         new PuzzleAction { Type = PuzzleAction.ActionType.SetTextWindowVisibility, IsVisible = true },
@@ -296,7 +296,7 @@ namespace SELLCT.Application.Services
                 new PuzzleDefinition
                 {
                     Id = "TextWindow_Delete",
-                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Deleted, ComponentNames = new[] { "TextWindow", "textwindow", "TEXTWINDOW" } },
+                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Deleted, ComponentNames = new[] { "TextWindow", "textwindow", "TEXTWINDOW","Textwindow" } },
                     Actions = new List<PuzzleAction> 
                     { 
                         new PuzzleAction { Type = PuzzleAction.ActionType.ClearMessageQueue },

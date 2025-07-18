@@ -764,7 +764,7 @@ namespace SELLCT.Infrastructure.Services
         /// </summary>
         public bool HasTextWindowComponent()
         {
-            var textWindowPatterns = new[] { "TextWindow", "textwindow", "TEXTWINDOW" };
+            var textWindowPatterns = new[] { "TextWindow", "textwindow", "TEXTWINDOW", "Textwindow" };
             return textWindowPatterns.Any(pattern => _components.ContainsKey(pattern));
         }
 
