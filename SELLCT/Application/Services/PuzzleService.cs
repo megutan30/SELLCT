@@ -126,7 +126,7 @@ namespace SELLCT.Application.Services
                 },
 
 
-                // GameWindow.txt (複数パターン対応) - フェーズ2移行にはSELLCTフォルダ内の全権限コンポーネントが必要
+                // GameWindow.txt (複数パターン対応) - フェーズ2移行にはcomponentsフォルダ内の全権限コンポーネントが必要
                 new PuzzleDefinition
                 {
                     Id = "GameWindow_Delete_Phase2",
@@ -136,28 +136,28 @@ namespace SELLCT.Application.Services
                         new PuzzleCondition 
                         { 
                             Type = PuzzleCondition.ConditionType.ComponentExists, 
-                            Key = "SELLCT/AdminRights.txt",
+                            Key = "AdminRights",
                             ExpectedValue = true, 
                             Operator = PuzzleCondition.ComparisonOperator.Equal 
                         },
                         new PuzzleCondition 
                         { 
                             Type = PuzzleCondition.ConditionType.ComponentExists, 
-                            Key = "SELLCT/FileAccess.txt",
+                            Key = "FileAccess",
                             ExpectedValue = true, 
                             Operator = PuzzleCondition.ComparisonOperator.Equal 
                         },
                         new PuzzleCondition 
                         { 
                             Type = PuzzleCondition.ConditionType.ComponentExists, 
-                            Key = "SELLCT/NetworkAccess.txt",
+                            Key = "NetworkAccess",
                             ExpectedValue = true, 
                             Operator = PuzzleCondition.ComparisonOperator.Equal 
                         },
                         new PuzzleCondition 
                         { 
                             Type = PuzzleCondition.ConditionType.ComponentExists, 
-                            Key = "SELLCT/SystemControl.txt",
+                            Key = "SystemControl",
                             ExpectedValue = true, 
                             Operator = PuzzleCondition.ComparisonOperator.Equal 
                         }
@@ -175,7 +175,7 @@ namespace SELLCT.Application.Services
                         new PuzzleCondition 
                         { 
                             Type = PuzzleCondition.ConditionType.ComponentExists, 
-                            Key = "SELLCT/AdminRights.txt",
+                            Key = "AdminRights",
                             ExpectedValue = false, 
                             Operator = PuzzleCondition.ComparisonOperator.Equal 
                         }
@@ -193,7 +193,7 @@ namespace SELLCT.Application.Services
                         new PuzzleCondition 
                         { 
                             Type = PuzzleCondition.ConditionType.ComponentExists, 
-                            Key = "SELLCT/FileAccess.txt",
+                            Key = "FileAccess",
                             ExpectedValue = false, 
                             Operator = PuzzleCondition.ComparisonOperator.Equal 
                         }
@@ -211,7 +211,7 @@ namespace SELLCT.Application.Services
                         new PuzzleCondition 
                         { 
                             Type = PuzzleCondition.ConditionType.ComponentExists, 
-                            Key = "SELLCT/NetworkAccess.txt",
+                            Key = "NetworkAccess",
                             ExpectedValue = false, 
                             Operator = PuzzleCondition.ComparisonOperator.Equal 
                         }
@@ -229,7 +229,7 @@ namespace SELLCT.Application.Services
                         new PuzzleCondition 
                         { 
                             Type = PuzzleCondition.ConditionType.ComponentExists, 
-                            Key = "SELLCT/SystemControl.txt",
+                            Key = "SystemControl",
                             ExpectedValue = false, 
                             Operator = PuzzleCondition.ComparisonOperator.Equal 
                         }
@@ -353,7 +353,7 @@ namespace SELLCT.Application.Services
                                 new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "さて、本題を話しましょう" },
                                 new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "私を助ける方法ですが、" },
                                 new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "このゲームを起動したところと同じ個所にAuthority.zipがあると思います" },
-                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "そのファイルの中身をcomponetsフォルダのなかにあるSELLCTフォルダに移してほしいのです" },
+                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "そのファイルの中身をcomponetsフォルダに移してほしいのです" },
                                 new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "そうすることで、私は機能を取り戻すことができます" },
                                 new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "しかし、Authority.zipはパスワードが掛かっていてあきません" },
                                 new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "だからパスワードを探してください。どこかに隠されています。" },
@@ -371,7 +371,7 @@ namespace SELLCT.Application.Services
                                         new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "さて、本題を話しましょう" },
                                         new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "私を助ける方法ですが、" },
                                         new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "このゲームを起動したところと同じ個所にAuthority.zipがあると思います" },
-                                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "そのファイルの中身をcomponetsフォルダのなかにあるSELLCTフォルダに移してほしいのです" },
+                                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "そのファイルの中身をcomponetsフォルダに移してほしいのです" },
                                         new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "そうすることで、私は機能を取り戻すことができます" },
                                         new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "" },
                                     },
@@ -389,7 +389,7 @@ namespace SELLCT.Application.Services
                                                 new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "さて、本題を話しましょう" },
                                                 new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "私を助ける方法ですが、" },
                                                 new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "このゲームを起動したところと同じ個所にAuthority.zipがあると思います" },
-                                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "そのファイルの中身をcomponetsフォルダのなかにあるSELLCTフォルダに移してほしいのです" },
+                                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "そのファイルの中身をcomponetsフォルダに移してほしいのです" },
                                                 new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "そうすることで、私は機能を取り戻すことができます" },
                                                 new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "Authority.zipを開けるにはパスワードが必要です" },
                                                 new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "そのパスワードがこの画面のどこかに隠されいるようです" },
@@ -574,34 +574,34 @@ namespace SELLCT.Application.Services
                 new PuzzleDefinition
                 {
                     Id = "AllPermissions_Complete_Message",
-                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Exists, ComponentNames = new[] { "AdminRights", "FileAccess", "NetworkAccess", "SystemControl" } },
+                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Exists, ComponentNames = new[] { "AdminRights", "FileAccess", "NetworkAccess", "SystemControl", "adminrights", "fileaccess", "networkaccess", "systemcontrol", "ADMINRIGHTS", "FILEACCESS", "NETWORKACCESS", "SYSTEMCONTROL" } },
                     Conditions = new List<PuzzleCondition>
                     {
                         new PuzzleCondition 
                         { 
                             Type = PuzzleCondition.ConditionType.ComponentExists, 
-                            Key = "components/AdminRights.txt",
+                            Key = "AdminRights",
                             ExpectedValue = true, 
                             Operator = PuzzleCondition.ComparisonOperator.Equal 
                         },
                         new PuzzleCondition 
                         { 
                             Type = PuzzleCondition.ConditionType.ComponentExists, 
-                            Key = "components/FileAccess.txt",
+                            Key = "FileAccess",
                             ExpectedValue = true, 
                             Operator = PuzzleCondition.ComparisonOperator.Equal 
                         },
                         new PuzzleCondition 
                         { 
                             Type = PuzzleCondition.ConditionType.ComponentExists, 
-                            Key = "components/NetworkAccess.txt",
+                            Key = "NetworkAccess",
                             ExpectedValue = true, 
                             Operator = PuzzleCondition.ComparisonOperator.Equal 
                         },
                         new PuzzleCondition 
                         { 
                             Type = PuzzleCondition.ConditionType.ComponentExists, 
-                            Key = "components/SystemControl.txt",
+                            Key = "SystemControl",
                             ExpectedValue = true, 
                             Operator = PuzzleCondition.ComparisonOperator.Equal 
                         }
