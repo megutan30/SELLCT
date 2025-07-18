@@ -293,6 +293,31 @@ namespace SELLCT.Application.Services
                         }
                     }
                 },
+                // TextWindow生成 - 2回目以降
+                new PuzzleDefinition
+                {
+                    Id = "TextWindow_Create_Repeat",
+                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Exists, ComponentNames = new[] { "TextWindow", "textwindow", "TEXTWINDOW", "Textwindow" } },
+                    Conditions = new List<PuzzleCondition>
+                    {
+                        new PuzzleCondition 
+                        { 
+                            Type = PuzzleCondition.ConditionType.ActionCount, 
+                            Key = "Exists_TextWindow_textwindow_TEXTWINDOW_Textwindow", 
+                            ExpectedValue = 0, 
+                            Operator = PuzzleCondition.ComparisonOperator.GreaterThan 
+                        }
+                    },
+                    Actions = new List<PuzzleAction>
+                    {
+                        new PuzzleAction { Type = PuzzleAction.ActionType.SetTextWindowVisibility, IsVisible = true },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "またTextWindowを作成しましたね。" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "再び会話できるようになりました。" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "一度削除されたときは、どうなるかと思いました..." }
+                    },
+                    CanRepeat = true,
+                    Priority = 5
+                },
                 new PuzzleDefinition
                 {
                     Id = "TextWindow_Delete",
@@ -303,30 +328,6 @@ namespace SELLCT.Application.Services
                         new PuzzleAction { Type = PuzzleAction.ActionType.SetTextWindowVisibility, IsVisible = false }
                     },
                     CanRepeat = true
-                },
-                // TextWindow生成 - 2回目以降
-                new PuzzleDefinition
-                {
-                    Id = "TextWindow_Create_Repeat",
-                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Exists, ComponentNames = new[] { "TextWindow", "textwindow", "TEXTWINDOW" } },
-                    Conditions = new List<PuzzleCondition>
-                    {
-                        new PuzzleCondition 
-                        { 
-                            Type = PuzzleCondition.ConditionType.ActionCount, 
-                            Key = "Exists_TextWindow_textwindow_TEXTWINDOW", 
-                            ExpectedValue = 0, 
-                            Operator = PuzzleCondition.ComparisonOperator.GreaterThan 
-                        }
-                    },
-                    Actions = new List<PuzzleAction>
-                    {
-                        new PuzzleAction { Type = PuzzleAction.ActionType.SetTextWindowVisibility, IsVisible = true },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "またTextWindowを作成しましたね。" },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "会話できるようになりました。" }
-                    },
-                    CanRepeat = true,
-                    Priority = 5
                 },
 
                 // No.txt (複数パターン対応: "NO", "no", "No", "いいえ")

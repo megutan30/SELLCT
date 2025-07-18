@@ -80,11 +80,7 @@ namespace SELLCT.Presentation.Views
                             _mainWindow.SetKeyVisibility(action.IsVisible);
                             break;
                         case PuzzleAction.ActionType.SetTextWindowVisibility:
-                            // TextWindowコンポーネントが存在する場合のみ可視性を変更
-                            if (_componentManager.HasTextWindowComponent())
-                            {
-                                _mainWindow.SetTextWindowVisibility(action.IsVisible);
-                            }
+                            _mainWindow.SetTextWindowVisibility(action.IsVisible);
                             break;
                         case PuzzleAction.ActionType.SetBackgroundVisibility:
                             _mainWindow.SetBackgroundVisibility(action.IsVisible);
