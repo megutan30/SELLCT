@@ -9,7 +9,8 @@
         ResizeMode="NoResize"
         WindowStyle="ToolWindow"
         Background="LightGray"
-        Closing="Window_Closing">
+        Closing="Window_Closing"
+        MouseDown="MainWindow_MouseDown">
 
     <Window.Resources>
         <!-- アニメーション用ストーリーボード -->
@@ -22,8 +23,6 @@
             <DoubleAnimation Storyboard.TargetProperty="Opacity"
                             From="1" To="0" Duration="0:0:0.5"/>
         </Storyboard>
-
-
 
         <Style x:Key="TransparentButtonStyle" TargetType="Button">
             <Setter Property="Background" Value="Transparent"/>
@@ -74,7 +73,7 @@
             </Setter>
         </Style>
 
-        <Style x:Key="DialogWindowStyle" TargetType="Border">
+        <Style x:Key="TextWindowStyle" TargetType="Border">
             <Setter Property="Background" Value="Black"/>
             <Setter Property="BorderBrush" Value="White"/>
             <Setter Property="BorderThickness" Value="5"/>
@@ -100,9 +99,10 @@
             <Button Name="MainButton" 
                     Content="?" 
                     Style="{StaticResource PixelButtonStyle}"
-                    Width="200" Height="59" Canvas.Top="504"
+                    Width="200" Height="69" Canvas.Top="489"
                     Click="MainButton_Click"
-                    Visibility="Visible" HorizontalAlignment="Left" VerticalAlignment="Top" Canvas.Left="57"/>
+                    Visibility="Visible" HorizontalAlignment="Center" VerticalAlignment="Top" Canvas.Left="52"
+                    Panel.ZIndex="3"/>
 
             <!--手紙画像 -->
             <Image Name="LetterImage" 
@@ -123,24 +123,18 @@
                 </Image.RenderTransform>
             </Image>
 
-            <!--：対話ウィンドウ -->
-            <Border Name="DialogWindow" 
-                    Style="{StaticResource DialogWindowStyle}"
+            <!--：テキストウィンドウ -->
+            <Border Name="TextWindow" 
+                    Style="{StaticResource TextWindowStyle}"
                     Width="450" Height="90"
                     Canvas.Left="350" Canvas.Top="488"
                     Visibility="Collapsed"
                     Panel.ZIndex="3" HorizontalAlignment="Left" VerticalAlignment="Top">
                 <Grid>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="28*"/>
-                        <ColumnDefinition Width="489*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="11*"/>
-                        <RowDefinition Height="48*"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
 
                     <!-- メッセージテキスト -->
                     <TextBlock Name="DialogText" 
@@ -148,18 +142,83 @@
                                FontSize="16"
                                LineHeight="16"
                                Margin="15,5,15,5"
-                               Foreground="White" Grid.RowSpan="4" Grid.ColumnSpan="2"/>
+                               Foreground="White" 
+                               Grid.Column="0"/>
 
-                    <!-- クリックイベントを捕捉するための透明なボタン -->
-                    <!-- GlobalClickCatcherが全体をカバーするため、ここでは不要 -->
+                    <!-- ログボタン -->
+                    <Button Name="LogButton" 
+                            Content="ログ" 
+                            Width="40" Height="35"
+                            FontSize="12"
+                            Margin="0,5,10,0"
+                            Background="#2D2D30"
+                            Foreground="White"
+                            BorderBrush="#3F3F46"
+                            BorderThickness="1"
+                            Click="LogButton_Click"
+                            Grid.Column="1"
+                            VerticalAlignment="Top"
+                            HorizontalAlignment="Right"/>
+                </Grid>
+            </Border>
+
+            <!--：ログ表示パネル -->
+            <Border Name="LogPanel" 
+                    Style="{StaticResource TextWindowStyle}"
+                    Width="500" Height="300"
+                    Canvas.Left="300" Canvas.Top="180"
+                    Visibility="Collapsed"
+                    Panel.ZIndex="4" HorizontalAlignment="Left" VerticalAlignment="Top">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- ログパネルヘッダー -->
+                    <TextBlock Text="メッセージ履歴" 
+                               FontSize="16" 
+                               FontWeight="Bold"
+                               Foreground="White"
+                               Margin="15,10,15,5"
+                               Grid.Row="0"/>
+
+                    <!-- ログコンテンツ -->
+                    <ScrollViewer Name="LogScrollViewer" 
+                                  Grid.Row="1"
+                                  Margin="15,5,15,5"
+                                  VerticalScrollBarVisibility="Auto"
+                                  HorizontalScrollBarVisibility="Disabled">
+                        <TextBlock Name="LogText" 
+                                   TextWrapping="Wrap"
+                                   FontSize="14"
+                                   LineHeight="18"
+                                   Foreground="White"
+                                   Background="Transparent"/>
+                    </ScrollViewer>
+
+                    <!-- ログパネル閉じるボタン -->
+                    <Button Name="CloseLogButton" 
+                            Content="閉じる" 
+                            Width="60" Height="25"
+                            FontSize="10"
+                            Margin="5,5,15,10"
+                            Background="#2D2D30"
+                            Foreground="White"
+                            BorderBrush="#3F3F46"
+                            BorderThickness="1"
+                            Click="CloseLogButton_Click"
+                            Grid.Row="2"
+                            HorizontalAlignment="Right"/>
                 </Grid>
             </Border>
             <!--：KEY画像 -->
             <Image Name="KeyImage" 
                    Source="/Resources/KEY.png"
-                   Width="60" Height="60"
+                   Width="50" Height="50"
                    Canvas.Left="127" Canvas.Top="503"
-                   Visibility="Collapsed"
+                   Visibility="Visible"
                    MouseLeftButtonDown="Key_Click"
                    Cursor="Hand"
                    Panel.ZIndex="2"/>
@@ -213,6 +272,7 @@
         <StackPanel HorizontalAlignment="Right" 
                     VerticalAlignment="Bottom" 
                     Margin="0,0,10,10"
+                    Visibility="Collapsed"
                     Panel.ZIndex="5" Grid.Column="2">
             <TextBlock Name="StatusText" 
                        Text="SELLCT 起動中..."
@@ -253,15 +313,5 @@
             </StackPanel>
         </Grid>
 
-        <!-- グローバルクリックキャッチャー -->
-        <Button Name="GlobalClickCatcher" 
-                Style="{StaticResource TransparentButtonStyle}"
-                Background="Transparent" 
-                BorderBrush="Transparent"
-                Click="GlobalClickCatcher_Click"
-                Panel.ZIndex="999" 
-                Visibility="Collapsed"
-                HorizontalAlignment="Stretch"
-                VerticalAlignment="Stretch" Grid.ColumnSpan="3"/>
     </Grid>
 </Window>

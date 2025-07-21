@@ -9,6 +9,11 @@
     <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
     <PublishSingleFile>true</PublishSingleFile>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <SelfContained>false</SelfContained>
+    <IncludeAllContentForPack>false</IncludeAllContentForPack>
+    
+    <!-- 日本語のみを保持し、他の言語リソースファイル・フォルダの生成を抑制 -->
+    <SatelliteResourceLanguages>ja-JP</SatelliteResourceLanguages>
   </PropertyGroup>
 
   <ItemGroup>

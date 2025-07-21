@@ -1,6 +1,6 @@
-using SELLCT.Models;
+using SELLCT.Core.Entities;
 
-namespace SELLCT.Application.Handlers
+namespace SELLCT.Core.Interfaces
 {
     public interface IPuzzleActionHandler
     {

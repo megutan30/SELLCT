@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(rmdir:*)",
+      "Bash(dotnet publish:*)",
+      "Bash(Remove-Item -Recurse -Force \"SELLCT\\bin\\Release\\net6.0-windows\\win-x64\\publish\")",
+      "Bash(dotnet clean:*)",
+      "Bash(dotnet build:*)",
+      "Bash(wc:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
+    ],
+    "deny": []
+  }
+}
