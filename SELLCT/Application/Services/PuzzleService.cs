@@ -811,17 +811,17 @@ namespace SELLCT.Application.Services
         {
             try
             {
-                System.Diagnostics.Debug.WriteLine("[PuzzleService] SELLCT folder betrayed - executing betrayal ending");
+                //System.Diagnostics.Debug.WriteLine("[PuzzleService] SELLCT folder betrayed - executing betrayal ending");
                 
-                // 裏切りエンディングアクションを実行
-                var betrayalAction = new PuzzleAction
-                {
-                    Type = PuzzleAction.ActionType.BetrayalEnding,
-                    Message = "END1裏切り",
-                    DelayMilliseconds = 3000 // 3秒待機
-                };
+                //// 裏切りエンディングアクションを実行
+                //var betrayalAction = new PuzzleAction
+                //{
+                //    Type = PuzzleAction.ActionType.BetrayalEnding,
+                //    Message = "END1",
+                //    DelayMilliseconds = 3000 // 3秒待機
+                //};
 
-                _actionHandler.HandleAction(betrayalAction);
+                //_actionHandler.HandleAction(betrayalAction);
             }
             catch (Exception ex)
             {

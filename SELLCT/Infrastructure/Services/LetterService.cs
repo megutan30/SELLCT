@@ -274,14 +274,14 @@ namespace SELLCT.Infrastructure.Services
                 // 手紙2: 10秒後
                 LetterTriggerCondition.CreateTimeOnly(2, 15),
                 
-                // 手紙3: 30秒後
+                // 手紙3: 20秒後
                 LetterTriggerCondition.CreateTimeOnly(3, 20),
 
-                // 手紙3: 30秒後
+                // 手紙4: 20秒後
                 LetterTriggerCondition.CreateTimeOnly(4, 20),
 
-                // 手紙4: 20秒後かつTextWindow系ファイルのいずれかが存在しない場合
-                LetterTriggerCondition.CreateTimeAndAnyFileNotExists(5, 60, new List<string> { "TextWindow.txt", "textwindow.txt", "Textwindow.txt" ,"TEXTWINDOW"}),
+                // 手紙5: 60秒後かつTextWindow系ファイルがすべて存在しない場合
+                LetterTriggerCondition.CreateTimeAndAllFilesNotExist(5, 60, new List<string> { "TextWindow", "textwindow", "TEXTWINDOW", "Textwindow" }),
                 
                 // 今後の手紙は必要に応じて追加
             };
@@ -371,18 +371,21 @@ namespace SELLCT.Infrastructure.Services
         }
 
         /// <summary>
-        /// componentsフォルダ内のファイル存在チェック
+        /// componentsフォルダ内のファイル存在チェック（コンポーネントマネージャー経由）
         /// </summary>
         private bool CheckFileExists(string fileName, string componentsPath)
         {
-            if (string.IsNullOrEmpty(fileName) || string.IsNullOrEmpty(componentsPath))
+            if (string.IsNullOrEmpty(fileName))
                 return false;
 
             try
             {
-                var filePath = Path.Combine(componentsPath, fileName);
-                var exists = File.Exists(filePath);
-                System.Diagnostics.Debug.WriteLine($"Checking file existence: {filePath} = {exists}");
+                // まず拡張子なしでコンポーネントマネージャーから確認
+                // ComponentManagerは利用できないため、ファイルシステムから直接チェック
+                // 拡張子なしの名前に.txtを付けてチェック
+                var filePathWithTxt = Path.Combine(componentsPath, fileName + ".txt");
+                var exists = File.Exists(filePathWithTxt);
+                System.Diagnostics.Debug.WriteLine($"Checking file existence: {filePathWithTxt} = {exists}");
                 return exists;
             }
             catch (Exception ex)
