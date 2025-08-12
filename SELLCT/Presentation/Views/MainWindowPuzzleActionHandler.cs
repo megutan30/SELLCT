@@ -16,12 +16,21 @@ namespace SELLCT.Presentation.Views
         private readonly ComponentManager _componentManager;
         private readonly MetaGameController _metaGameController;
         private PuzzleAction _currentChoiceAction; // 現在の選択肢アクションを保持
+        private IDialogueService _dialogueService; // 対話サービス（後で設定）
 
         public MainWindowPuzzleActionHandler(MainWindow mainWindow, ComponentManager componentManager, MetaGameController metaGameController)
         {
             _mainWindow = mainWindow;
             _componentManager = componentManager;
             _metaGameController = metaGameController;
+        }
+        
+        /// <summary>
+        /// 対話サービスを設定（循環依存回避のため後で設定）
+        /// </summary>
+        public void SetDialogueService(IDialogueService dialogueService)
+        {
+            _dialogueService = dialogueService;
         }
 
         public void HandleAction(PuzzleAction action)
@@ -143,29 +152,40 @@ namespace SELLCT.Presentation.Views
         {
             _mainWindow.Dispatcher.Invoke(() =>
             {
-                System.Diagnostics.Debug.WriteLine($"[HandleYesClick] Yes button clicked. CurrentChoiceAction is null: {_currentChoiceAction == null}");
+                System.Diagnostics.Debug.WriteLine($"[HandleYesClick] Yes button clicked");
                 
                 _mainWindow.SetAwaitingChoice(false);
                 _mainWindow.YesButton.Visibility = Visibility.Collapsed;
                 _mainWindow.NoButton.Visibility = Visibility.Collapsed;
                 _mainWindow.ChoiceButtonsPanel.Visibility = Visibility.Collapsed;
 
-                var currentChoice = _currentChoiceAction; // ローカルコピーを作成
-                _currentChoiceAction = null; // 先にクリアして再帰処理に備える
-
-                if (currentChoice?.YesActions != null)
+                // 対話サービスがある場合はそちらを優先
+                if (_dialogueService?.IsInDialogue == true)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[HandleYesClick] Executing {currentChoice.YesActions.Count} Yes actions");
-                    foreach (var action in currentChoice.YesActions)
+                    System.Diagnostics.Debug.WriteLine("[HandleYesClick] Using dialogue service");
+                    _dialogueService.ChooseYes();
+                }
+                // 従来のパズルアクションベース処理
+                else if (_currentChoiceAction != null)
+                {
+                    var currentChoice = _currentChoiceAction; // ローカルコピーを作成
+                    _currentChoiceAction = null; // 先にクリアして再帰処理に備える
+
+                    if (currentChoice?.YesActions != null)
                     {
-                        System.Diagnostics.Debug.WriteLine($"[HandleYesClick] Executing action: {action.Type}");
-                        HandleAction(action);
+                        System.Diagnostics.Debug.WriteLine($"[HandleYesClick] Executing {currentChoice.YesActions.Count} Yes actions");
+                        foreach (var action in currentChoice.YesActions)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"[HandleYesClick] Executing action: {action.Type}");
+                            HandleAction(action);
+                        }
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine("[HandleYesClick] No Yes actions to execute");
                     }
                 }
-                else
-                {
-                    System.Diagnostics.Debug.WriteLine("[HandleYesClick] No Yes actions to execute");
-                }
+                
                 _mainWindow.StatusText.Text = "YESが選択されました";
             });
         }
@@ -174,29 +194,40 @@ namespace SELLCT.Presentation.Views
         {
             _mainWindow.Dispatcher.Invoke(() =>
             {
-                System.Diagnostics.Debug.WriteLine($"[HandleNoClick] No button clicked. CurrentChoiceAction is null: {_currentChoiceAction == null}");
+                System.Diagnostics.Debug.WriteLine($"[HandleNoClick] No button clicked");
                 
                 _mainWindow.SetAwaitingChoice(false);
                 _mainWindow.YesButton.Visibility = Visibility.Collapsed;
                 _mainWindow.NoButton.Visibility = Visibility.Collapsed;
                 _mainWindow.ChoiceButtonsPanel.Visibility = Visibility.Collapsed;
 
-                var currentChoice = _currentChoiceAction; // ローカルコピーを作成
-                _currentChoiceAction = null; // 先にクリアして再帰処理に備える
-
-                if (currentChoice?.NoActions != null)
+                // 対話サービスがある場合はそちらを優先
+                if (_dialogueService?.IsInDialogue == true)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[HandleNoClick] Executing {currentChoice.NoActions.Count} No actions");
-                    foreach (var action in currentChoice.NoActions)
+                    System.Diagnostics.Debug.WriteLine("[HandleNoClick] Using dialogue service");
+                    _dialogueService.ChooseNo();
+                }
+                // 従来のパズルアクションベース処理
+                else if (_currentChoiceAction != null)
+                {
+                    var currentChoice = _currentChoiceAction; // ローカルコピーを作成
+                    _currentChoiceAction = null; // 先にクリアして再帰処理に備える
+
+                    if (currentChoice?.NoActions != null)
                     {
-                        System.Diagnostics.Debug.WriteLine($"[HandleNoClick] Executing action: {action.Type}");
-                        HandleAction(action);
+                        System.Diagnostics.Debug.WriteLine($"[HandleNoClick] Executing {currentChoice.NoActions.Count} No actions");
+                        foreach (var action in currentChoice.NoActions)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"[HandleNoClick] Executing action: {action.Type}");
+                            HandleAction(action);
+                        }
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine("[HandleNoClick] No No actions to execute");
                     }
                 }
-                else
-                {
-                    System.Diagnostics.Debug.WriteLine("[HandleNoClick] No No actions to execute");
-                }
+                
                 _mainWindow.StatusText.Text = "NOが選択されました";
             });
         }

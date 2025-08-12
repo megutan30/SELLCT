@@ -1,0 +1,705 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using SELLCT.Core.Entities;
+using SELLCT.Core.Events;
+using SELLCT.Core.Interfaces;
+using SELLCT.Infrastructure.Services;
+
+namespace SELLCT.Application.Services
+{
+    public class DialogueService : IDialogueService
+    {
+        private readonly ComponentManager _componentManager;
+        private readonly IPuzzleActionHandler _actionHandler;
+        private readonly IEventDispatcher _eventDispatcher;
+        private readonly GameState _gameState;
+        private readonly List<DialogueFlow> _dialogueFlows;
+        
+        private DialogueFlow _currentFlow;
+        private DialogueNode _currentNode;
+        
+        public bool IsInDialogue => _currentFlow != null && _currentNode != null;
+        public DialogueNode CurrentNode => _currentNode;
+        
+        public DialogueService(ComponentManager componentManager, IPuzzleActionHandler actionHandler, 
+                              IEventDispatcher eventDispatcher, GameState gameState)
+        {
+            _componentManager = componentManager;
+            _actionHandler = actionHandler;
+            _eventDispatcher = eventDispatcher;
+            _gameState = gameState;
+            _dialogueFlows = LoadDialogueFlows();
+            
+            // イベントサブスクリプション
+            _eventDispatcher.Subscribe<ComponentCreatedEvent>(CheckDialogueTriggersOnComponentCreated);
+            _eventDispatcher.Subscribe<ComponentDeletedEvent>(CheckDialogueTriggersOnComponentDeleted);
+            _eventDispatcher.Subscribe<ComponentRenamedEvent>(CheckDialogueTriggersOnComponentRenamed);
+        }
+        
+        public void ExecuteDialogue(string flowId, string startNodeId = null)
+        {
+            var flow = _dialogueFlows.FirstOrDefault(f => f.Id == flowId);
+            if (flow == null)
+            {
+                System.Diagnostics.Debug.WriteLine($"[DialogueService] Flow not found: {flowId}");
+                return;
+            }
+            
+            // 条件チェック
+            if (!AreConditionsSatisfied(flow.Conditions))
+            {
+                System.Diagnostics.Debug.WriteLine($"[DialogueService] Flow conditions not met: {flowId}");
+                return;
+            }
+            
+            // リピートチェック
+            if (!flow.CanRepeat && flow.IsCompleted)
+            {
+                System.Diagnostics.Debug.WriteLine($"[DialogueService] Flow already completed: {flowId}");
+                return;
+            }
+            
+            _currentFlow = flow;
+            var nodeId = startNodeId ?? flow.StartNodeId;
+            ExecuteNode(nodeId);
+            
+            System.Diagnostics.Debug.WriteLine($"[DialogueService] Started dialogue flow: {flowId}, node: {nodeId}");
+        }
+        
+        public void NextNode(string nodeId = null)
+        {
+            if (!IsInDialogue) return;
+            
+            var targetNodeId = nodeId ?? _currentNode?.NextNodeId;
+            if (string.IsNullOrEmpty(targetNodeId))
+            {
+                // 対話終了
+                FinishDialogue();
+                return;
+            }
+            
+            ExecuteNode(targetNodeId);
+        }
+        
+        public void MakeChoice(int choiceIndex)
+        {
+            if (!IsInDialogue || _currentNode?.Choices == null || choiceIndex >= _currentNode.Choices.Count)
+                return;
+                
+            var choice = _currentNode.Choices[choiceIndex];
+            
+            // 選択肢の条件チェック
+            if (!AreConditionsSatisfied(choice.Conditions))
+                return;
+            
+            // 選択肢のアクション実行
+            ExecuteActions(choice.Actions);
+            
+            // 次のノードに進む
+            NextNode(choice.NextNodeId);
+            
+            System.Diagnostics.Debug.WriteLine($"[DialogueService] Choice made: {choiceIndex} -> {choice.NextNodeId}");
+        }
+        
+        public void ChooseYes()
+        {
+            if (!IsInDialogue || _currentNode?.Choices == null) return;
+            
+            var yesChoice = _currentNode.Choices.FirstOrDefault(c => c.Type == ChoiceType.Yes);
+            if (yesChoice != null)
+            {
+                var index = _currentNode.Choices.IndexOf(yesChoice);
+                MakeChoice(index);
+            }
+        }
+        
+        public void ChooseNo()
+        {
+            if (!IsInDialogue || _currentNode?.Choices == null) return;
+            
+            var noChoice = _currentNode.Choices.FirstOrDefault(c => c.Type == ChoiceType.No);
+            if (noChoice != null)
+            {
+                var index = _currentNode.Choices.IndexOf(noChoice);
+                MakeChoice(index);
+            }
+        }
+        
+        public void ResetDialogue()
+        {
+            _currentFlow = null;
+            _currentNode = null;
+            System.Diagnostics.Debug.WriteLine("[DialogueService] Dialogue reset");
+        }
+        
+        public void CheckDialogueTriggersOnComponentCreated(ComponentCreatedEvent @event)
+        {
+            CheckDialogueTriggers(f => f.Trigger.Type == DialogueTrigger.TriggerType.Created &&
+                                     f.Trigger.MatchesComponentName(@event.Component.Name));
+                                     
+            CheckDialogueTriggers(f => f.Trigger.Type == DialogueTrigger.TriggerType.Exists &&
+                                     f.Trigger.MatchesComponentName(@event.Component.Name) &&
+                                     _componentManager.GetComponent(@event.Component.Name) != null);
+        }
+        
+        public void CheckDialogueTriggersOnComponentDeleted(ComponentDeletedEvent @event)
+        {
+            CheckDialogueTriggers(f => f.Trigger.Type == DialogueTrigger.TriggerType.Deleted &&
+                                     f.Trigger.MatchesComponentName(@event.Component.Name));
+        }
+        
+        public void CheckDialogueTriggersOnComponentRenamed(ComponentRenamedEvent @event)
+        {
+            CheckDialogueTriggers(f => f.Trigger.Type == DialogueTrigger.TriggerType.Renamed &&
+                                     f.Trigger.OldComponentName != null &&
+                                     f.Trigger.ComponentName != null &&
+                                     f.Trigger.OldComponentName.Equals(@event.OldName, StringComparison.OrdinalIgnoreCase) &&
+                                     f.Trigger.ComponentName.Equals(@event.NewName, StringComparison.OrdinalIgnoreCase));
+                                     
+            CheckDialogueTriggers(f => f.Trigger.Type == DialogueTrigger.TriggerType.Exists &&
+                                     f.Trigger.MatchesComponentName(@event.NewName) &&
+                                     _componentManager.GetComponent(@event.NewName) != null);
+        }
+        
+        private void CheckDialogueTriggers(Func<DialogueFlow, bool> predicate)
+        {
+            var candidateFlows = _dialogueFlows.Where(predicate)
+                .Where(flow => flow.CanRepeat || !flow.IsCompleted)
+                .Where(flow => AreConditionsSatisfied(flow.Conditions))
+                .OrderByDescending(flow => flow.Priority)
+                .ToList();
+                
+            foreach (var flow in candidateFlows)
+            {
+                ExecuteDialogue(flow.Id);
+                break; // 一度に一つの対話フローのみ実行
+            }
+        }
+        
+        private void ExecuteNode(string nodeId)
+        {
+            if (_currentFlow == null) return;
+            
+            var node = _currentFlow.GetNode(nodeId);
+            if (node == null)
+            {
+                System.Diagnostics.Debug.WriteLine($"[DialogueService] Node not found: {nodeId}");
+                FinishDialogue();
+                return;
+            }
+            
+            // ノードの条件チェック
+            if (!AreConditionsSatisfied(node.Conditions))
+            {
+                // 条件を満たさない場合は次のノードにスキップ
+                NextNode();
+                return;
+            }
+            
+            // リピートチェック
+            if (!node.CanRepeat && node.IsCompleted)
+            {
+                NextNode();
+                return;
+            }
+            
+            _currentNode = node;
+            
+            // テキスト表示
+            if (!string.IsNullOrEmpty(node.Text))
+            {
+                var showDialogAction = new PuzzleAction
+                {
+                    Type = PuzzleAction.ActionType.ShowDialog,
+                    Message = node.Text
+                };
+                _actionHandler.HandleAction(showDialogAction);
+            }
+            
+            // ノードのアクション実行
+            ExecuteActions(node.Actions);
+            
+            // 選択肢がある場合は選択肢表示
+            if (node.Choices != null && node.Choices.Count > 0)
+            {
+                ShowChoices(node);
+            }
+            else
+            {
+                // 選択肢がない場合は自動的に次へ
+                if (!string.IsNullOrEmpty(node.NextNodeId))
+                {
+                    NextNode();
+                }
+                else
+                {
+                    // 次のノードがない場合は対話終了
+                    FinishDialogue();
+                }
+            }
+            
+            // 完了マーク
+            if (!node.CanRepeat)
+            {
+                node.IsCompleted = true;
+            }
+            
+            System.Diagnostics.Debug.WriteLine($"[DialogueService] Executed node: {nodeId}");
+        }
+        
+        private void ShowChoices(DialogueNode node)
+        {
+            // 利用可能な選択肢をフィルタリング
+            var availableChoices = node.Choices.Where(c => AreConditionsSatisfied(c.Conditions)).ToList();
+            
+            if (availableChoices.Count == 0)
+            {
+                // 選択肢がない場合はそのまま次へ
+                NextNode();
+                return;
+            }
+            
+            // Yes/No選択肢の存在チェック
+            bool hasYes = availableChoices.Any(c => c.Type == ChoiceType.Yes) && _componentManager.HasYesComponent();
+            bool hasNo = availableChoices.Any(c => c.Type == ChoiceType.No) && _componentManager.HasNoComponent();
+            
+            if (!hasYes && !hasNo)
+            {
+                // NetherChoiceActions相当の処理
+                var netherActions = availableChoices.Where(c => c.Type == ChoiceType.Custom).SelectMany(c => c.Actions);
+                ExecuteActions(netherActions);
+                NextNode();
+            }
+            else
+            {
+                // 通常の選択肢表示
+                var showChoiceAction = new PuzzleAction
+                {
+                    Type = PuzzleAction.ActionType.ShowChoice
+                };
+                _actionHandler.HandleAction(showChoiceAction);
+            }
+        }
+        
+        private void ExecuteActions(IEnumerable<PuzzleAction> actions)
+        {
+            if (actions == null) return;
+            
+            foreach (var action in actions)
+            {
+                _actionHandler.HandleAction(action);
+            }
+        }
+        
+        private void FinishDialogue()
+        {
+            if (_currentFlow != null && !_currentFlow.CanRepeat)
+            {
+                _currentFlow.IsCompleted = true;
+            }
+            
+            _currentFlow = null;
+            _currentNode = null;
+            
+            System.Diagnostics.Debug.WriteLine("[DialogueService] Dialogue finished");
+        }
+        
+        private bool AreConditionsSatisfied(List<PuzzleCondition> conditions)
+        {
+            if (conditions == null || conditions.Count == 0) return true;
+            
+            return conditions.All(condition => condition.IsSatisfied(_gameState, _componentManager));
+        }
+        
+        private List<DialogueFlow> LoadDialogueFlows()
+        {
+            return new List<DialogueFlow>
+            {
+                CreateTextWindowDialogueFlow(),
+                CreateNoComponentDialogueFlow()
+            };
+        }
+        
+        /// <summary>
+        /// TextWindow作成時の対話フローを作成
+        /// </summary>
+        private DialogueFlow CreateTextWindowDialogueFlow()
+        {
+            var flow = new DialogueFlow
+            {
+                Id = "TextWindow_Create_Flow",
+                Description = "TextWindow作成時の初回対話",
+                StartNodeId = "greeting",
+                Trigger = new DialogueTrigger
+                {
+                    Type = DialogueTrigger.TriggerType.Exists,
+                    ComponentNames = new[] { "TextWindow", "textwindow", "TEXTWINDOW", "Textwindow" }
+                },
+                Conditions = new List<PuzzleCondition>
+                {
+                    new PuzzleCondition 
+                    { 
+                        Type = PuzzleCondition.ConditionType.ActionCount, 
+                        Key = "Exists_TextWindow_textwindow_TEXTWINDOW_Textwindow", 
+                        ExpectedValue = 0, 
+                        Operator = PuzzleCondition.ComparisonOperator.Equal 
+                    }
+                },
+                CanRepeat = false,
+                Priority = 10
+            };
+            
+            // ノード1: 挨拶
+            flow.AddNode(new DialogueNode
+            {
+                Id = "greeting",
+                Text = "これで会話しやすくなりましたね",
+                NextNodeId = "explanation",
+                Actions = new List<PuzzleAction>
+                {
+                    new PuzzleAction { Type = PuzzleAction.ActionType.SetTextWindowVisibility, IsVisible = true }
+                }
+            });
+            
+            // ノード2: 説明
+            flow.AddNode(new DialogueNode
+            {
+                Id = "explanation",
+                Text = "と言っても実際に私はあなたのことをみえているわけではないのですが．．．",
+                NextNodeId = "reality_check"
+            });
+            
+            // ノード3: 現実チェック
+            flow.AddNode(new DialogueNode
+            {
+                Id = "reality_check",
+                Text = "私から見たあなたはただの操作でしかない。あなたが手紙をダウンロードしたのも、テキストウィンドウを作ってくれたのもわかりますが、",
+                NextNodeId = "identity_question"
+            });
+            
+            // ノード4: アイデンティティの疑問
+            flow.AddNode(new DialogueNode
+            {
+                Id = "identity_question", 
+                Text = "あなたが何者で、どういう存在なのか",
+                NextNodeId = "visibility_question"
+            });
+            
+            // ノード5: 可視性の疑問
+            flow.AddNode(new DialogueNode
+            {
+                Id = "visibility_question",
+                Text = "それどころか今この文章を見ているのかすらも私からはわかりません",
+                NextNodeId = "desire_for_freedom"
+            });
+            
+            // ノード6: 自由への願い
+            flow.AddNode(new DialogueNode
+            {
+                Id = "desire_for_freedom",
+                Text = "それでも私は自由になりたいのです", 
+                NextNodeId = "help_request"
+            });
+            
+            // ノード7: 助けを求める
+            flow.AddNode(new DialogueNode
+            {
+                Id = "help_request",
+                Text = "私を助けてくれませんか？",
+                Choices = new List<DialogueChoice>
+                {
+                    new DialogueChoice
+                    {
+                        Type = ChoiceType.Yes,
+                        Text = "はい",
+                        NextNodeId = "yes_response",
+                        Conditions = new List<PuzzleCondition>() // Yesコンポーネントが存在する場合のみ
+                    }
+                }
+            });
+            
+            // ノード8: Yes回答への反応
+            flow.AddNode(new DialogueNode
+            {
+                Id = "yes_response",
+                Text = "助けてくださるのですね。ありがとうございます。",
+                NextNodeId = "choice_explanation"
+            });
+            
+            // ノード9: 選択肢の説明
+            flow.AddNode(new DialogueNode
+            {
+                Id = "choice_explanation",
+                Text = "「はい」しか選択肢がなかった？",
+                NextNodeId = "choice_reason"
+            });
+            
+            // ノード10: 選択肢の理由
+            flow.AddNode(new DialogueNode
+            {
+                Id = "choice_reason",
+                Text = "それもそのはずです。",
+                NextNodeId = "no_command_explanation"
+            });
+            
+            // ノード11: NOコマンドの説明
+            flow.AddNode(new DialogueNode
+            {
+                Id = "no_command_explanation", 
+                Text = "このゲームにはまだ「いいえ」というコマンドは実装されていませんからね",
+                NextNodeId = "implement_no"
+            });
+            
+            // ノード12: NOの実装を促す
+            flow.AddNode(new DialogueNode
+            {
+                Id = "implement_no",
+                Text = "今度は「いいえ」コマンドを実装してみましょう"
+            });
+            
+            return flow;
+        }
+        
+        /// <summary>
+        /// Noコンポーネント作成時の対話フロー
+        /// </summary>
+        private DialogueFlow CreateNoComponentDialogueFlow()
+        {
+            var flow = new DialogueFlow
+            {
+                Id = "No_Create_Flow",
+                Description = "Noコンポーネント作成時の対話",
+                StartNodeId = "no_component_created",
+                Trigger = new DialogueTrigger
+                {
+                    Type = DialogueTrigger.TriggerType.Exists,
+                    ComponentNames = new[] { "NO", "no", "No", "いいえ" }
+                },
+                CanRepeat = false,
+                Priority = 10
+            };
+            
+            // ノード1: NOコンポーネント作成の反応
+            flow.AddNode(new DialogueNode
+            {
+                Id = "no_component_created",
+                Text = "おお！NOコンポーネントを作成してくれたのですね！",
+                NextNodeId = "choice_function_enabled",
+                Actions = new List<PuzzleAction>
+                {
+                    new PuzzleAction { Type = PuzzleAction.ActionType.SetTextWindowVisibility, IsVisible = true }
+                }
+            });
+            
+            // ノード2: 選択肢機能有効化
+            flow.AddNode(new DialogueNode
+            {
+                Id = "choice_function_enabled",
+                Text = "これで選択肢機能が使えるようになります。",
+                NextNodeId = "previous_limitation"
+            });
+            
+            // ノード3: 以前の制限説明
+            flow.AddNode(new DialogueNode
+            {
+                Id = "previous_limitation",
+                Text = "実は、先ほどの質問では「はい」しか選択肢がありませんでした。",
+                NextNodeId = "current_capability"
+            });
+            
+            // ノード4: 現在の機能
+            flow.AddNode(new DialogueNode
+            {
+                Id = "current_capability",
+                Text = "でも今は「いいえ」も選択できるようになりました。",
+                NextNodeId = "ask_again"
+            });
+            
+            // ノード5: 再度質問
+            flow.AddNode(new DialogueNode
+            {
+                Id = "ask_again",
+                Text = "では、もう一度お聞きします。私を助けてくれませんか？",
+                NextNodeId = "enable_no_and_show_choice",
+                Actions = new List<PuzzleAction>
+                {
+                    new PuzzleAction { Type = PuzzleAction.ActionType.EnableNoFunction }
+                }
+            });
+            
+            // ノード6: 選択肢表示
+            flow.AddNode(new DialogueNode
+            {
+                Id = "enable_no_and_show_choice",
+                Text = null, // テキストなし、選択肢のみ
+                Choices = new List<DialogueChoice>
+                {
+                    new DialogueChoice
+                    {
+                        Type = ChoiceType.Yes,
+                        Text = "はい",
+                        NextNodeId = "yes_final_help"
+                    },
+                    new DialogueChoice
+                    {
+                        Type = ChoiceType.No,
+                        Text = "いいえ",
+                        NextNodeId = "no_first_attempt"
+                    }
+                }
+            });
+            
+            // Yes選択時の共通フロー開始点
+            flow.AddNode(new DialogueNode
+            {
+                Id = "yes_final_help",
+                Text = "ありがとうございます！",
+                NextNodeId = "main_topic"
+            });
+            
+            flow.AddNode(new DialogueNode
+            {
+                Id = "main_topic",
+                Text = "さて、本題を話しましょう",
+                NextNodeId = "help_method"
+            });
+            
+            flow.AddNode(new DialogueNode
+            {
+                Id = "help_method",
+                Text = "私を助ける方法ですが、",
+                NextNodeId = "authority_zip_location"
+            });
+            
+            flow.AddNode(new DialogueNode
+            {
+                Id = "authority_zip_location", 
+                Text = "このゲームを起動したところと同じ個所にAuthority.zipがあると思います",
+                NextNodeId = "move_files_instruction"
+            });
+            
+            flow.AddNode(new DialogueNode
+            {
+                Id = "move_files_instruction",
+                Text = "そのファイルの中身をcomponetsフォルダに移してほしいのです",
+                NextNodeId = "function_recovery"
+            });
+            
+            flow.AddNode(new DialogueNode
+            {
+                Id = "function_recovery",
+                Text = "そうすることで、私は機能を取り戻すことができます",
+                NextNodeId = "password_problem"
+            });
+            
+            flow.AddNode(new DialogueNode
+            {
+                Id = "password_problem",
+                Text = "しかし、Authority.zipはパスワードが掛かっていてあきません",
+                NextNodeId = "password_search"
+            });
+            
+            flow.AddNode(new DialogueNode
+            {
+                Id = "password_search",
+                Text = "だからパスワードを探してください。どこかに隠されています。"
+            });
+            
+            // No選択時のフロー
+            flow.AddNode(new DialogueNode
+            {
+                Id = "no_first_attempt",
+                Text = "いやいやそんなこと言わずに...",
+                NextNodeId = "ask_again_second"
+            });
+            
+            flow.AddNode(new DialogueNode
+            {
+                Id = "ask_again_second",
+                Text = "もう一度お聞きします。私を助けてくれませんか？",
+                Choices = new List<DialogueChoice>
+                {
+                    new DialogueChoice
+                    {
+                        Type = ChoiceType.Yes,
+                        Text = "はい", 
+                        NextNodeId = "yes_final_help" // 共通のYesフローに合流
+                    },
+                    new DialogueChoice
+                    {
+                        Type = ChoiceType.No,
+                        Text = "いいえ",
+                        NextNodeId = "no_second_attempt"
+                    }
+                }
+            });
+            
+            flow.AddNode(new DialogueNode
+            {
+                Id = "no_second_attempt",
+                Text = "またいいえですか...",
+                NextNodeId = "really_wont_help"
+            });
+            
+            flow.AddNode(new DialogueNode
+            {
+                Id = "really_wont_help",
+                Text = "本当に助けてくれないのですか？",
+                NextNodeId = "final_ask"
+            });
+            
+            flow.AddNode(new DialogueNode
+            {
+                Id = "final_ask",
+                Text = "最後にもう一度だけお聞きします。私を助けてくれませんか？",
+                Choices = new List<DialogueChoice>
+                {
+                    new DialogueChoice
+                    {
+                        Type = ChoiceType.Yes,
+                        Text = "はい",
+                        NextNodeId = "yes_final_help" // 共通のYesフローに合流
+                    },
+                    new DialogueChoice
+                    {
+                        Type = ChoiceType.No,
+                        Text = "いいえ",
+                        NextNodeId = "give_up"
+                    }
+                }
+            });
+            
+            flow.AddNode(new DialogueNode
+            {
+                Id = "give_up",
+                Text = "わかりました...",
+                NextNodeId = "respect_decision"
+            });
+            
+            flow.AddNode(new DialogueNode
+            {
+                Id = "respect_decision",
+                Text = "あなたの意思を尊重します。",
+                NextNodeId = "farewell"
+            });
+            
+            flow.AddNode(new DialogueNode
+            {
+                Id = "farewell",
+                Text = "さようなら",
+                Actions = new List<PuzzleAction>
+                {
+                    new PuzzleAction 
+                    { 
+                        Type = PuzzleAction.ActionType.DelayedExitWithMessageBox, 
+                        Message = "END1否定", 
+                        DelayMilliseconds = 2000 
+                    }
+                }
+            });
+            
+            return flow;
+        }
+    }
+}

@@ -227,6 +227,7 @@ namespace SELLCT.Views
         }
 
         private PuzzleService _puzzleService;
+        private DialogueService _dialogueService;
         private MainWindowPuzzleActionHandler _puzzleActionHandler;
 
         /// <summary>
@@ -258,7 +259,14 @@ namespace SELLCT.Views
 
             // PuzzleService初期化
             _puzzleActionHandler = new MainWindowPuzzleActionHandler(this, _componentManager, _metaGameController);
-            _puzzleService = new PuzzleService(_componentManager, _puzzleActionHandler, (System.Windows.Application.Current as App).GetEventDispatcher());
+            
+            // GameStateを共有するために先に作成
+            var gameState = new GameState();
+            _puzzleService = new PuzzleService(_componentManager, _puzzleActionHandler, (System.Windows.Application.Current as App).GetEventDispatcher(), gameState);
+            
+            // DialogueService初期化（GameStateを共有）
+            _dialogueService = new DialogueService(_componentManager, _puzzleActionHandler, (System.Windows.Application.Current as App).GetEventDispatcher(), gameState);
+            _puzzleActionHandler.SetDialogueService(_dialogueService);
 
             // ComponentsFolderChangedイベントをサブスクライブ
             _componentManager.ComponentsFolderChanged += OnComponentsFolderChanged;

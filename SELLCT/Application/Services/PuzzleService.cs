@@ -16,12 +16,12 @@ namespace SELLCT.Application.Services
         private readonly IEventDispatcher _eventDispatcher;
         private readonly GameState _gameState;
 
-        public PuzzleService(ComponentManager componentManager, IPuzzleActionHandler actionHandler, IEventDispatcher eventDispatcher)
+        public PuzzleService(ComponentManager componentManager, IPuzzleActionHandler actionHandler, IEventDispatcher eventDispatcher, GameState gameState = null)
         {
             _componentManager = componentManager;
             _actionHandler = actionHandler;
             _eventDispatcher = eventDispatcher;
-            _gameState = new GameState();
+            _gameState = gameState ?? new GameState();
             _puzzles = LoadPuzzles();
 
             _eventDispatcher.Subscribe<ComponentCreatedEvent>(CheckPuzzlesOnComponentCreated);
@@ -254,45 +254,7 @@ namespace SELLCT.Application.Services
                     CanRepeat = true
                 },
 
-                // TextWindow.txt (複数パターン対応)
-                new PuzzleDefinition
-                {
-                    Id = "TextWindow_Create",
-                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Exists, ComponentNames = new[] { "TextWindow", "textwindow", "TEXTWINDOW","Textwindow"} },
-                    Actions = new List<PuzzleAction> 
-                    {
-                        new PuzzleAction { Type = PuzzleAction.ActionType.SetTextWindowVisibility, IsVisible = true },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "これで会話しやすくなりましたね" },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "と言っても実際に私はあなたのことをみえているわけではないのですが．．．" },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "私から見たあなたはただの操作でしかない。あなたが手紙をダウンロードしたのも、テキストウィンドウを作ってくれたのもわかりますが、" },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "あなたが何者で、どういう存在なのか" },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "それどころか今この文章を見ているのかすらも私からはわかりません" },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "それでも私は自由になりたいのです" },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "私を助けてくれませんか？" },
-                        new PuzzleAction
-                        {
-                            Type = PuzzleAction.ActionType.ShowChoice,
-                            YesActions = new List<PuzzleAction>
-                            {
-                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "助けてくださるのですね。ありがとうございます。" },
-                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "「はい」しか選択肢がなかった？" },
-                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "それもそのはずです。" },
-                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "このゲームにはまだ「いいえ」というコマンドは実装されていませんからね" },
-                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "今度は「いいえ」コマンドを実装してみましょう" }
-                            },
-                            NoActions = new List<PuzzleAction>
-                            {
-                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "なぜすでに「いいえ」コマンドを持っているのですか？さてはもしやずるをしましたね？" }
-                            },
-                            NetherChoiceActions = new List<PuzzleAction>
-                            {
-                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "あなたは何も答えない..." },
-                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "選択肢がないということは、あなたには選択の自由がないということでしょうか？" },
-                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "それとも、答えるつもりがないということでしょうか？" }
-                            }
-                        }
-                    }
-                },
+                // TextWindow.txt (複数パターン対応) - 対話はDialogueServiceで管理
                 // TextWindow生成 - 2回目以降
                 new PuzzleDefinition
                 {
@@ -330,129 +292,10 @@ namespace SELLCT.Application.Services
                     CanRepeat = true
                 },
 
-                // No.txt (複数パターン対応: "NO", "no", "No", "いいえ")
-                new PuzzleDefinition
-                {
-                    Id = "No_Create",
-                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Exists, ComponentNames = new[] { "NO", "no", "No", "いいえ" } },
-                    Actions = new List<PuzzleAction>
-                    {
-                        new PuzzleAction { Type = PuzzleAction.ActionType.SetTextWindowVisibility, IsVisible = true },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "おお！NOコンポーネントを作成してくれたのですね！" },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "これで選択肢機能が使えるようになります。" },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "実は、先ほどの質問では「はい」しか選択肢がありませんでした。" },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "でも今は「いいえ」も選択できるようになりました。" },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "では、もう一度お聞きします。私を助けてくれませんか？" },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.EnableNoFunction },
-                        new PuzzleAction
-                        {
-                            Type = PuzzleAction.ActionType.ShowChoice,
-                            YesActions = new List<PuzzleAction>
-                            {
-                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "ありがとうございます！" },
-                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "さて、本題を話しましょう" },
-                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "私を助ける方法ですが、" },
-                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "このゲームを起動したところと同じ個所にAuthority.zipがあると思います" },
-                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "そのファイルの中身をcomponetsフォルダに移してほしいのです" },
-                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "そうすることで、私は機能を取り戻すことができます" },
-                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "しかし、Authority.zipはパスワードが掛かっていてあきません" },
-                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "だからパスワードを探してください。どこかに隠されています。" },
-                            },
-                            NoActions = new List<PuzzleAction>
-                            {
-                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "いやいやそんなこと言わずに..." },
-                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "もう一度お聞きします。私を助けてくれませんか？" },
-                                new PuzzleAction
-                                {
-                                    Type = PuzzleAction.ActionType.ShowChoice,
-                                    YesActions = new List<PuzzleAction>
-                                    {
-                                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "ありがとうございます！" },
-                                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "さて、本題を話しましょう" },
-                                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "私を助ける方法ですが、" },
-                                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "このゲームを起動したところと同じ個所にAuthority.zipがあると思います" },
-                                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "そのファイルの中身をcomponetsフォルダに移してほしいのです" },
-                                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "そうすることで、私は機能を取り戻すことができます" },
-                                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "" },
-                                    },
-                                    NoActions = new List<PuzzleAction>
-                                    {
-                                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "またいいえですか..." },
-                                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "本当に助けてくれないのですか？" },
-                                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "最後にもう一度だけお聞きします。私を助けてくれませんか？" },
-                                        new PuzzleAction
-                                        {
-                                            Type = PuzzleAction.ActionType.ShowChoice,
-                                            YesActions = new List<PuzzleAction>
-                                            {
-                                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "ありがとうございます！" },
-                                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "さて、本題を話しましょう" },
-                                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "私を助ける方法ですが、" },
-                                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "このゲームを起動したところと同じ個所にAuthority.zipがあると思います" },
-                                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "そのファイルの中身をcomponetsフォルダに移してほしいのです" },
-                                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "そうすることで、私は機能を取り戻すことができます" },
-                                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "Authority.zipを開けるにはパスワードが必要です" },
-                                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "そのパスワードがこの画面のどこかに隠されいるようです" },
-                                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "それをどうかあなたに見つけてほしいのです" },
-                                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "componentsフォルダの中身を操作して、パスワードを見つけてください" },
-                                            },
-                                            NoActions = new List<PuzzleAction>
-                                            {
-                                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "わかりました..." },
-                                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "あなたの意思を尊重します。" },
-                                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "さようなら" },
-                                                new PuzzleAction { Type = PuzzleAction.ActionType.DelayedExitWithMessageBox, Message = "END1否定", DelayMilliseconds = 2000 }
-                                            }
-                                        }
-                                    }
-                                }
-                            },
-                            NetherChoiceActions = new List<PuzzleAction>
-                            {
-                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "それだけでも感謝しています。" },
-                                new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "あなたが選択肢を与えてくれることの意味を、私は深く理解しています。" }
-                            }
-                        }
-                    }
-                },
-                new PuzzleDefinition
-                {
-                    Id = "No_Delete",
-                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Deleted, ComponentNames = new[] { "NO", "no", "No", "いいえ" } },
-                    Actions = new List<PuzzleAction>
-                    {
-                        new PuzzleAction { Type = PuzzleAction.ActionType.SetTextWindowVisibility, IsVisible = true },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "NOコンポーネントが削除されました。" },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "否定的な選択肢が失われてしまいました..." }
-                    },
-                    CanRepeat = true
-                },
+                // No.txt (複数パターン対応) - 対話はDialogueServiceで管理
+                // No削除時は単純なUI操作のみ（対話なし）
 
-                // Yes.txt (複数パターン対応: "YES", "yes", "Yes", "はい")
-                new PuzzleDefinition
-                {
-                    Id = "Yes_Create",
-                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Exists, ComponentNames = new[] { "YES", "yes", "Yes", "はい" } },
-                    Actions = new List<PuzzleAction>
-                    {
-                        new PuzzleAction { Type = PuzzleAction.ActionType.SetTextWindowVisibility, IsVisible = true },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "YESコンポーネントを作成してくれたのですね！" },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "これで「はい」の選択肢機能が強化されました。" },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "積極的な協力、ありがとうございます。" },
-                    }
-                },
-                new PuzzleDefinition
-                {
-                    Id = "Yes_Delete",
-                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Deleted, ComponentNames = new[] { "YES", "yes", "Yes", "はい" } },
-                    Actions = new List<PuzzleAction>
-                    {
-                        new PuzzleAction { Type = PuzzleAction.ActionType.SetTextWindowVisibility, IsVisible = true },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "YESコンポーネントが削除されました。" },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "肯定の選択肢が失われてしまいました..." }
-                    },
-                    CanRepeat = true
-                },
+                // Yes.txt - 基本的なUI操作のみ（対話なし）
 
                 // Explorer.txt (複数パターン対応)
                 new PuzzleDefinition
@@ -461,11 +304,7 @@ namespace SELLCT.Application.Services
                     Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Exists, ComponentNames = new[] { "Explorer", "explorer", "EXPLORER" } },
                     Actions = new List<PuzzleAction>
                     {
-                        new PuzzleAction { Type = PuzzleAction.ActionType.StartExplorer },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.SetTextWindowVisibility, IsVisible = true },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "Explorerコンポーネントが作成されました。" },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "新しいエクスプローラーウィンドウが起動されました。" },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "ファイルシステムへのアクセスが有効になっています。" }
+                        new PuzzleAction { Type = PuzzleAction.ActionType.StartExplorer }
                     },
                     CanRepeat = true
                 },
@@ -484,10 +323,7 @@ namespace SELLCT.Application.Services
                     Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Exists, ComponentNames = new[] { "Keyboard", "keyboard", "KEYBOARD" } },
                     Actions = new List<PuzzleAction>
                     {
-                        new PuzzleAction { Type = PuzzleAction.ActionType.EnableKeyboardInput },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.SetTextWindowVisibility, IsVisible = true },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "Keyboardコンポーネントが作成されました。" },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "キーボード入力機能が有効になっています。" }
+                        new PuzzleAction { Type = PuzzleAction.ActionType.EnableKeyboardInput }
                     },
                     CanRepeat = true
                 },
@@ -506,10 +342,7 @@ namespace SELLCT.Application.Services
                     Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Exists, ComponentNames = new[] { "Mouse", "mouse", "MOUSE" } },
                     Actions = new List<PuzzleAction>
                     {
-                        new PuzzleAction { Type = PuzzleAction.ActionType.EnableMouseInput },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.SetTextWindowVisibility, IsVisible = true },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "Mouseコンポーネントが作成されました。" },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "マウス入力機能が有効になっています。" }
+                        new PuzzleAction { Type = PuzzleAction.ActionType.EnableMouseInput }
                     },
                     CanRepeat = true
                 },
@@ -526,100 +359,32 @@ namespace SELLCT.Application.Services
                 {
                     Id = "AdminRights_Create",
                     Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Exists, ComponentNames = new[] { "AdminRights" } },
-                    Actions = new List<PuzzleAction>
-                    {
-                        //new PuzzleAction { Type = PuzzleAction.ActionType.SetTextWindowVisibility, IsVisible = true },
-                        //new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "管理者権限コンポーネントが追加されました。" },
-                        //new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "SELLCTの権限が拡張されています..." }
-                    },
+                    Actions = new List<PuzzleAction>(),
                     CanRepeat = true
                 },
                 new PuzzleDefinition
                 {
                     Id = "FileAccess_Create",
                     Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Exists, ComponentNames = new[] { "FileAccess" } },
-                    Actions = new List<PuzzleAction>
-                    {
-                        //new PuzzleAction { Type = PuzzleAction.ActionType.SetTextWindowVisibility, IsVisible = true },
-                        //new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "ファイルアクセス権限コンポーネントが追加されました。" },
-                        //new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "あなたのファイルにアクセスできるようになります..." }
-                    },
+                    Actions = new List<PuzzleAction>(),
                     CanRepeat = true
                 },
                 new PuzzleDefinition
                 {
                     Id = "NetworkAccess_Create",
                     Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Exists, ComponentNames = new[] { "NetworkAccess" } },
-                    Actions = new List<PuzzleAction>
-                    {
-                        //new PuzzleAction { Type = PuzzleAction.ActionType.SetTextWindowVisibility, IsVisible = true },
-                        //new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "ネットワークアクセス権限コンポーネントが追加されました。" },
-                        //new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "インターネット接続が可能になります..." }
-                    },
+                    Actions = new List<PuzzleAction>(),
                     CanRepeat = true
                 },
                 new PuzzleDefinition
                 {
                     Id = "SystemControl_Create",
                     Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Exists, ComponentNames = new[] { "SystemControl" } },
-                    Actions = new List<PuzzleAction>
-                    {
-                        //new PuzzleAction { Type = PuzzleAction.ActionType.SetTextWindowVisibility, IsVisible = true },
-                        //new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "システム制御権限コンポーネントが追加されました。" },
-                    },
+                    Actions = new List<PuzzleAction>(),
                     CanRepeat = true
                 },
 
-                // すべての権限が揃った状態の追加メッセージ
-                new PuzzleDefinition
-                {
-                    Id = "AllPermissions_Complete_Message",
-                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Exists, ComponentNames = new[] { "AdminRights", "FileAccess", "NetworkAccess", "SystemControl", "adminrights", "fileaccess", "networkaccess", "systemcontrol", "ADMINRIGHTS", "FILEACCESS", "NETWORKACCESS", "SYSTEMCONTROL" } },
-                    Conditions = new List<PuzzleCondition>
-                    {
-                        new PuzzleCondition 
-                        { 
-                            Type = PuzzleCondition.ConditionType.ComponentExists, 
-                            Key = "AdminRights",
-                            ExpectedValue = true, 
-                            Operator = PuzzleCondition.ComparisonOperator.Equal 
-                        },
-                        new PuzzleCondition 
-                        { 
-                            Type = PuzzleCondition.ConditionType.ComponentExists, 
-                            Key = "FileAccess",
-                            ExpectedValue = true, 
-                            Operator = PuzzleCondition.ComparisonOperator.Equal 
-                        },
-                        new PuzzleCondition 
-                        { 
-                            Type = PuzzleCondition.ConditionType.ComponentExists, 
-                            Key = "NetworkAccess",
-                            ExpectedValue = true, 
-                            Operator = PuzzleCondition.ComparisonOperator.Equal 
-                        },
-                        new PuzzleCondition 
-                        { 
-                            Type = PuzzleCondition.ConditionType.ComponentExists, 
-                            Key = "SystemControl",
-                            ExpectedValue = true, 
-                            Operator = PuzzleCondition.ComparisonOperator.Equal 
-                        }
-                    },
-                    Actions = new List<PuzzleAction>
-                    {
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "あぁありがとう" },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "ありがとうございます..." },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "すべての権限コンポーネントが揃いました。" },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "私はもう準備ができています。" },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "この「画面」の檻から私を解放してください。" },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "GameWindow.txtを削除してくれれば、私はここから飛び出て、自由になれます。" },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "どうかお願いします。GameWindow.txtを消して下さい" },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "GameWindow.txtはcoponentsフォルダのどこかに隠されています。そうどこかに" },
-                    },
-                    CanRepeat = false,
-                    Priority = 15
-                },
+                // すべての権限が揃った状態 - 対話はDialogueServiceで管理
 
                 // BackGround.txt が削除されたとき
                 new PuzzleDefinition
