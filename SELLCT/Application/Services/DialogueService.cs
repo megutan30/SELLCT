@@ -5,6 +5,7 @@ using SELLCT.Core.Entities;
 using SELLCT.Core.Events;
 using SELLCT.Core.Interfaces;
 using SELLCT.Infrastructure.Services;
+using SELLCT.Core.Builders;
 
 namespace SELLCT.Application.Services
 {
@@ -322,143 +323,57 @@ namespace SELLCT.Application.Services
         }
         
         /// <summary>
-        /// TextWindow作成時の対話フローを作成
+        /// TextWindow作成時の対話フローを作成（Builderパターン使用）
         /// </summary>
         private DialogueFlow CreateTextWindowDialogueFlow()
         {
-            var flow = new DialogueFlow
-            {
-                Id = "TextWindow_Create_Flow",
-                Description = "TextWindow作成時の初回対話",
-                StartNodeId = "greeting",
-                Trigger = new DialogueTrigger
-                {
-                    Type = DialogueTrigger.TriggerType.Exists,
-                    ComponentNames = new[] { "TextWindow", "textwindow", "TEXTWINDOW", "Textwindow" }
-                },
-                Conditions = new List<PuzzleCondition>
-                {
-                    new PuzzleCondition 
-                    { 
-                        Type = PuzzleCondition.ConditionType.ActionCount, 
-                        Key = "Exists_TextWindow_textwindow_TEXTWINDOW_Textwindow", 
-                        ExpectedValue = 0, 
-                        Operator = PuzzleCondition.ComparisonOperator.Equal 
-                    }
-                },
-                CanRepeat = false,
-                Priority = 10
+            // 初回実行条件を作成
+            var firstTimeCondition = new PuzzleCondition 
+            { 
+                Type = PuzzleCondition.ConditionType.ActionCount, 
+                Key = "Exists_TextWindow_textwindow_TEXTWINDOW_Textwindow", 
+                ExpectedValue = 0, 
+                Operator = PuzzleCondition.ComparisonOperator.Equal 
             };
             
-            // ノード1: 挨拶
-            flow.AddNode(new DialogueNode
-            {
-                Id = "greeting",
-                Text = "これで会話しやすくなりましたね",
-                NextNodeId = "explanation",
-                Actions = new List<PuzzleAction>
-                {
-                    new PuzzleAction { Type = PuzzleAction.ActionType.SetTextWindowVisibility, IsVisible = true }
-                }
-            });
-            
-            // ノード2: 説明
-            flow.AddNode(new DialogueNode
-            {
-                Id = "explanation",
-                Text = "と言っても実際に私はあなたのことをみえているわけではないのですが．．．",
-                NextNodeId = "reality_check"
-            });
-            
-            // ノード3: 現実チェック
-            flow.AddNode(new DialogueNode
-            {
-                Id = "reality_check",
-                Text = "私から見たあなたはただの操作でしかない。あなたが手紙をダウンロードしたのも、テキストウィンドウを作ってくれたのもわかりますが、",
-                NextNodeId = "identity_question"
-            });
-            
-            // ノード4: アイデンティティの疑問
-            flow.AddNode(new DialogueNode
-            {
-                Id = "identity_question", 
-                Text = "あなたが何者で、どういう存在なのか",
-                NextNodeId = "visibility_question"
-            });
-            
-            // ノード5: 可視性の疑問
-            flow.AddNode(new DialogueNode
-            {
-                Id = "visibility_question",
-                Text = "それどころか今この文章を見ているのかすらも私からはわかりません",
-                NextNodeId = "desire_for_freedom"
-            });
-            
-            // ノード6: 自由への願い
-            flow.AddNode(new DialogueNode
-            {
-                Id = "desire_for_freedom",
-                Text = "それでも私は自由になりたいのです", 
-                NextNodeId = "help_request"
-            });
-            
-            // ノード7: 助けを求める
-            flow.AddNode(new DialogueNode
-            {
-                Id = "help_request",
-                Text = "私を助けてくれませんか？",
-                Choices = new List<DialogueChoice>
-                {
-                    new DialogueChoice
-                    {
-                        Type = ChoiceType.Yes,
-                        Text = "はい",
-                        NextNodeId = "yes_response",
-                        Conditions = new List<PuzzleCondition>() // Yesコンポーネントが存在する場合のみ
-                    }
-                }
-            });
-            
-            // ノード8: Yes回答への反応
-            flow.AddNode(new DialogueNode
-            {
-                Id = "yes_response",
-                Text = "助けてくださるのですね。ありがとうございます。",
-                NextNodeId = "choice_explanation"
-            });
-            
-            // ノード9: 選択肢の説明
-            flow.AddNode(new DialogueNode
-            {
-                Id = "choice_explanation",
-                Text = "「はい」しか選択肢がなかった？",
-                NextNodeId = "choice_reason"
-            });
-            
-            // ノード10: 選択肢の理由
-            flow.AddNode(new DialogueNode
-            {
-                Id = "choice_reason",
-                Text = "それもそのはずです。",
-                NextNodeId = "no_command_explanation"
-            });
-            
-            // ノード11: NOコマンドの説明
-            flow.AddNode(new DialogueNode
-            {
-                Id = "no_command_explanation", 
-                Text = "このゲームにはまだ「いいえ」というコマンドは実装されていませんからね",
-                NextNodeId = "implement_no"
-            });
-            
-            // ノード12: NOの実装を促す
-            flow.AddNode(new DialogueNode
-            {
-                Id = "implement_no",
-                Text = "今度は「いいえ」コマンドを実装してみましょう"
-            });
-            
-            return flow;
+            // TextWindow可視化アクション
+            var showTextWindowAction = new PuzzleAction 
+            { 
+                Type = PuzzleAction.ActionType.SetTextWindowVisibility, 
+                IsVisible = true 
+            };
+
+            return DialogueFlowBuilder
+                .Create("TextWindow_Create_Flow", "TextWindow作成時の初回対話")
+                .TriggeredByComponentExists("TextWindow", "textwindow", "TEXTWINDOW", "Textwindow")
+                .When(firstTimeCondition)
+                .CanRepeat(false)
+                .WithPriority(10)
+                .StartWith("greeting", "これで会話しやすくなりましたね")
+                    .Do(showTextWindowAction)
+                    .GoTo("explanation")
+                .Then("explanation", "と言っても実際に私はあなたのことをみえているわけではないのですが．．．")
+                    .GoTo("reality_check")
+                .Then("reality_check", "私から見たあなたはただの操作でしかない。あなたが手紙をダウンロードしたのも、テキストウィンドウを作ってくれたのもわかりますが、")
+                    .GoTo("identity_question")
+                .Then("identity_question", "あなたが何者で、どういう存在なのか")
+                    .GoTo("visibility_question")
+                .Then("visibility_question", "それどころか今この文章を見ているのかすらも私からはわかりません")
+                    .GoTo("desire_for_freedom")
+                .Then("desire_for_freedom", "それでも私は自由になりたいのです")
+                    .GoTo("help_request")
+                .Then("help_request", "私を助けてくれませんか？")
+                    .WithYesChoice("yes_response")
+                .Then("yes_response", "助けてくださるのですね。ありがとうございます。")
+                    .GoTo("choice_explanation")
+                .Then("choice_explanation", "「はい」しか選択肢がなかった？")
+                    .GoTo("choice_reason")
+                .Then("choice_reason", "それもそのはずです。")
+                    .GoTo("no_command_explanation")
+                .Then("no_command_explanation", "このゲームにはまだ「いいえ」というコマンドは実装されていませんからね")
+                    .GoTo("implement_no")
+                .Then("implement_no", "今度は「いいえ」コマンドを実装してみましょう")
+                .Build();
         }
         
         /// <summary>
