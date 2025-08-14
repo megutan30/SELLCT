@@ -462,6 +462,9 @@ namespace SELLCT.Views
                 {
                     StatusText.Text = $"手紙 {@event.LetterIndex} をダウンロードしました";
                     UpdateDebugInfo();
+                    
+                    // 手紙ダウンロード時に次の手紙のタイマーをリセット
+                    ResetNextLetterTimer();
                 }
                 catch (Exception ex)
                 {
@@ -937,6 +940,7 @@ namespace SELLCT.Views
         private void SubsequentLetterTimer_Tick(object sender, EventArgs e)
         {
             _subsequentLetterTimer.Stop();
+            System.Diagnostics.Debug.WriteLine("Subsequent letter timer fired - checking conditions for next letter");
             TryShowNextLetterWithCondition();
         }
 
@@ -961,7 +965,15 @@ namespace SELLCT.Views
                 // 条件チェック
                 bool conditionMet = _letterService.CheckCondition(condition, componentsPath);
                 
+                // デバッグ情報を詳細化
+                int nextLetterIndex = _letterService.CurrentLetterIndex + 1;
+                int prevLetterIndex = nextLetterIndex - 1;
+                bool prevDownloaded = prevLetterIndex <= 0 || _letterService.IsLetterDownloaded(prevLetterIndex);
                 System.Diagnostics.Debug.WriteLine($"Letter condition check: {condition.GetDescription()} = {conditionMet}");
+                if (prevLetterIndex > 0)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Previous letter {prevLetterIndex} downloaded: {prevDownloaded}");
+                }
 
                 if (conditionMet)
                 {
@@ -970,24 +982,16 @@ namespace SELLCT.Views
                 }
                 else
                 {
-                    // 条件が満たされていない場合は少し待ってから再チェック
-                    System.Diagnostics.Debug.WriteLine("Letter condition not met, retrying in 2 seconds...");
-                    var retryTimer = new DispatcherTimer();
-                    retryTimer.Interval = TimeSpan.FromSeconds(2);
-                    retryTimer.Tick += (s, e) =>
-                    {
-                        retryTimer.Stop();
-                        TryShowNextLetterWithCondition();
-                    };
-                    retryTimer.Start();
+                    // 条件が満たされていない場合は次のダウンロードまで待機
+                    System.Diagnostics.Debug.WriteLine("Letter condition not met - waiting for letter download to restart timer");
+                    // タイマーは停止状態のまま、手紙ダウンロード時にResetNextLetterTimerで再開される
                 }
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Error in TryShowNextLetterWithCondition: {ex.Message}");
-                // エラー時は従来通り表示
-                _letterService.ShowNextLetter();
-                SetupNextLetterTimer();
+                // エラー時も条件チェックを無視しない - 安全に停止
+                System.Diagnostics.Debug.WriteLine("Error occurred - timer stopped, waiting for manual intervention");
             }
         }
 
@@ -998,17 +1002,71 @@ namespace SELLCT.Views
         {
             try
             {
+                // 現在のタイマー状態を確認
+                bool currentlyRunning = _subsequentLetterTimer != null && _subsequentLetterTimer.IsEnabled;
+                System.Diagnostics.Debug.WriteLine($"SetupNextLetterTimer called - current timer running: {currentlyRunning}");
+                
+                if (currentlyRunning)
+                {
+                    System.Diagnostics.Debug.WriteLine("Timer already running - stopping before setup");
+                    _subsequentLetterTimer.Stop();
+                }
+
                 var nextCondition = _letterService.GetNextLetterCondition();
                 if (nextCondition != null && HasTimeComponent(nextCondition.TriggerType))
                 {
                     _subsequentLetterTimer.Interval = TimeSpan.FromSeconds(nextCondition.TimeIntervalSeconds);
                     _subsequentLetterTimer.Start();
-                    System.Diagnostics.Debug.WriteLine($"Next letter timer set for {nextCondition.TimeIntervalSeconds} seconds");
+                    System.Diagnostics.Debug.WriteLine($"*** TIMER SETUP *** Started {nextCondition.TimeIntervalSeconds}s timer for Letter {nextCondition.LetterIndex} after letter display");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("No time-based condition for next letter, timer not set");
                 }
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Error setting up next letter timer: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// 次の手紙のタイマーをリセット（手紙ダウンロード時用）
+        /// </summary>
+        private void ResetNextLetterTimer()
+        {
+            try
+            {
+                // 現在のタイマーの状態を確認
+                bool wasTimerRunning = _subsequentLetterTimer != null && _subsequentLetterTimer.IsEnabled;
+                System.Diagnostics.Debug.WriteLine($"ResetNextLetterTimer called - current timer running: {wasTimerRunning}");
+
+                // 現在のタイマーを停止
+                if (wasTimerRunning)
+                {
+                    _subsequentLetterTimer.Stop();
+                    System.Diagnostics.Debug.WriteLine("Stopped current letter timer due to letter download");
+                }
+
+                // 次の手紙の条件を取得
+                var nextCondition = _letterService.GetNextLetterCondition();
+                System.Diagnostics.Debug.WriteLine($"Next condition: {nextCondition?.GetDescription() ?? "None"}");
+                
+                if (nextCondition != null && HasTimeComponent(nextCondition.TriggerType))
+                {
+                    // 新しいタイマーを設定して開始
+                    _subsequentLetterTimer.Interval = TimeSpan.FromSeconds(nextCondition.TimeIntervalSeconds);
+                    _subsequentLetterTimer.Start();
+                    System.Diagnostics.Debug.WriteLine($"*** TIMER RESET *** Started new {nextCondition.TimeIntervalSeconds}s timer for Letter {nextCondition.LetterIndex} after download");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("No time-based condition found for next letter, timer remains stopped");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error resetting next letter timer: {ex.Message}");
             }
         }
 

@@ -22,6 +22,7 @@ namespace SELLCT.Infrastructure.Services
         private int _currentLetterIndex = 0;
         private readonly string[] _letterContents;
         private bool _disposed = false;
+        private readonly HashSet<int> _downloadedLetters; // ダウンロードされた手紙を追跡
 
         // 手紙送信条件設定
         private readonly List<LetterTriggerCondition> _letterTriggerConditions;
@@ -39,6 +40,7 @@ namespace SELLCT.Infrastructure.Services
         public LetterService(IEventDispatcher eventDispatcher)
         {
             _eventDispatcher = eventDispatcher;
+            _downloadedLetters = new HashSet<int>();
             _letterTriggerConditions = InitializeLetterTriggerConditions();
             _letterContents = new string[]
             {
@@ -188,7 +190,8 @@ namespace SELLCT.Infrastructure.Services
                             File.WriteAllText(dialog.FileName, letterContent, Encoding.UTF8);
                             System.Diagnostics.Debug.WriteLine($"Letter {letterIndex} downloaded as {dialog.FileName}");
 
-                            // メッセージボックスは不要のため削除
+                            // ダウンロード状態を記録
+                            _downloadedLetters.Add(letterIndex);
 
                             _eventDispatcher.Dispatch(new LetterClickedEvent(letterIndex));
                             success = true;
@@ -268,19 +271,19 @@ namespace SELLCT.Infrastructure.Services
         {
             return new List<LetterTriggerCondition>
             {
-                // 手紙1: 3秒後
+                // 手紙1: 3秒後（最初の手紙は無条件）
                 LetterTriggerCondition.CreateTimeOnly(1, 3),
                 
-                // 手紙2: 10秒後
+                // 手紙2: 15秒後かつ手紙1がダウンロードされている場合
                 LetterTriggerCondition.CreateTimeOnly(2, 15),
                 
-                // 手紙3: 20秒後
+                // 手紙3: 20秒後かつ手紙2がダウンロードされている場合
                 LetterTriggerCondition.CreateTimeOnly(3, 20),
 
-                // 手紙4: 20秒後
+                // 手紙4: 20秒後かつ手紙3がダウンロードされている場合
                 LetterTriggerCondition.CreateTimeOnly(4, 20),
 
-                // 手紙5: 60秒後かつTextWindow系ファイルがすべて存在しない場合
+                // 手紙5: 60秒後かつTextWindow系ファイルがすべて存在しない場合かつ手紙4がダウンロードされている場合
                 LetterTriggerCondition.CreateTimeAndAllFilesNotExist(5, 60, new List<string> { "TextWindow", "textwindow", "TEXTWINDOW", "Textwindow" }),
                 
                 // 今後の手紙は必要に応じて追加
@@ -308,8 +311,14 @@ namespace SELLCT.Infrastructure.Services
                 switch (condition.TriggerType)
                 {
                     case LetterTriggerType.TimeOnly:
-                        // 時間条件は呼び出し元のタイマーで制御されるため、常にtrue
-                        return true;
+                        // 時間条件の場合、前の手紙がダウンロードされているかチェック
+                        int previousLetterIndex = condition.LetterIndex - 1;
+                        if (previousLetterIndex <= 0)
+                        {
+                            // 最初の手紙は無条件で表示可能
+                            return true;
+                        }
+                        return IsLetterDownloaded(previousLetterIndex);
 
                     case LetterTriggerType.FileExistenceOnly:
                         // ファイル存在チェック
@@ -337,27 +346,39 @@ namespace SELLCT.Infrastructure.Services
 
                     case LetterTriggerType.TimeAndFileExistence:
                         // 時間条件（タイマー）とファイル存在の両方
-                        return CheckFileExists(condition.RequiredFileName, componentsPath);
+                        int prevIndex1 = condition.LetterIndex - 1;
+                        bool prevDownloaded1 = (prevIndex1 <= 0) || IsLetterDownloaded(prevIndex1);
+                        return prevDownloaded1 && CheckFileExists(condition.RequiredFileName, componentsPath);
 
                     case LetterTriggerType.TimeAndFileNotExistence:
                         // 時間条件（タイマー）とファイル不存在の両方
-                        return !CheckFileExists(condition.RequiredFileName, componentsPath);
+                        int prevIndex2 = condition.LetterIndex - 1;
+                        bool prevDownloaded2 = (prevIndex2 <= 0) || IsLetterDownloaded(prevIndex2);
+                        return prevDownloaded2 && !CheckFileExists(condition.RequiredFileName, componentsPath);
 
                     case LetterTriggerType.TimeAndAllFilesExist:
                         // 時間条件（タイマー）と複数ファイルがすべて存在
-                        return CheckAllFilesExist(condition.RequiredFileNames, componentsPath);
+                        int prevIndex3 = condition.LetterIndex - 1;
+                        bool prevDownloaded3 = (prevIndex3 <= 0) || IsLetterDownloaded(prevIndex3);
+                        return prevDownloaded3 && CheckAllFilesExist(condition.RequiredFileNames, componentsPath);
 
                     case LetterTriggerType.TimeAndAnyFileExists:
                         // 時間条件（タイマー）と複数ファイルのいずれかが存在
-                        return CheckAnyFileExists(condition.RequiredFileNames, componentsPath);
+                        int prevIndex4 = condition.LetterIndex - 1;
+                        bool prevDownloaded4 = (prevIndex4 <= 0) || IsLetterDownloaded(prevIndex4);
+                        return prevDownloaded4 && CheckAnyFileExists(condition.RequiredFileNames, componentsPath);
 
                     case LetterTriggerType.TimeAndAllFilesNotExist:
                         // 時間条件（タイマー）と複数ファイルがすべて不存在
-                        return CheckAllFilesNotExist(condition.RequiredFileNames, componentsPath);
+                        int prevIndex5 = condition.LetterIndex - 1;
+                        bool prevDownloaded5 = (prevIndex5 <= 0) || IsLetterDownloaded(prevIndex5);
+                        return prevDownloaded5 && CheckAllFilesNotExist(condition.RequiredFileNames, componentsPath);
 
                     case LetterTriggerType.TimeAndAnyFileNotExists:
                         // 時間条件（タイマー）と複数ファイルのいずれかが不存在
-                        return CheckAnyFileNotExists(condition.RequiredFileNames, componentsPath);
+                        int prevIndex6 = condition.LetterIndex - 1;
+                        bool prevDownloaded6 = (prevIndex6 <= 0) || IsLetterDownloaded(prevIndex6);
+                        return prevDownloaded6 && CheckAnyFileNotExists(condition.RequiredFileNames, componentsPath);
 
                     default:
                         return false;
@@ -437,6 +458,14 @@ namespace SELLCT.Infrastructure.Services
         public int GetRemainingLetterCount()
         {
             return Math.Max(0, _letterContents.Length - _currentLetterIndex);
+        }
+
+        /// <summary>
+        /// 指定された手紙がダウンロードされているかチェック
+        /// </summary>
+        public bool IsLetterDownloaded(int letterIndex)
+        {
+            return _downloadedLetters.Contains(letterIndex);
         }
 
         /// <summary>
