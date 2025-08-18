@@ -17,12 +17,11 @@ namespace SELLCT.Infrastructure.Services
     {
         private readonly Dictionary<string, GameComponent> _components;
         private readonly Dictionary<string, string> _componentPaths; // 構成要素名 -> 実際のファイルパス
-        private FileSystemWatcher _watcher;
         private readonly string _componentsPath;
-        private readonly Timer _debounceTimer;
         private volatile bool _disposed = false;
         private readonly IEventDispatcher _eventDispatcher;
         private volatile bool _betrayalEndingTriggered = false;
+        private readonly FileSystemWatcherManager _watcherManager;
 
         /// <summary>
         /// 構成要素変更イベント
@@ -53,11 +52,24 @@ namespace SELLCT.Infrastructure.Services
             _componentsPath = "components";
             _components = new Dictionary<string, GameComponent>();
             _componentPaths = new Dictionary<string, string>();
-            _debounceTimer = new Timer(OnDebounceElapsed, null, Timeout.Infinite, Timeout.Infinite);
 
             // 起動時にcomponentsフォルダを初期状態にリセット
             ResetToInitialStateOnStartup();
-            SetupFileWatcher();
+            
+            // FileSystemWatcherManagerを初期化
+            _watcherManager = new FileSystemWatcherManager(_componentsPath, _eventDispatcher);
+            _watcherManager.ComponentsFolderChanged += (s, e) => ComponentsFolderChanged?.Invoke(this, EventArgs.Empty);
+            _watcherManager.SELLCTFolderBetrayed += (s, e) => {
+                if (!_betrayalEndingTriggered) {
+                    _betrayalEndingTriggered = true;
+                    SELLCTFolderBetrayed?.Invoke(this, EventArgs.Empty);
+                }
+            };
+            
+            // イベント購読でコンポーネント管理を同期
+            _eventDispatcher.Subscribe<ComponentCreatedEvent>(OnComponentCreated);
+            _eventDispatcher.Subscribe<ComponentDeletedEvent>(OnComponentDeleted);
+            _eventDispatcher.Subscribe<ComponentRenamedEvent>(OnComponentRenamed);
         }
 
         /// <summary>
@@ -271,35 +283,6 @@ namespace SELLCT.Infrastructure.Services
             }
         }
 
-        /// <summary>
-        /// ファイル監視設定
-        /// </summary>
-        private void SetupFileWatcher()
-        {
-            try
-            {
-                _watcher = new FileSystemWatcher(_componentsPath)
-                {
-                    IncludeSubdirectories = true,
-                    Filter = "*",
-                    NotifyFilter = NotifyFilters.FileName | NotifyFilters.LastWrite | NotifyFilters.Size | NotifyFilters.DirectoryName
-                };
-
-                _watcher.Created += OnFileCreated;
-                _watcher.Deleted += OnFileDeleted;
-                _watcher.Changed += OnFileChanged;
-                _watcher.Renamed += OnFileRenamed;
-                _watcher.Error += OnWatcherError;
-
-                _watcher.EnableRaisingEvents = true;
-
-                System.Diagnostics.Debug.WriteLine("File watcher initialized");
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Error setting up file watcher: {ex.Message}");
-            }
-        }
 
         /// <summary>
         /// 既存構成要素の読み込み
@@ -330,219 +313,90 @@ namespace SELLCT.Infrastructure.Services
         }
 
         /// <summary>
-        /// ファイル作成イベントハンドラー
+        /// コンポーネント作成イベントハンドラー
         /// </summary>
-        private void OnFileCreated(object sender, FileSystemEventArgs e)
+        private void OnComponentCreated(ComponentCreatedEvent @event)
         {
             if (_disposed) return;
 
             try
             {
-                System.Diagnostics.Debug.WriteLine($"[ComponentManager] File created: {e.FullPath}");
-
-                if (e.Name.EndsWith(".txt"))
-                {
-                    var component = ParseComponentFile(e.FullPath);
-                    if (component != null)
-                    {
-                        _components[component.Name] = component;
-                        _componentPaths[component.Name] = e.FullPath; // パスを記録
-                        _eventDispatcher.Dispatch(new ComponentCreatedEvent(component));
-
-                        // 特定構成要素作成時の特別処理
-                        HandleSpecialComponentCreation(component);
-                    }
-                }
+                var component = @event.Component;
+                _components[component.Name] = component;
+                _componentPaths[component.Name] = component.FilePath;
+                
+                // 特定構成要素作成時の特別処理
+                HandleSpecialComponentCreation(component);
+                
+                System.Diagnostics.Debug.WriteLine($"Component registered: {component.Name}");
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[ComponentManager] Error in OnFileCreated: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Error in OnComponentCreated: {ex.Message}");
             }
         }
 
         /// <summary>
-        /// ファイル・ディレクトリ削除イベントハンドラー
+        /// コンポーネント削除イベントハンドラー
         /// </summary>
-        private void OnFileDeleted(object sender, FileSystemEventArgs e)
+        private void OnComponentDeleted(ComponentDeletedEvent @event)
         {
             if (_disposed) return;
 
             try
             {
-                System.Diagnostics.Debug.WriteLine($"File/Directory deleted: {e.FullPath}");
-
-                // ファイル削除の処理
-                if (e.Name.EndsWith(".txt"))
-                {
-                    var componentName = Path.GetFileNameWithoutExtension(e.Name);
-                    if (_components.TryGetValue(componentName, out var component))
-                    {
-                        _components.Remove(componentName);
-                        _componentPaths.Remove(componentName); // パスも削除
-                        _eventDispatcher.Dispatch(new ComponentDeletedEvent(component));
-
-                        // 特定構成要素削除時の処理
-                        HandleSpecialComponentDeletion(component);
-
-                        // SELLCTフォルダのファイルが削除された場合、フォルダが空になったかチェック
-                        if (e.FullPath.Contains("SELLCT") && !_betrayalEndingTriggered && CheckIfSELLCTFolderEmpty())
-                        {
-                            _betrayalEndingTriggered = true;
-                            System.Diagnostics.Debug.WriteLine("SELLCT folder became empty - triggering betrayal ending");
-                            SELLCTFolderBetrayed?.Invoke(this, EventArgs.Empty);
-                        }
-                        else if (!e.FullPath.Contains("SELLCT"))
-                        {
-                            ComponentsFolderChanged?.Invoke(this, EventArgs.Empty);
-                        }
-                    }
-                }
-                // ディレクトリ削除の処理
-                else if (Directory.Exists(e.FullPath) == false && !e.Name.Contains("."))
-                {
-                    // SELLCTフォルダが削除された場合の特別処理
-                    if (e.Name.Equals("SELLCT", StringComparison.OrdinalIgnoreCase) && !_betrayalEndingTriggered)
-                    {
-                        _betrayalEndingTriggered = true;
-                        System.Diagnostics.Debug.WriteLine("SELLCT folder deleted - triggering betrayal ending");
-                        SELLCTFolderBetrayed?.Invoke(this, EventArgs.Empty);
-                    }
-                    else if (!e.Name.Equals("SELLCT", StringComparison.OrdinalIgnoreCase))
-                    {
-                        ProcessDirectoryDeletion(e.FullPath);
-                    }
-                }
+                var component = @event.Component;
+                _components.Remove(component.Name);
+                _componentPaths.Remove(component.Name);
+                
+                // 特定構成要素削除時の処理
+                HandleSpecialComponentDeletion(component);
+                
+                System.Diagnostics.Debug.WriteLine($"Component unregistered: {component.Name}");
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error in OnFileDeleted: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Error in OnComponentDeleted: {ex.Message}");
             }
         }
 
+
         /// <summary>
-        /// ファイル変更イベントハンドラー
+        /// コンポーネントリネームイベントハンドラー
         /// </summary>
-        private void OnFileChanged(object sender, FileSystemEventArgs e)
+        private void OnComponentRenamed(ComponentRenamedEvent @event)
         {
             if (_disposed) return;
 
             try
             {
-                // デバウンス処理
-                _debounceTimer.Change(500, Timeout.Infinite);
-
-                if (e.Name.EndsWith(".txt"))
-                {
-                    var componentName = Path.GetFileNameWithoutExtension(e.Name);
-                    if (_components.TryGetValue(componentName, out var component))
-                    {
-                        UpdateComponentFromFile(component, e.FullPath);
-                        ComponentChanged?.Invoke(this, component);
-                    }
-                }
+                var oldName = @event.OldName;
+                var newName = @event.NewName;
+                var component = @event.Component;
+                
+                // 古いコンポーネントとパスを削除
+                _components.Remove(oldName);
+                _componentPaths.Remove(oldName);
+                
+                // 新しいコンポーネントとパスを追加
+                _components[newName] = component;
+                _componentPaths[newName] = component.FilePath;
+                
+                // 特別なリネーム処理
+                HandleSpecialComponentRename(oldName, newName, component);
+                
+                // リネームによって特定のコンポーネントが「作成」されたと見なす
+                HandleSpecialComponentCreation(component);
+                
+                System.Diagnostics.Debug.WriteLine($"Component renamed: {oldName} -> {newName}");
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error in OnFileChanged: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Error in OnComponentRenamed: {ex.Message}");
             }
         }
 
-        /// <summary>
-        /// ファイル名変更イベントハンドラー
-        /// </summary>
-        private void OnFileRenamed(object sender, RenamedEventArgs e)
-        {
-            if (_disposed) return;
 
-            try
-            {
-                System.Diagnostics.Debug.WriteLine($"File renamed: {e.OldFullPath} -> {e.FullPath}");
-
-                if (e.OldName.EndsWith(".txt") && e.Name.EndsWith(".txt"))
-                {
-                    var oldName = Path.GetFileNameWithoutExtension(e.OldName);
-                    var newName = Path.GetFileNameWithoutExtension(e.Name);
-
-                    if (_components.TryGetValue(oldName, out var component))
-                    {
-                        // 古いコンポーネントとパスを削除
-                        _components.Remove(oldName);
-                        _componentPaths.Remove(oldName);
-                        
-                        // 新しいコンポーネントとパスを追加
-                        component.Name = newName;
-                        component.FilePath = e.FullPath;
-                        _components[newName] = component;
-                        _componentPaths[newName] = e.FullPath;
-
-                        _eventDispatcher.Dispatch(new ComponentRenamedEvent(oldName, newName, component));
-
-                        // 特別なリネーム処理
-                        HandleSpecialComponentRename(oldName, newName, component);
-
-                        // リネームによって特定のコンポーネントが「作成」されたと見なす
-                        HandleSpecialComponentCreation(component);
-                        
-                        // ウィンドウ最前面表示イベントを発火（リネーム時）
-                        ComponentsFolderChanged?.Invoke(this, EventArgs.Empty);
-                        
-                        System.Diagnostics.Debug.WriteLine($"Component renamed and path updated: {oldName} -> {newName} at {e.FullPath}");
-                    }
-                    // ファイル移動（名前変更なし）の場合
-                    else if (oldName == newName)
-                    {
-                        // 既存のコンポーネントのパスを更新
-                        if (_componentPaths.ContainsKey(oldName))
-                        {
-                            _componentPaths[oldName] = e.FullPath;
-                            // 既存コンポーネントのFilePathプロパティも更新
-                            if (_components.TryGetValue(oldName, out var existingComponent))
-                            {
-                                existingComponent.FilePath = e.FullPath;
-                            }
-                            System.Diagnostics.Debug.WriteLine($"Component path updated: {oldName} moved to {e.FullPath}");
-                        }
-                        // 新しいコンポーネントとして追加
-                        else
-                        {
-                            var newComponent = ParseComponentFile(e.FullPath);
-                            if (newComponent != null)
-                            {
-                                _components[newComponent.Name] = newComponent;
-                                _componentPaths[newComponent.Name] = e.FullPath;
-                                _eventDispatcher.Dispatch(new ComponentCreatedEvent(newComponent));
-                                HandleSpecialComponentCreation(newComponent);
-                                
-                                // ウィンドウ最前面表示イベントを発火（新規コンポーネント作成時）
-                                ComponentsFolderChanged?.Invoke(this, EventArgs.Empty);
-                                
-                                System.Diagnostics.Debug.WriteLine($"New component detected via rename: {newComponent.Name} at {e.FullPath}");
-                            }
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Error in OnFileRenamed: {ex.Message}");
-            }
-        }
-
-        /// <summary>
-        /// ファイル監視エラーハンドラー
-        /// </summary>
-        private void OnWatcherError(object sender, ErrorEventArgs e)
-        {
-            System.Diagnostics.Debug.WriteLine($"File watcher error: {e.GetException()?.Message}");
-        }
-
-        /// <summary>
-        /// デバウンスタイマーイベント
-        /// </summary>
-        private void OnDebounceElapsed(object state)
-        {
-            // デバウンス処理完了
-        }
 
         /// <summary>
         /// ファイルから構成要素を解析
@@ -807,40 +661,33 @@ namespace SELLCT.Infrastructure.Services
         {
             try
             {
-                // 裏切りエンディングフラグをリセット
+                // 裷切りエンディングフラグをリセット
                 _betrayalEndingTriggered = false;
                 
-                // Stop the watcher during reset
-                if (_watcher != null)
-                {
-                    _watcher.EnableRaisingEvents = false;
-                }
+                // 監視を一時停止
+                _watcherManager?.PauseWatching();
 
-                // Clear current components
+                // 現在のコンポーネントをクリア
                 _components.Clear();
+                _componentPaths.Clear();
 
-                // Delete and recreate the components directory
+                // componentsディレクトリを削除して再作成
                 if (Directory.Exists(_componentsPath))
                 {
                     Directory.Delete(_componentsPath, true);
                 }
                 CreateComponentsFolder();
 
-                // Recreate initial components
+                // 初期コンポーネントを再作成
                 CreateInitialComponents();
 
-                // Reload components
+                // 既存コンポーネントを再読み込み
                 LoadExistingComponents();
 
-                // Restart the watcher
-                if (_watcher != null)
-                {
-                    _watcher.EnableRaisingEvents = true;
-                }
+                // 監視を再開
+                _watcherManager?.ResumeWatching();
 
-                // Dispatch an event to notify the UI to refresh
-                // This part is tricky as we don't have a direct "Reset" event.
-                // A simple approach is to trigger existing events for the initial components.
+                // UI更新用イベントを発行
                 foreach (var component in _components.Values)
                 {
                     _eventDispatcher.Dispatch(new ComponentCreatedEvent(component));
@@ -983,18 +830,7 @@ namespace SELLCT.Infrastructure.Services
             {
                 _disposed = true;
 
-                _debounceTimer?.Dispose();
-
-                if (_watcher != null)
-                {
-                    _watcher.EnableRaisingEvents = false;
-                    _watcher.Created -= OnFileCreated;
-                    _watcher.Deleted -= OnFileDeleted;
-                    _watcher.Changed -= OnFileChanged;
-                    _watcher.Renamed -= OnFileRenamed;
-                    _watcher.Error -= OnWatcherError;
-                    _watcher.Dispose();
-                }
+                _watcherManager?.Dispose();
 
                 _components.Clear();
                 _componentPaths.Clear();

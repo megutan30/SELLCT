@@ -17,6 +17,7 @@ using SELLCT.Presentation.Views;
 using SELLCT.Core.Interfaces;
 using SELLCT.Application.Services;
 using SELLCT.Core.Events;
+using SELLCT.Presentation.Controllers;
 
 namespace SELLCT.Views
 {
@@ -31,6 +32,10 @@ namespace SELLCT.Views
         private MetaGameController _metaGameController;
         private bool _isPhase2 = false;
 
+        // 統合されたコントローラー
+        private LetterDisplayController _letterDisplayController;
+        private DialogController _dialogController;
+
         public void SetPhase2(bool value)
         {
             _isPhase2 = value;
@@ -38,25 +43,9 @@ namespace SELLCT.Views
 
         public void SetAwaitingChoice(bool value)
         {
-            _awaitingChoice = value;
+            _dialogController?.SetAwaitingChoice(value);
         }
         private int _dialogStep = 0;
-
-        private Queue<DialogItem> _dialogMessageQueue;
-        private bool _isTyping;
-        private DispatcherTimer _typingTimer;
-        private string _currentFullMessage;
-        private int _currentMessageCharIndex;
-        private bool _awaitingChoice;
-
-        // ログ機能関連
-        private List<string> _messageHistory = new List<string>();
-
-        private DispatcherTimer _initialLetterTimer;
-        private DispatcherTimer _subsequentLetterTimer;
-        
-        // ボタンクリック処理の排他制御フラグ
-        private bool _isButtonProcessing = false;
 
         /// <summary>
         
@@ -89,18 +78,6 @@ namespace SELLCT.Views
             this.Loaded += Window_Loaded; // Window_Loadedイベントハンドラを登録
             this.Activated += Window_Activated; // ウィンドウアクティベートイベント
             this.Deactivated += Window_Deactivated; // ウィンドウディアクティベートイベント
-            _dialogMessageQueue = new Queue<DialogItem>();
-            _typingTimer = new DispatcherTimer();
-            _typingTimer.Interval = TimeSpan.FromMilliseconds(50); // 1文字表示にかかる時間
-            _typingTimer.Tick += TypingTimer_Tick;
-
-            _initialLetterTimer = new DispatcherTimer();
-            _initialLetterTimer.Interval = TimeSpan.FromSeconds(3);
-            _initialLetterTimer.Tick += InitialLetterTimer_Tick;
-
-            _subsequentLetterTimer = new DispatcherTimer();
-            _subsequentLetterTimer.Interval = TimeSpan.FromSeconds(10);
-            _subsequentLetterTimer.Tick += SubsequentLetterTimer_Tick;
 
             InitializeAsync();
         }
@@ -257,15 +234,25 @@ namespace SELLCT.Views
             // MetaGameController初期化
             _metaGameController = new MetaGameController((System.Windows.Application.Current as App).GetEventDispatcher());
 
+            // Controller初期化
+            _letterDisplayController = new LetterDisplayController(_letterService, eventDispatcher);
+            _dialogController = new DialogController();
+            
+            // UI要素をControllerに注入
+            _letterDisplayController.InjectUIElements(LetterImage, StatusText);
+            _dialogController.InjectUIElements(
+                TextWindow, DialogText, ChoiceButtonsPanel, 
+                YesButton, NoButton, LogPanel, LogText, LogScrollViewer);
+
             // PuzzleService初期化
             _puzzleActionHandler = new MainWindowPuzzleActionHandler(this, _componentManager, _metaGameController);
             
             // GameStateを共有するために先に作成
             var gameState = new GameState();
-            _puzzleService = new PuzzleService(_componentManager, _puzzleActionHandler, (System.Windows.Application.Current as App).GetEventDispatcher(), gameState);
+            _puzzleService = new PuzzleService(_componentManager, _puzzleActionHandler, eventDispatcher, gameState);
             
             // DialogueService初期化（GameStateを共有）
-            _dialogueService = new DialogueService(_componentManager, _puzzleActionHandler, (System.Windows.Application.Current as App).GetEventDispatcher(), gameState);
+            _dialogueService = new DialogueService(_componentManager, _puzzleActionHandler, eventDispatcher, gameState);
             _puzzleActionHandler.SetDialogueService(_dialogueService);
 
             // ComponentsFolderChangedイベントをサブスクライブ
@@ -463,8 +450,7 @@ namespace SELLCT.Views
                     StatusText.Text = $"手紙 {@event.LetterIndex} をダウンロードしました";
                     UpdateDebugInfo();
                     
-                    // 手紙ダウンロード時に次の手紙のタイマーをリセット
-                    ResetNextLetterTimer();
+                    // 手紙ダウンロード時に次の手紙のタイマーをリセット（コントローラーで処理）
                 }
                 catch (Exception ex)
                 {
@@ -496,7 +482,7 @@ namespace SELLCT.Views
         /// </summary>
         public void DisplayMessage(string message, string title = "SELLCT")
         {
-            ShowDialogMessage(message);
+            _dialogController?.ShowDialogMessage(message);
         }
 
         /// <summary>
@@ -504,28 +490,7 @@ namespace SELLCT.Views
         /// </summary>
         public void ShowDialogMessage(params string[] messages)
         {
-            // キューに追加可能かチェック
-            if (!CanAddToQueue())
-            {
-                System.Diagnostics.Debug.WriteLine("[ShowDialogMessage] Cannot add to queue, ignoring messages");
-                return;
-            }
-
-            foreach (var msg in messages)
-            {
-                EnqueueUniqueMessage(msg);
-            }
-
-            if (!_isTyping && !_awaitingChoice && TextWindow.Visibility == Visibility.Visible)
-            {
-                ProcessNextDialogMessage();
-            }
-            else if (TextWindow.Visibility != Visibility.Visible)
-            {
-                TextWindow.Visibility = Visibility.Visible;
-                // グローバルクリックキャッチャーを廃止し、MainWindow_MouseDownで処理
-                StartDialogFadeIn();
-            }
+            _dialogController?.ShowDialogMessage(messages);
         }
 
         /// <summary>
@@ -533,85 +498,10 @@ namespace SELLCT.Views
         /// </summary>
         public void ShowChoice()
         {
-            _dialogMessageQueue.Enqueue(new DialogItem { Type = DialogItemType.Choice });
-            if (!_isTyping && !_awaitingChoice)
-            {
-                ProcessNextDialogMessage();
-            }
-            else if (TextWindow.Visibility != Visibility.Visible)
-            {
-                // グローバルクリックキャッチャーを廃止し、MainWindow_MouseDownで処理
-                StartDialogFadeIn();
-            }
+            _dialogController?.ShowChoice();
         }
 
-        /// <summary>
-        /// 次の対話メッセージを処理
-        /// </summary>
-        private void ProcessNextDialogMessage()
-        {
-            System.Diagnostics.Debug.WriteLine($"[ProcessNextDialogMessage] Queue count: {_dialogMessageQueue.Count}");
 
-            if (_dialogMessageQueue.Any())
-            {
-                var nextItem = _dialogMessageQueue.Dequeue();
-                System.Diagnostics.Debug.WriteLine($"[ProcessNextDialogMessage] Dequeued item Type: {nextItem.Type}, Message: {nextItem.Message}");
-
-                if (nextItem.Type == DialogItemType.Text)
-                {
-                    _currentFullMessage = nextItem.Message;
-                    _currentMessageCharIndex = 0;
-                    DialogText.Text = string.Empty;
-                    _isTyping = true;
-                    _typingTimer.Start();
-
-                    // 選択肢ボタンを非表示にする
-                    ChoiceButtonsPanel.Visibility = Visibility.Collapsed;
-                }
-                else if (nextItem.Type == DialogItemType.Choice)
-                {
-                    // 選択肢を表示
-                    ChoiceButtonsPanel.Visibility = Visibility.Visible;
-                    YesButton.Visibility = Visibility.Visible; // 個別ボタンの可視性を復元
-                    NoButton.Visibility = Visibility.Visible; // 個別ボタンの可視性を復元
-                    // テキストウィンドウは表示したまま
-                    // グローバルクリックキャッチャーを廃止し、MainWindow_MouseDownで処理 
-                    _awaitingChoice = true;
-                    _typingTimer.Stop(); // テキストの自動進行を停止
-                    System.Diagnostics.Debug.WriteLine("[ProcessNextDialogMessage] Choice displayed. YesButton: {YesButton.Visibility}, NoButton: {NoButton.Visibility}");
-                }
-            }
-            else
-            {
-                System.Diagnostics.Debug.WriteLine("[ProcessNextDialogMessage] Message queue empty. Keeping dialog visible.");
-                _isTyping = false;
-                _typingTimer.Stop();
-                _awaitingChoice = false;
-            }
-        }
-
-        /// <summary>
-        /// タイピングタイマーイベント
-        /// </summary>
-        private void TypingTimer_Tick(object sender, EventArgs e)
-        {
-            if (_currentMessageCharIndex < _currentFullMessage.Length)
-            {
-                DialogText.Text += _currentFullMessage[_currentMessageCharIndex];
-                _currentMessageCharIndex++;
-            }
-            else
-            {
-                _isTyping = false;
-                _typingTimer.Stop();
-                
-                // タイピング完了時にメッセージを履歴に追加
-                AddMessageToHistory(_currentFullMessage);
-                
-                // タイピング完了後はクリック待ちとなる（自動進行を削除）
-                System.Diagnostics.Debug.WriteLine("[TypingTimer_Tick] Typing completed. Waiting for click to continue.");
-            }
-        }
 
         private bool _wasWindowFocused = true;
         private DateTime _lastFocusTime = DateTime.Now;
@@ -627,7 +517,7 @@ namespace SELLCT.Views
             bool isCurrentlyForeground = IsWindowInForeground();
             TimeSpan timeSinceLastFocus = DateTime.Now - _lastFocusTime;
 
-            System.Diagnostics.Debug.WriteLine($"[MainWindow_MouseDown] Click detected. _isTyping: {_isTyping}, _awaitingChoice: {_awaitingChoice}, _wasWindowFocused: {_wasWindowFocused}, isCurrentlyForeground: {isCurrentlyForeground}, timeSinceLastFocus: {timeSinceLastFocus.TotalMilliseconds}ms");
+            System.Diagnostics.Debug.WriteLine($"[MainWindow_MouseDown] Click detected. _wasWindowFocused: {_wasWindowFocused}, isCurrentlyForeground: {isCurrentlyForeground}, timeSinceLastFocus: {timeSinceLastFocus.TotalMilliseconds}ms");
 
             // ウィンドウがフォーカスを失っていた場合、または最近フォーカスを取得した場合のフォーカス復元用クリック
             if (!_wasWindowFocused || timeSinceLastFocus.TotalMilliseconds < 100)
@@ -650,31 +540,8 @@ namespace SELLCT.Views
                 }
             }
 
-            // テキストウィンドウが表示されていない場合は何もしない
-            if (TextWindow.Visibility != Visibility.Visible) return;
-
-            // 選択肢表示中はクリックを無視
-            if (_awaitingChoice) return;
-
-            if (_isTyping)
-            {
-                // タイピング中の場合は残りのテキストを一気に表示
-                DialogText.Text = _currentFullMessage;
-                _currentMessageCharIndex = _currentFullMessage.Length;
-                _isTyping = false;
-                _typingTimer.Stop();
-                
-                // タイピングスキップ時にもメッセージを履歴に追加
-                AddMessageToHistory(_currentFullMessage);
-                
-                System.Diagnostics.Debug.WriteLine("[MainWindow_MouseDown] Text typing skipped.");
-            }
-            else
-            {
-                // タイピング完了済みの場合は次のメッセージを処理
-                ProcessNextDialogMessage();
-                System.Diagnostics.Debug.WriteLine("[MainWindow_MouseDown] ProcessNextDialogMessage called.");
-            }
+            // ダイアログコントローラーに移譲
+            _dialogController?.HandleDialogClick();
         }
 
         /// <summary>
@@ -712,50 +579,7 @@ namespace SELLCT.Views
             return false;
         }
 
-        /// <summary>
-        /// キューに重複しないメッセージを追加
-        /// </summary>
-        private void EnqueueUniqueMessage(string message)
-        {
-            // 現在表示中のメッセージと同じ場合は追加しない
-            if (_currentFullMessage == message)
-            {
-                System.Diagnostics.Debug.WriteLine($"[EnqueueUniqueMessage] Current message duplicate ignored: {message}");
-                return;
-            }
 
-            // キュー内に同じメッセージが既に存在する場合は追加しない
-            if (_dialogMessageQueue.Any(item => item.Type == DialogItemType.Text && item.Message == message))
-            {
-                System.Diagnostics.Debug.WriteLine($"[EnqueueUniqueMessage] Queue duplicate ignored: {message}");
-                return;
-            }
-            
-            _dialogMessageQueue.Enqueue(new DialogItem { Type = DialogItemType.Text, Message = message });
-            System.Diagnostics.Debug.WriteLine($"[EnqueueUniqueMessage] Message enqueued: {message}");
-        }
-
-        /// <summary>
-        /// キューに追加可能かどうかを判定
-        /// </summary>
-        private bool CanAddToQueue()
-        {
-            // ボタン処理中は追加不可
-            if (_isButtonProcessing)
-            {
-                System.Diagnostics.Debug.WriteLine("[CanAddToQueue] Button processing in progress, cannot add to queue");
-                return false;
-            }
-
-            // 選択肢表示中は追加不可
-            if (_awaitingChoice)
-            {
-                System.Diagnostics.Debug.WriteLine("[CanAddToQueue] Awaiting choice, cannot add to queue");
-                return false;
-            }
-
-            return true;
-        }
 
         /// <summary>
         /// 構成要素数更新
@@ -807,18 +631,8 @@ namespace SELLCT.Views
                 string buttonText = MainButton.Content.ToString();
                 StatusText.Text = "メインボタンがクリックされました";
 
-                // 最初の手紙タイマーを開始
-                if (!_initialLetterTimer.IsEnabled && _letterService.CurrentLetterIndex == 0)
-                {
-                    var firstCondition = _letterService.GetNextLetterCondition();
-                    if (firstCondition != null)
-                    {
-                        _initialLetterTimer.Interval = TimeSpan.FromSeconds(firstCondition.TimeIntervalSeconds);
-                        System.Diagnostics.Debug.WriteLine($"First letter timer set for {firstCondition.TimeIntervalSeconds} seconds");
-                    }
-                    _initialLetterTimer.Start();
-                    StatusText.Text = "手紙の到着を待っています...";
-                }
+                // 手紙表示コントローラーに移譲
+                _letterDisplayController?.HandleMainButtonClick();
 
                 if (buttonText == "アップロード")
                 {
@@ -835,13 +649,13 @@ namespace SELLCT.Views
                             "SELLCTがファイルにアクセスできるようになりました。",
                             "SELLCT - アップロード完了");
 
-                        ShowDialogMessage("ファイルアクセス権限を取得しました。\n最後の障壁を取り除いてください。\nButton.componentを削除してください。");
+                        _dialogController?.ShowDialogMessage("ファイルアクセス権限を取得しました。\n最後の障壁を取り除いてください。\nButton.componentを削除してください。");
                     }
                 }
                 else if (!IsKnownButtonText(buttonText))
                 {
-                    // 未設定の名前の場合、テキストウィンドウに表示
-                    HandleUnknownButtonClick(buttonText);
+                    // 未設定の名前の場合、ダイアログコントローラーに移譲
+                    _dialogController?.HandleUnknownButtonClick(buttonText);
                 }
             }
             catch (Exception ex)
@@ -859,269 +673,19 @@ namespace SELLCT.Views
             return Array.Exists(knownTexts, text => text.Equals(buttonText, StringComparison.OrdinalIgnoreCase));
         }
 
-        /// <summary>
-        /// 未知のボタンクリック処理
-        /// </summary>
-        private void HandleUnknownButtonClick(string buttonText)
-        {
-            // 排他制御チェック
-            if (_isButtonProcessing)
-            {
-                System.Diagnostics.Debug.WriteLine($"[HandleUnknownButtonClick] Button processing in progress, ignoring click: {buttonText}");
-                return;
-            }
 
-            // キューに追加可能かチェック
-            if (!CanAddToQueue())
-            {
-                System.Diagnostics.Debug.WriteLine($"[HandleUnknownButtonClick] Cannot add to queue, ignoring click: {buttonText}");
-                return;
-            }
 
-            if (TextWindow.Visibility != Visibility.Visible) return;
 
-            try
-            {
-                // ボタン処理開始
-                _isButtonProcessing = true;
-                System.Diagnostics.Debug.WriteLine($"[HandleUnknownButtonClick] Starting button processing: {buttonText}");
 
-                // テキストウィンドウを表示
-                SetTextWindowVisibility(true);
-                
-                string message1 = $"ボタン名前を変えられるみたいですが、\n";
-                string message2 = $"どうやら'{buttonText}'機能はないようですね。\n";
-                
-                // 重複チェックを使用してキューに追加
-                EnqueueUniqueMessage(message1);
-                EnqueueUniqueMessage(message2);
-                
-                StatusText.Text = $"'{buttonText}'機能について説明を表示しました";
-                
-                System.Diagnostics.Debug.WriteLine($"Unknown button clicked: {buttonText}");
 
-                // キューの処理を開始
-                if (!_isTyping && !_awaitingChoice && _dialogMessageQueue.Count > 0)
-                {
-                    ProcessNextDialogMessage();
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Error in HandleUnknownButtonClick: {ex.Message}");
-            }
-            finally
-            {
-                // ボタン処理終了（少し遅延を設けて重複クリックを防ぐ）
-                var timer = new DispatcherTimer();
-                timer.Interval = TimeSpan.FromMilliseconds(500);
-                timer.Tick += (s, e) =>
-                {
-                    _isButtonProcessing = false;
-                    timer.Stop();
-                    System.Diagnostics.Debug.WriteLine($"[HandleUnknownButtonClick] Button processing completed: {buttonText}");
-                };
-                timer.Start();
-            }
-        }
 
-        /// <summary>
-        /// 最初の手紙タイマーイベント
-        /// </summary>
-        private void InitialLetterTimer_Tick(object sender, EventArgs e)
-        {
-            _initialLetterTimer.Stop();
-            TryShowNextLetterWithCondition();
-        }
-
-        /// <summary>
-        /// その後の手紙タイマーイベント
-        /// </summary>
-        private void SubsequentLetterTimer_Tick(object sender, EventArgs e)
-        {
-            _subsequentLetterTimer.Stop();
-            System.Diagnostics.Debug.WriteLine("Subsequent letter timer fired - checking conditions for next letter");
-            TryShowNextLetterWithCondition();
-        }
-
-        /// <summary>
-        /// 条件をチェックして次の手紙を表示
-        /// </summary>
-        private void TryShowNextLetterWithCondition()
-        {
-            try
-            {
-                var condition = _letterService.GetNextLetterCondition();
-                if (condition == null)
-                {
-                    // 条件が設定されていない場合は従来通り表示
-                    _letterService.ShowNextLetter();
-                    return;
-                }
-
-                // componentsフォルダのパスを取得
-                var componentsPath = "components";
-                
-                // 条件チェック
-                bool conditionMet = _letterService.CheckCondition(condition, componentsPath);
-                
-                // デバッグ情報を詳細化
-                int nextLetterIndex = _letterService.CurrentLetterIndex + 1;
-                int prevLetterIndex = nextLetterIndex - 1;
-                bool prevDownloaded = prevLetterIndex <= 0 || _letterService.IsLetterDownloaded(prevLetterIndex);
-                System.Diagnostics.Debug.WriteLine($"Letter condition check: {condition.GetDescription()} = {conditionMet}");
-                if (prevLetterIndex > 0)
-                {
-                    System.Diagnostics.Debug.WriteLine($"Previous letter {prevLetterIndex} downloaded: {prevDownloaded}");
-                }
-
-                if (conditionMet)
-                {
-                    _letterService.ShowNextLetter();
-                    SetupNextLetterTimer();
-                }
-                else
-                {
-                    // 条件が満たされていない場合は次のダウンロードまで待機
-                    System.Diagnostics.Debug.WriteLine("Letter condition not met - waiting for letter download to restart timer");
-                    // タイマーは停止状態のまま、手紙ダウンロード時にResetNextLetterTimerで再開される
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Error in TryShowNextLetterWithCondition: {ex.Message}");
-                // エラー時も条件チェックを無視しない - 安全に停止
-                System.Diagnostics.Debug.WriteLine("Error occurred - timer stopped, waiting for manual intervention");
-            }
-        }
-
-        /// <summary>
-        /// 次の手紙のタイマーを設定
-        /// </summary>
-        private void SetupNextLetterTimer()
-        {
-            try
-            {
-                // 現在のタイマー状態を確認
-                bool currentlyRunning = _subsequentLetterTimer != null && _subsequentLetterTimer.IsEnabled;
-                System.Diagnostics.Debug.WriteLine($"SetupNextLetterTimer called - current timer running: {currentlyRunning}");
-                
-                if (currentlyRunning)
-                {
-                    System.Diagnostics.Debug.WriteLine("Timer already running - stopping before setup");
-                    _subsequentLetterTimer.Stop();
-                }
-
-                var nextCondition = _letterService.GetNextLetterCondition();
-                if (nextCondition != null && HasTimeComponent(nextCondition.TriggerType))
-                {
-                    _subsequentLetterTimer.Interval = TimeSpan.FromSeconds(nextCondition.TimeIntervalSeconds);
-                    _subsequentLetterTimer.Start();
-                    System.Diagnostics.Debug.WriteLine($"*** TIMER SETUP *** Started {nextCondition.TimeIntervalSeconds}s timer for Letter {nextCondition.LetterIndex} after letter display");
-                }
-                else
-                {
-                    System.Diagnostics.Debug.WriteLine("No time-based condition for next letter, timer not set");
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Error setting up next letter timer: {ex.Message}");
-            }
-        }
-
-        /// <summary>
-        /// 次の手紙のタイマーをリセット（手紙ダウンロード時用）
-        /// </summary>
-        private void ResetNextLetterTimer()
-        {
-            try
-            {
-                // 現在のタイマーの状態を確認
-                bool wasTimerRunning = _subsequentLetterTimer != null && _subsequentLetterTimer.IsEnabled;
-                System.Diagnostics.Debug.WriteLine($"ResetNextLetterTimer called - current timer running: {wasTimerRunning}");
-
-                // 現在のタイマーを停止
-                if (wasTimerRunning)
-                {
-                    _subsequentLetterTimer.Stop();
-                    System.Diagnostics.Debug.WriteLine("Stopped current letter timer due to letter download");
-                }
-
-                // 次の手紙の条件を取得
-                var nextCondition = _letterService.GetNextLetterCondition();
-                System.Diagnostics.Debug.WriteLine($"Next condition: {nextCondition?.GetDescription() ?? "None"}");
-                
-                if (nextCondition != null && HasTimeComponent(nextCondition.TriggerType))
-                {
-                    // 新しいタイマーを設定して開始
-                    _subsequentLetterTimer.Interval = TimeSpan.FromSeconds(nextCondition.TimeIntervalSeconds);
-                    _subsequentLetterTimer.Start();
-                    System.Diagnostics.Debug.WriteLine($"*** TIMER RESET *** Started new {nextCondition.TimeIntervalSeconds}s timer for Letter {nextCondition.LetterIndex} after download");
-                }
-                else
-                {
-                    System.Diagnostics.Debug.WriteLine("No time-based condition found for next letter, timer remains stopped");
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Error resetting next letter timer: {ex.Message}");
-            }
-        }
-
-        /// <summary>
-        /// 条件タイプが時間コンポーネントを持つかチェック
-        /// </summary>
-        private bool HasTimeComponent(SELLCT.Core.Entities.LetterTriggerType triggerType)
-        {
-            return triggerType == SELLCT.Core.Entities.LetterTriggerType.TimeOnly ||
-                   triggerType == SELLCT.Core.Entities.LetterTriggerType.TimeAndFileExistence ||
-                   triggerType == SELLCT.Core.Entities.LetterTriggerType.TimeAndFileNotExistence ||
-                   triggerType == SELLCT.Core.Entities.LetterTriggerType.TimeAndAllFilesExist ||
-                   triggerType == SELLCT.Core.Entities.LetterTriggerType.TimeAndAnyFileExists ||
-                   triggerType == SELLCT.Core.Entities.LetterTriggerType.TimeAndAllFilesNotExist ||
-                   triggerType == SELLCT.Core.Entities.LetterTriggerType.TimeAndAnyFileNotExists;
-        }
 
         /// <summary>
         /// 手紙クリック
         /// </summary>
         private void Letter_Click(object sender, MouseButtonEventArgs e)
         {
-            try
-            {
-                var letterIndex = _letterService?.CurrentLetterIndex ?? 1;
-                if (_letterService == null) return;
-
-                // Immediately hide the letter
-                LetterImage.Visibility = Visibility.Collapsed;
-
-                // Handle the download and check for success
-                bool success = _letterService.OnLetterClicked(letterIndex);
-
-                if (success)
-                {
-                    // ダウンロード成功後、次の手紙のタイマーを開始
-                    if (!_letterService.IsSequenceComplete)
-                    {
-                        SetupNextLetterTimer();
-                        StatusText.Text = "次の手紙の到着を待っています...";
-                    }
-                }
-                else
-                {
-                    // If failed or cancelled, show the letter again
-                    LetterImage.Visibility = Visibility.Visible;
-                    StatusText.Text = "手紙のダウンロードがキャンセルされました";
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Error in Letter_Click: {ex.Message}");
-                // Show the letter again in case of an unexpected error
-                LetterImage.Visibility = Visibility.Visible;
-            }
+            _letterDisplayController?.HandleLetterClick();
         }
 
         /// <summary>
@@ -1192,25 +756,7 @@ namespace SELLCT.Views
         /// </summary>
         private void LogButton_Click(object sender, RoutedEventArgs e)
         {
-            try
-            {
-                System.Diagnostics.Debug.WriteLine("[LogButton_Click] Log button clicked.");
-                
-                // ログパネルの表示/非表示を切り替え
-                if (LogPanel.Visibility == Visibility.Visible)
-                {
-                    LogPanel.Visibility = Visibility.Collapsed;
-                }
-                else
-                {
-                    UpdateLogDisplay();
-                    LogPanel.Visibility = Visibility.Visible;
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Error in LogButton_Click: {ex.Message}");
-            }
+            _dialogController?.ToggleLogDisplay();
         }
 
         /// <summary>
@@ -1218,82 +764,10 @@ namespace SELLCT.Views
         /// </summary>
         private void CloseLogButton_Click(object sender, RoutedEventArgs e)
         {
-            try
-            {
-                System.Diagnostics.Debug.WriteLine("[CloseLogButton_Click] Close log button clicked.");
-                LogPanel.Visibility = Visibility.Collapsed;
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Error in CloseLogButton_Click: {ex.Message}");
-            }
+            _dialogController?.CloseLogPanel();
         }
 
-        /// <summary>
-        /// ログ表示を更新
-        /// </summary>
-        private void UpdateLogDisplay()
-        {
-            try
-            {
-                if (_messageHistory.Count == 0)
-                {
-                    LogText.Text = "まだメッセージはありません。";
-                    return;
-                }
 
-                var logContent = new StringBuilder();
-                for (int i = 0; i < _messageHistory.Count; i++)
-                {
-                    logContent.AppendLine($"[{i + 1:D2}] {_messageHistory[i]}");
-                    if (i < _messageHistory.Count - 1)
-                    {
-                        logContent.AppendLine();
-                    }
-                }
-
-                LogText.Text = logContent.ToString();
-                
-                // スクロールを最下部に移動
-                LogScrollViewer.ScrollToEnd();
-                
-                System.Diagnostics.Debug.WriteLine($"[UpdateLogDisplay] Log updated with {_messageHistory.Count} messages.");
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Error in UpdateLogDisplay: {ex.Message}");
-                LogText.Text = "ログの表示中にエラーが発生しました。";
-            }
-        }
-
-        /// <summary>
-        /// メッセージを履歴に追加
-        /// </summary>
-        private void AddMessageToHistory(string message)
-        {
-            if (string.IsNullOrWhiteSpace(message)) return;
-
-            try
-            {
-                // 改行を統一し、空白行を削除
-                var cleanMessage = message.Replace("\r\n", "\n").Replace("\r", "\n").Trim();
-                if (string.IsNullOrEmpty(cleanMessage)) return;
-
-                // 重複チェック（直前のメッセージと同じ場合は追加しない）
-                if (_messageHistory.Count > 0 && _messageHistory[_messageHistory.Count - 1] == cleanMessage)
-                {
-                    System.Diagnostics.Debug.WriteLine($"[AddMessageToHistory] Duplicate message ignored: {cleanMessage}");
-                    return;
-                }
-
-                _messageHistory.Add(cleanMessage);
-                System.Diagnostics.Debug.WriteLine($"[AddMessageToHistory] Message added to history: {cleanMessage}");
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Error in AddMessageToHistory: {ex.Message}");
-            }
-        }
 
         /// <summary>
         /// ウィンドウクローズ処理
@@ -1385,13 +859,7 @@ namespace SELLCT.Views
         /// </summary>
         public void ClearMessageQueue()
         {
-            _dialogMessageQueue.Clear();
-            _isTyping = false;
-            _typingTimer.Stop();
-            DialogText.Text = string.Empty;
-            _awaitingChoice = false;
-            // TextWindow全体（枠を含む）を確実に非表示にする
-            TextWindow.Visibility = Visibility.Collapsed;
+            _dialogController?.ClearMessageQueue();
         }
 
         /// <summary>
@@ -1498,7 +966,7 @@ namespace SELLCT.Views
         /// </summary>
         public bool IsMessageQueueEmpty()
         {
-            return _dialogMessageQueue?.Count == 0;
+            return _dialogController?.IsMessageQueueEmpty() ?? true;
         }
 
         /// <summary>
@@ -1506,7 +974,7 @@ namespace SELLCT.Views
         /// </summary>
         public bool IsTyping()
         {
-            return _isTyping;
+            return _dialogController?.IsTyping() ?? false;
         }
 
         /// <summary>
@@ -1515,6 +983,10 @@ namespace SELLCT.Views
         protected override void OnClosed(EventArgs e)
         {
             EnableMouseInput();
+            
+            // Controllerのリソース解放
+            _letterDisplayController?.Dispose();
+            _dialogController?.Dispose();
             EnableKeyboardInput();
             base.OnClosed(e);
         }
