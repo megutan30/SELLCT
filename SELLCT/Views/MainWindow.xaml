@@ -213,6 +213,14 @@
                             HorizontalAlignment="Right"/>
                 </Grid>
             </Border>
+            <!-- Door画像（画面中央） -->
+            <Image Name="DoorImage" 
+                   Source="/Resources/Door.png"
+                   Width="123" Height="186"
+                   Canvas.Left="367" Canvas.Top="242"
+                   Visibility="Visible"
+                   Panel.ZIndex="2"/>
+
             <!--：KEY画像 -->
             <Image Name="KeyImage" 
                    Source="/Resources/KEY.png"
