@@ -236,7 +236,7 @@ namespace SELLCT.Views
 
             // Controller初期化
             _letterDisplayController = new LetterDisplayController(_letterService, eventDispatcher);
-            _dialogController = new DialogController();
+            _dialogController = new DialogController(_componentManager);
             
             // UI要素をControllerに注入
             _letterDisplayController.InjectUIElements(LetterImage, StatusText);

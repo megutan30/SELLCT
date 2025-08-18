@@ -5,6 +5,7 @@ using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
+using SELLCT.Infrastructure.Services;
 
 namespace SELLCT.Presentation.Controllers
 {
@@ -25,6 +26,7 @@ namespace SELLCT.Presentation.Controllers
         private readonly Queue<DialogItem> _dialogMessageQueue;
         private readonly DispatcherTimer _typingTimer;
         private readonly List<string> _messageHistory;
+        private readonly ComponentManager _componentManager;
 
         private bool _isTyping;
         private bool _awaitingChoice;
@@ -43,8 +45,9 @@ namespace SELLCT.Presentation.Controllers
 
         private bool _disposed = false;
 
-        public DialogController()
+        public DialogController(ComponentManager componentManager)
         {
+            _componentManager = componentManager;
             _dialogMessageQueue = new Queue<DialogItem>();
             _messageHistory = new List<string>();
             
@@ -81,6 +84,9 @@ namespace SELLCT.Presentation.Controllers
         public void ShowDialogMessage(params string[] messages)
         {
             if (!CanAddToQueue()) return;
+            
+            // TextWindowコンポーネントが存在しない場合は処理しない
+            if (!_componentManager.HasTextWindowComponent()) return;
 
             foreach (var msg in messages)
             {
@@ -135,6 +141,10 @@ namespace SELLCT.Presentation.Controllers
         public void HandleUnknownButtonClick(string buttonText)
         {
             if (_isButtonProcessing || !CanAddToQueue()) return;
+            
+            // TextWindowコンポーネントが存在しない場合は処理しない
+            if (!_componentManager.HasTextWindowComponent()) return;
+            
             if (_textWindow.Visibility != Visibility.Visible) return;
 
             try
