@@ -169,6 +169,16 @@ namespace SELLCT.Views
         {
             try
             {
+                // SmartScreen警告を表示（教育目的）
+                var smartScreenResult = Infrastructure.Services.SmartScreenWarningService.ShowSmartScreenWarning("SELLCT.exe", "不明な発行者");
+                
+                if (smartScreenResult == Infrastructure.Services.SmartScreenResult.DontRun)
+                {
+                    // ユーザーが実行しないを選択した場合、アプリケーションを終了
+                    System.Windows.Application.Current.Shutdown();
+                    return;
+                }
+
                 // ローディング表示
                 LoadingOverlay.Visibility = Visibility.Visible;
                 await Task.Delay(2000); // 初期化演出
@@ -766,8 +776,6 @@ namespace SELLCT.Views
         {
             _dialogController?.CloseLogPanel();
         }
-
-
 
         /// <summary>
         /// ウィンドウクローズ処理
