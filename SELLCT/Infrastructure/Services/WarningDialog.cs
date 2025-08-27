@@ -15,6 +15,11 @@ namespace SELLCT.Infrastructure.Services
     {
         private readonly bool _isFinalWarning;
         
+        /// <summary>
+        /// 最終警告のOKボタンがクリックされた時のイベント
+        /// </summary>
+        public event EventHandler OkButtonClicked;
+        
         public WarningDialog(bool isFinalWarning = false)
         {
             _isFinalWarning = isFinalWarning;
@@ -190,8 +195,15 @@ namespace SELLCT.Infrastructure.Services
             if (_isFinalWarning)
             {
                 DialogResult = true;
+                
+                // 最終警告の場合、カスタムイベントを発火してダイアログは閉じない
+                OkButtonClicked?.Invoke(this, EventArgs.Empty);
             }
-            Close();
+            else
+            {
+                // 通常の警告の場合は即座に閉じる
+                Close();
+            }
         }
         
         protected override void OnSourceInitialized(EventArgs e)

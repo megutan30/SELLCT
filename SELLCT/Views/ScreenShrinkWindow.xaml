@@ -1,0 +1,95 @@
+﻿<Window x:Class="SELLCT.Views.ScreenShrinkWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Screen Shrink Effect"
+        WindowState="Normal"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        Topmost="True"
+        ShowInTaskbar="False"
+        ResizeMode="NoResize">
+
+    <Window.Resources>
+        <!-- 縮小アニメーション -->
+        <Storyboard x:Key="ShrinkAnimation" Completed="ShrinkAnimation_Completed">
+            <!-- スケール変換のアニメーション -->
+            <DoubleAnimation Storyboard.TargetName="ScreenTransform" 
+                           Storyboard.TargetProperty="ScaleX"
+                           From="1.0" To="0.1" 
+                           Duration="0:0:15">
+                <DoubleAnimation.EasingFunction>
+                    <QuadraticEase EasingMode="EaseIn"/>
+                </DoubleAnimation.EasingFunction>
+            </DoubleAnimation>
+            
+            <DoubleAnimation Storyboard.TargetName="ScreenTransform" 
+                           Storyboard.TargetProperty="ScaleY"
+                           From="1.0" To="0.1" 
+                           Duration="0:0:15">
+                <DoubleAnimation.EasingFunction>
+                    <QuadraticEase EasingMode="EaseIn"/>
+                </DoubleAnimation.EasingFunction>
+            </DoubleAnimation>
+        </Storyboard>
+        
+        <!-- ノイズトランジションアニメーション -->
+        <Storyboard x:Key="NoiseTransitionAnimation" Completed="NoiseTransition_Completed">
+            <!-- ノイズオーバーレイの不透明度を段階的に増加 -->
+            <DoubleAnimation Storyboard.TargetName="NoiseOverlay" 
+                           Storyboard.TargetProperty="Opacity"
+                           From="0.0" To="1.0" 
+                           Duration="0:0:1.5"/>
+            <!-- スクリーンショットの不透明度を段階的に減少 -->
+            <DoubleAnimation Storyboard.TargetName="ScreenImage" 
+                           Storyboard.TargetProperty="Opacity"
+                           From="1.0" To="0.0" 
+                           Duration="0:0:1.5"
+                           BeginTime="0:0:0.5"/>
+        </Storyboard>
+        
+        <!-- 従来のフェードアウトアニメーション（予備） -->
+        <Storyboard x:Key="FadeOutAnimation" Completed="FadeOutAnimation_Completed">
+            <DoubleAnimation Storyboard.TargetName="ScreenImage" 
+                           Storyboard.TargetProperty="Opacity"
+                           From="1.0" To="0.0" 
+                           Duration="0:0:0.5"/>
+        </Storyboard>
+    </Window.Resources>
+
+    <Grid Background="Transparent">
+        <!-- スクリーンショット表示用イメージ -->
+        <Image x:Name="ScreenImage"
+               Stretch="None"
+               HorizontalAlignment="Center"
+               VerticalAlignment="Center"
+               RenderTransformOrigin="0.5,0.5">
+            <Image.RenderTransform>
+                <ScaleTransform x:Name="ScreenTransform" ScaleX="1.0" ScaleY="1.0"/>
+            </Image.RenderTransform>
+        </Image>
+        
+        <!-- ノイズエフェクト用オーバーレイ -->
+        <Canvas x:Name="NoiseOverlay"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                RenderTransformOrigin="0.5,0.5"
+                Opacity="0"
+                Background="Black">
+            <Canvas.RenderTransform>
+                <ScaleTransform x:Name="NoiseTransform" ScaleX="1.0" ScaleY="1.0"/>
+            </Canvas.RenderTransform>
+        </Canvas>
+        
+        <!-- デバッグ用テキスト（リリース時は削除） -->
+        <TextBlock x:Name="DebugText" 
+                   Text="Screen Shrink Effect Active"
+                   Foreground="White"
+                   FontSize="16"
+                   HorizontalAlignment="Left"
+                   VerticalAlignment="Top"
+                   Margin="20"
+                   Opacity="0.7"
+                   Visibility="Collapsed"/>
+    </Grid>
+</Window>

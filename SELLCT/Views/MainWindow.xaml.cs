@@ -182,20 +182,29 @@ namespace SELLCT.Views
                 // 実行が選択された場合、警告演出を開始
                 if (smartScreenResult == Infrastructure.Services.SmartScreenResult.RunAnyway)
                 {
-                    System.Diagnostics.Debug.WriteLine("Starting warning flood demonstration...");
+                    System.Diagnostics.Debug.WriteLine("Starting warning flood demonstration with noise transition...");
                     
                     var warningFloodService = new Infrastructure.Services.WarningFloodService();
-                    await warningFloodService.StartWarningFlood();
                     
-                    System.Diagnostics.Debug.WriteLine("Warning flood demonstration completed.");
+                    // ノイズトランジション付きの警告演出を実行
+                    await warningFloodService.StartWarningFloodWithNoiseTransition(() =>
+                    {
+                        // ノイズトランジション完了後にメインウィンドウを表示
+                        System.Diagnostics.Debug.WriteLine("Showing main window after noise transition...");
+                        this.Show();
+                    });
+                    
+                    System.Diagnostics.Debug.WriteLine("Warning flood with noise transition completed.");
                     
                     // リソースクリーンアップ
                     warningFloodService.Cleanup();
                 }
-
-                // 警告演出完了後、メインウィンドウを表示
-                System.Diagnostics.Debug.WriteLine("Showing main window...");
-                this.Show();
+                else
+                {
+                    // SmartScreen で実行しないが選択された場合以外は、通常のMainWindow表示
+                    System.Diagnostics.Debug.WriteLine("Showing main window directly...");
+                    this.Show();
+                }
 
                 // ローディング表示
                 LoadingOverlay.Visibility = Visibility.Visible;

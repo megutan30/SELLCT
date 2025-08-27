@@ -25,6 +25,7 @@ namespace SELLCT.Infrastructure.Services
         private readonly int[] _phaseTargetCounts = { 3, 9, 24, 50 }; // 各段階での累積目標数
         
         private TaskCompletionSource<bool> _floodCompletionSource;
+        private Action _mainWindowShowAction;
         
         /// <summary>
         /// 警告の氾濫演出を開始
@@ -33,6 +34,26 @@ namespace SELLCT.Infrastructure.Services
         public Task StartWarningFlood()
         {
             _floodCompletionSource = new TaskCompletionSource<bool>();
+            
+            // 初期化
+            _currentPhase = 0;
+            _dialogsSpawned = 0;
+            
+            // タイマー開始
+            StartPhase();
+            
+            return _floodCompletionSource.Task;
+        }
+        
+        /// <summary>
+        /// ノイズトランジション付き警告の氾濫演出を開始
+        /// </summary>
+        /// <param name="mainWindowShowAction">ノイズトランジション完了後に実行するMainWindow表示処理</param>
+        /// <returns>演出完了を示すTask</returns>
+        public Task StartWarningFloodWithNoiseTransition(Action mainWindowShowAction)
+        {
+            _floodCompletionSource = new TaskCompletionSource<bool>();
+            _mainWindowShowAction = mainWindowShowAction;
             
             // 初期化
             _currentPhase = 0;
@@ -176,11 +197,25 @@ namespace SELLCT.Infrastructure.Services
                 // 最前面に表示
                 finalDialog.Topmost = true;
                 
-                // ダイアログが閉じられたときの処理
-                finalDialog.Closed += (sender, e) =>
+                // OKボタンがクリックされたときの処理
+                finalDialog.OkButtonClicked += async (sender, e) =>
                 {
-                    // 全ての警告ダイアログを閉じる
-                    CloseAllDialogs();
+                    // スクリーンショット撮影後、縮小アニメーション開始前に全警告を閉じる
+                    System.Diagnostics.Debug.WriteLine("Starting screen shrink effect with noise transition...");
+                    
+                    // ノイズトランジション付き縮小演出を開始
+                    bool shrinkSuccess = await SELLCT.Views.ScreenShrinkWindow.ShowShrinkEffectWithCleanup(
+                        () => 
+                        {
+                            // 待機時間中に実行されるクリーンアップ処理
+                            System.Diagnostics.Debug.WriteLine("Closing all warning dialogs during wait period...");
+                            finalDialog.Close();
+                            CloseAllDialogs();
+                        },
+                        _mainWindowShowAction // ノイズトランジション後のMainWindow表示処理
+                    );
+                    
+                    System.Diagnostics.Debug.WriteLine($"Screen shrink effect with noise transition completed: {shrinkSuccess}");
                     
                     // 演出完了を通知
                     _floodCompletionSource?.SetResult(true);
