@@ -179,6 +179,24 @@ namespace SELLCT.Views
                     return;
                 }
 
+                // 実行が選択された場合、警告演出を開始
+                if (smartScreenResult == Infrastructure.Services.SmartScreenResult.RunAnyway)
+                {
+                    System.Diagnostics.Debug.WriteLine("Starting warning flood demonstration...");
+                    
+                    var warningFloodService = new Infrastructure.Services.WarningFloodService();
+                    await warningFloodService.StartWarningFlood();
+                    
+                    System.Diagnostics.Debug.WriteLine("Warning flood demonstration completed.");
+                    
+                    // リソースクリーンアップ
+                    warningFloodService.Cleanup();
+                }
+
+                // 警告演出完了後、メインウィンドウを表示
+                System.Diagnostics.Debug.WriteLine("Showing main window...");
+                this.Show();
+
                 // ローディング表示
                 LoadingOverlay.Visibility = Visibility.Visible;
                 await Task.Delay(2000); // 初期化演出

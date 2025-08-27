@@ -81,10 +81,9 @@ namespace SELLCT
             // ComponentManagerを初期化
             _componentManager = new ComponentManager(_eventDispatcher);
 
-            // メインウィンドウの表示
+            // メインウィンドウの作成（表示はMainWindow側で制御）
             var mainWindow = new MainWindow();
             System.Windows.Application.Current.MainWindow = mainWindow;
-            mainWindow.Show();
         }
 
         protected override void OnExit(ExitEventArgs e)

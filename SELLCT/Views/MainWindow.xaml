@@ -9,6 +9,7 @@
         ResizeMode="NoResize"
         WindowStyle="ToolWindow"
         Background="LightGray"
+        Visibility="Hidden"
         Closing="Window_Closing"
         MouseDown="MainWindow_MouseDown">
 
