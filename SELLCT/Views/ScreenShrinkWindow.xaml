@@ -4,8 +4,8 @@
         Title="Screen Shrink Effect"
         WindowState="Normal"
         WindowStyle="None"
-        AllowsTransparency="True"
-        Background="Transparent"
+        AllowsTransparency="False"
+        Background="Black"
         Topmost="True"
         ShowInTaskbar="False"
         ResizeMode="NoResize">
@@ -57,7 +57,7 @@
         </Storyboard>
     </Window.Resources>
 
-    <Grid Background="Transparent">
+    <Grid Background="Black">
         <!-- スクリーンショット表示用イメージ -->
         <Image x:Name="ScreenImage"
                Stretch="None"

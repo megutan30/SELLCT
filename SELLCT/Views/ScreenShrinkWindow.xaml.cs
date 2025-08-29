@@ -113,11 +113,12 @@ namespace SELLCT.Views
         {
             try
             {
-                // 透明背景なのでウィンドウを非表示にしないでスクリーンショットを撮る
-                System.Diagnostics.Debug.WriteLine("Capturing screenshot with window visible...");
+                // ウィンドウを一時的に非表示にしてスクリーンショット撮影
+                System.Diagnostics.Debug.WriteLine("Hiding window for screenshot capture...");
+                this.Hide();
                 
-                // 少し待ってからスクリーンショット撮影
-                await Task.Delay(50);
+                // ウィンドウが完全に非表示になるまで待機
+                await Task.Delay(200);
                 
                 // スクリーンショット撮影
                 var screenshot = ScreenCaptureService.CaptureScreen();
@@ -131,15 +132,20 @@ namespace SELLCT.Views
                     {
                         ScreenImage.Source = screenshot;
                     });
+                    
+                    // ウィンドウを再表示
+                    this.Show();
                 }
                 else
                 {
                     System.Diagnostics.Debug.WriteLine("Failed to capture screenshot");
+                    this.Show(); // エラー時も再表示
                 }
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Error capturing screenshot: {ex.Message}");
+                this.Show(); // エラー時も再表示
             }
         }
 
@@ -262,6 +268,23 @@ namespace SELLCT.Views
                     System.Diagnostics.Debug.WriteLine($"Error closing ScreenShrinkWindow: {ex.Message}");
                 }
             });
+        }
+        
+        /// <summary>
+        /// アニメーション完了処理（ウィンドウを閉じずに黒背景を保持）
+        /// </summary>
+        private void CompleteAnimationWithoutClosing()
+        {
+            if (_isAnimationCompleted) return;
+            
+            _isAnimationCompleted = true;
+            System.Diagnostics.Debug.WriteLine("Screen shrink animation sequence completed, keeping black background");
+            
+            // 完了通知
+            _animationCompletionSource?.SetResult(true);
+            
+            // ウィンドウは閉じずに黒背景のまま保持
+            System.Diagnostics.Debug.WriteLine("Black background window remains active");
         }
 
         /// <summary>
@@ -487,6 +510,13 @@ namespace SELLCT.Views
             {
                 System.Diagnostics.Debug.WriteLine("Starting main game transition...");
                 
+                // スクリーンショットとノイズエフェクトを非表示にして黒背景のみ残す
+                ScreenImage.Visibility = Visibility.Collapsed;
+                NoiseOverlay.Visibility = Visibility.Collapsed;
+                
+                // Topmostを無効にしてメインウィンドウが前面に表示されるようにする
+                this.Topmost = false;
+                
                 // メインウィンドウ表示処理があれば実行
                 if (_mainWindowShowAction != null)
                 {
@@ -497,8 +527,8 @@ namespace SELLCT.Views
                 // 少し待機してから完了処理
                 await Task.Delay(500);
                 
-                // アニメーション完了処理
-                CompleteAnimation();
+                // アニメーション完了処理（ウィンドウは閉じずに黒背景を保持）
+                CompleteAnimationWithoutClosing();
             }
             catch (Exception ex)
             {
