@@ -35,10 +35,16 @@ namespace SELLCT.Views
         }
 
         /// <summary>
-        /// ウィンドウロード時の処理
+        /// ウィンドウロード時の処理（新フローでは無効化 - StartShrinkAnimationAsync()から処理開始）
         /// </summary>
         private async void ScreenShrinkWindow_Loaded(object sender, RoutedEventArgs e)
         {
+            // 新しいフローではStartShrinkAnimationAsync()から直接処理を開始するため
+            // Loadedイベントでの処理は実行しない（二重アニメーションを防ぐ）
+            System.Diagnostics.Debug.WriteLine("ScreenShrinkWindow loaded - skipping legacy flow to prevent double animation");
+            return;
+            
+            /* 以下は旧フロー（無効化済み）
             try
             {
                 System.Diagnostics.Debug.WriteLine("ScreenShrinkWindow loaded, capturing screen...");
@@ -69,6 +75,7 @@ namespace SELLCT.Views
                 // エラー時は演出をスキップ
                 CompleteAnimation();
             }
+            */
         }
 
         /// <summary>
@@ -191,15 +198,27 @@ namespace SELLCT.Views
             {
                 System.Diagnostics.Debug.WriteLine("Starting shrink animation...");
                 
-                // メインゲーム画面サイズに対応する縮小比率を計算
+                // メインゲーム画面サイズ（論理ピクセル）
                 var screenSize = ScreenCaptureService.GetScreenSize();
-                var gameWindowWidth = 800.0;  // MainWindow.xaml の Width
-                var gameWindowHeight = 600.0; // MainWindow.xaml の Height
+                var gameWindowWidth = 800.0;  // MainWindow.xaml の Width (DIP)
+                var gameWindowHeight = 600.0; // MainWindow.xaml の Height (DIP)
                 
-                var scaleX = gameWindowWidth / screenSize.Width;
-                var scaleY = gameWindowHeight / screenSize.Height;
+                // WPFのDPI情報を取得
+                var dpiScale = VisualTreeHelper.GetDpi(this);
+                System.Diagnostics.Debug.WriteLine($"DPI scale: X={dpiScale.DpiScaleX:F3}, Y={dpiScale.DpiScaleY:F3}");
                 
-                System.Diagnostics.Debug.WriteLine($"Calculated scale: X={scaleX:F3}, Y={scaleY:F3} (target: {gameWindowWidth}x{gameWindowHeight})");
+                // 論理ピクセル（DIP）を物理ピクセルに変換
+                var physicalGameWidth = gameWindowWidth * dpiScale.DpiScaleX;
+                var physicalGameHeight = gameWindowHeight * dpiScale.DpiScaleY;
+                
+                System.Diagnostics.Debug.WriteLine($"MainWindow physical size: {physicalGameWidth:F0}x{physicalGameHeight:F0} (from {gameWindowWidth}x{gameWindowHeight} DIP)");
+                System.Diagnostics.Debug.WriteLine($"Screen physical size: {screenSize.Width}x{screenSize.Height}");
+                
+                // 物理ピクセル同士で正確な縮小比率を計算
+                var scaleX = physicalGameWidth / screenSize.Width;
+                var scaleY = physicalGameHeight / screenSize.Height;
+                
+                System.Diagnostics.Debug.WriteLine($"Calculated scale: X={scaleX:F3}, Y={scaleY:F3} (physical pixels)");
                 
                 // 動的にアニメーションの終点を設定
                 var shrinkStoryboard = (Storyboard)Resources["ShrinkAnimation"];
@@ -404,26 +423,26 @@ namespace SELLCT.Views
         {
             try
             {
-                // 元の画面サイズを取得
-                var screenSize = ScreenCaptureService.GetScreenSize();
+                // MainWindowの物理サイズを取得（StartShrinkAnimation()と同じ計算）
+                var gameWindowWidth = 800.0;  // MainWindow.xaml の Width (DIP)
+                var gameWindowHeight = 600.0; // MainWindow.xaml の Height (DIP)
                 
-                // 縮小比率を取得
-                var scaleX = ScreenTransform.ScaleX;
-                var scaleY = ScreenTransform.ScaleY;
+                // WPFのDPI情報を取得
+                var dpiScale = VisualTreeHelper.GetDpi(this);
                 
-                // 縮小後の実際の表示サイズを計算
-                var displayWidth = screenSize.Width * scaleX;
-                var displayHeight = screenSize.Height * scaleY;
+                // 論理ピクセル（DIP）を物理ピクセルに変換
+                var physicalGameWidth = gameWindowWidth * dpiScale.DpiScaleX;
+                var physicalGameHeight = gameWindowHeight * dpiScale.DpiScaleY;
                 
-                // ノイズオーバーレイのサイズを縮小後の実際のサイズに設定
-                NoiseOverlay.Width = displayWidth;
-                NoiseOverlay.Height = displayHeight;
+                // ノイズオーバーレイのサイズをMainWindowの物理サイズに直接設定
+                NoiseOverlay.Width = physicalGameWidth;
+                NoiseOverlay.Height = physicalGameHeight;
                 
                 // ScaleTransformは適用しない（すでに正確なサイズで作成済み）
                 NoiseTransform.ScaleX = 1.0;
                 NoiseTransform.ScaleY = 1.0;
                 
-                System.Diagnostics.Debug.WriteLine($"Noise overlay setup - Original screen: {screenSize.Width}x{screenSize.Height}, Scale: {scaleX:F3}x{scaleY:F3}, Final size: {displayWidth:F0}x{displayHeight:F0}");
+                System.Diagnostics.Debug.WriteLine($"Noise overlay setup - MainWindow physical size: {physicalGameWidth:F0}x{physicalGameHeight:F0} (from {gameWindowWidth}x{gameWindowHeight} DIP, DPI scale: {dpiScale.DpiScaleX:F3}x{dpiScale.DpiScaleY:F3})");
             }
             catch (Exception ex)
             {
