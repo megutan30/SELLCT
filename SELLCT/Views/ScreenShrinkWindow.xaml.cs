@@ -113,12 +113,11 @@ namespace SELLCT.Views
         {
             try
             {
-                // ウィンドウを一時的に非表示にしてスクリーンショット撮影
-                System.Diagnostics.Debug.WriteLine("Hiding window for screenshot capture...");
-                this.Hide();
+                // ウィンドウは最初から非表示なのでHide()は不要
+                System.Diagnostics.Debug.WriteLine("Capturing screenshot (window already hidden)...");
                 
-                // ウィンドウが完全に非表示になるまで待機
-                await Task.Delay(200);
+                // 少し待機してから撮影（UIの安定化）
+                await Task.Delay(100);
                 
                 // スクリーンショット撮影
                 var screenshot = ScreenCaptureService.CaptureScreen();
@@ -127,25 +126,43 @@ namespace SELLCT.Views
                 {
                     System.Diagnostics.Debug.WriteLine("Screenshot captured successfully");
                     
-                    // メインスレッドで画像を設定
+                    // メインスレッドで画像を設定し、ウィンドウを初回表示
                     Dispatcher.Invoke(() =>
                     {
                         ScreenImage.Source = screenshot;
+                        
+                        // ウィンドウを初回表示
+                        this.Show();
+                        
+                        // ウィンドウサイズを設定
+                        SetWindowSize();
+                        
+                        // 縮小アニメーション開始
+                        StartShrinkAnimation();
                     });
-                    
-                    // ウィンドウを再表示
-                    this.Show();
                 }
                 else
                 {
                     System.Diagnostics.Debug.WriteLine("Failed to capture screenshot");
-                    this.Show(); // エラー時も再表示
+                    // エラー時でも表示して処理を続行
+                    Dispatcher.Invoke(() =>
+                    {
+                        this.Show();
+                        SetWindowSize();
+                        StartShrinkAnimation();
+                    });
                 }
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Error capturing screenshot: {ex.Message}");
-                this.Show(); // エラー時も再表示
+                // エラー時でも表示して処理を続行
+                Dispatcher.Invoke(() =>
+                {
+                    this.Show();
+                    SetWindowSize();
+                    StartShrinkAnimation();
+                });
             }
         }
 
@@ -155,6 +172,13 @@ namespace SELLCT.Views
         public Task StartShrinkAnimationAsync()
         {
             _animationCompletionSource = new TaskCompletionSource<bool>();
+            
+            // スクリーンショット撮影を開始（非同期）
+            Task.Run(async () =>
+            {
+                await CaptureAndSetScreenshot();
+            });
+            
             return _animationCompletionSource.Task;
         }
 
@@ -334,8 +358,8 @@ namespace SELLCT.Views
                 
                 var animationTask = shrinkWindow.StartShrinkAnimationAsync();
                 
-                // ウィンドウを表示
-                shrinkWindow.Show();
+                // ウィンドウは最初から非表示状態で作成し、スクリーンショット撮影後に表示
+                // shrinkWindow.Show(); // 削除：一瞬黒画面が見えるのを防ぐ
                 
                 // アニメーション完了まで待機
                 await animationTask;
