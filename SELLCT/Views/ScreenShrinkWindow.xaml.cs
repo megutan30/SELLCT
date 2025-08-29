@@ -138,13 +138,27 @@ namespace SELLCT.Views
                     {
                         ScreenImage.Source = screenshot;
                         
-                        // ウィンドウを初回表示
+                        // ウィンドウを初回表示（黒背景とスクリーンショット表示）
                         this.Show();
                         
                         // ウィンドウサイズを設定
                         SetWindowSize();
-                        
-                        // 縮小アニメーション開始
+                    });
+                    
+                    // 少し待機してからクリーンアップ処理を実行（警告消去）
+                    await Task.Delay(500);
+                    
+                    // クリーンアップ処理実行（残っている警告を消去）
+                    if (_cleanupAction != null)
+                    {
+                        System.Diagnostics.Debug.WriteLine("Executing cleanup action - closing remaining warning dialogs...");
+                        _cleanupAction.Invoke();
+                        await Task.Delay(1000); // クリーンアップ完了待機
+                    }
+                    
+                    // 縮小アニメーション開始
+                    Dispatcher.Invoke(() =>
+                    {
                         StartShrinkAnimation();
                     });
                 }
@@ -156,6 +170,18 @@ namespace SELLCT.Views
                     {
                         this.Show();
                         SetWindowSize();
+                    });
+                    
+                    // エラー時でもクリーンアップ処理は実行
+                    if (_cleanupAction != null)
+                    {
+                        System.Diagnostics.Debug.WriteLine("Executing cleanup action (error case) - closing remaining warning dialogs...");
+                        _cleanupAction.Invoke();
+                        await Task.Delay(1000);
+                    }
+                    
+                    Dispatcher.Invoke(() =>
+                    {
                         StartShrinkAnimation();
                     });
                 }
@@ -168,6 +194,25 @@ namespace SELLCT.Views
                 {
                     this.Show();
                     SetWindowSize();
+                });
+                
+                // エラー時でもクリーンアップ処理は実行
+                if (_cleanupAction != null)
+                {
+                    try
+                    {
+                        System.Diagnostics.Debug.WriteLine("Executing cleanup action (exception case) - closing remaining warning dialogs...");
+                        _cleanupAction.Invoke();
+                        await Task.Delay(1000);
+                    }
+                    catch
+                    {
+                        // クリーンアップでエラーが発生しても続行
+                    }
+                }
+                
+                Dispatcher.Invoke(() =>
+                {
                     StartShrinkAnimation();
                 });
             }
