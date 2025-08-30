@@ -12,6 +12,19 @@ using SELLCT.Infrastructure.Services;
 namespace SELLCT.Views
 {
     /// <summary>
+    /// ノイズトランジション演出の段階
+    /// </summary>
+    public enum NoisePhase
+    {
+        Initial,      // 0-6秒: 間欠的ノイズ
+        Increasing,   // 6-10秒: 頻度上昇  
+        Frequent,     // 10-13秒: 高頻度
+        Constant,     // 13-15秒: 常時表示
+        Maintain,     // 15-17秒: 維持期
+        Clear         // 17-19秒: クリア
+    }
+
+    /// <summary>
     /// 画面縮小演出用ウィンドウ
     /// 教育目的で「PC画面自体が縮小する」不思議な体験を提供
     /// </summary>
@@ -22,6 +35,10 @@ namespace SELLCT.Views
         private Action _cleanupAction;
         private Action _mainWindowShowAction;
         private DispatcherTimer _noiseTimer;
+        private DispatcherTimer _noisePatternTimer;
+        private NoisePhase _currentPhase;
+        private DateTime _animationStartTime;
+        private bool _isNoiseVisible = false;
         private Random _random = new Random();
 
         public ScreenShrinkWindow()
@@ -241,7 +258,11 @@ namespace SELLCT.Views
         {
             try
             {
-                System.Diagnostics.Debug.WriteLine("Starting shrink animation...");
+                System.Diagnostics.Debug.WriteLine("Starting shrink animation with synchronized noise transition...");
+                
+                // アニメーション開始時刻を記録
+                _animationStartTime = DateTime.Now;
+                _currentPhase = NoisePhase.Initial;
                 
                 // メインゲーム画面サイズ（論理ピクセル）
                 var screenSize = ScreenCaptureService.GetScreenSize();
@@ -265,6 +286,9 @@ namespace SELLCT.Views
                 
                 System.Diagnostics.Debug.WriteLine($"Calculated scale: X={scaleX:F3}, Y={scaleY:F3} (physical pixels)");
                 
+                // ノイズオーバーレイの初期設定
+                SetupSynchronizedNoiseOverlay(physicalGameWidth, physicalGameHeight);
+                
                 // 動的にアニメーションの終点を設定
                 var shrinkStoryboard = (Storyboard)Resources["ShrinkAnimation"];
                 var scaleXAnimation = (DoubleAnimation)shrinkStoryboard.Children[0];
@@ -273,7 +297,13 @@ namespace SELLCT.Views
                 scaleXAnimation.To = scaleX;
                 scaleYAnimation.To = scaleY;
                 
+                // 段階的ノイズ制御システム開始
+                StartSynchronizedNoiseSystem();
+                
+                // 縮小アニメーション開始
                 shrinkStoryboard.Begin();
+                
+                System.Diagnostics.Debug.WriteLine("Shrink animation and synchronized noise system started");
             }
             catch (Exception ex)
             {
@@ -283,23 +313,16 @@ namespace SELLCT.Views
         }
 
         /// <summary>
-        /// 縮小アニメーション完了イベント - ノイズトランジション開始
+        /// 縮小アニメーション完了イベント - 新しいシステムでは並行制御により自動処理
         /// </summary>
         private void ShrinkAnimation_Completed(object sender, EventArgs e)
         {
             try
             {
-                System.Diagnostics.Debug.WriteLine("Shrink animation completed, starting noise transition...");
+                System.Diagnostics.Debug.WriteLine("Shrink animation completed - synchronized noise system continues automatically");
                 
-                // ノイズオーバーレイのサイズを縮小された画像に合わせる
-                SetupNoiseOverlay();
-                
-                // ノイズエフェクト開始
-                StartNoiseEffect();
-                
-                // ノイズトランジションアニメーション開始
-                var noiseStoryboard = (Storyboard)Resources["NoiseTransitionAnimation"];
-                noiseStoryboard.Begin();
+                // 新しいシステムではノイズ制御は並行して動作しているため
+                // 特別な処理は不要（ノイズフェーズシステムが自動制御）
             }
             catch (Exception ex)
             {
@@ -309,17 +332,12 @@ namespace SELLCT.Views
         }
 
         /// <summary>
-        /// ノイズトランジション完了イベント
+        /// ノイズトランジション完了イベント（新システムでは自動制御により無効化）
         /// </summary>
         private void NoiseTransition_Completed(object sender, EventArgs e)
         {
-            System.Diagnostics.Debug.WriteLine("Noise transition completed, starting main game...");
-            
-            // ノイズエフェクト停止
-            StopNoiseEffect();
-            
-            // メインゲーム開始処理に進む
-            StartMainGame();
+            System.Diagnostics.Debug.WriteLine("Noise transition completed (legacy event) - new system handles automatically");
+            // 新しいシステムではStartNoiseClearTransition()が自動的にStartMainGame()を呼び出す
         }
         
         /// <summary>
@@ -340,6 +358,9 @@ namespace SELLCT.Views
             
             _isAnimationCompleted = true;
             System.Diagnostics.Debug.WriteLine("Screen shrink animation sequence completed");
+            
+            // 統合ノイズシステム停止
+            StopSynchronizedNoiseSystem();
             
             // 完了通知
             _animationCompletionSource?.SetResult(true);
@@ -367,6 +388,8 @@ namespace SELLCT.Views
             
             _isAnimationCompleted = true;
             System.Diagnostics.Debug.WriteLine("Screen shrink animation sequence completed, keeping black background");
+            
+            // 統合ノイズシステムは既にStartMainGame()で停止済み
             
             // 完了通知
             _animationCompletionSource?.SetResult(true);
@@ -496,58 +519,21 @@ namespace SELLCT.Views
         }
         
         /// <summary>
-        /// ノイズエフェクトの開始
+        /// ノイズエフェクトの停止（新システム用）
         /// </summary>
-        private void StartNoiseEffect()
+        private void StopSynchronizedNoiseSystem()
         {
             try
             {
-                System.Diagnostics.Debug.WriteLine("Starting noise effect...");
-                
-                // ノイズタイマーの設定
-                _noiseTimer = new DispatcherTimer
-                {
-                    Interval = TimeSpan.FromMilliseconds(50) // 20FPS
-                };
-                _noiseTimer.Tick += NoiseTimer_Tick;
-                _noiseTimer.Start();
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Error starting noise effect: {ex.Message}");
-            }
-        }
-        
-        /// <summary>
-        /// ノイズエフェクトの停止
-        /// </summary>
-        private void StopNoiseEffect()
-        {
-            try
-            {
+                _noisePatternTimer?.Stop();
+                _noisePatternTimer = null;
                 _noiseTimer?.Stop();
                 _noiseTimer = null;
-                System.Diagnostics.Debug.WriteLine("Noise effect stopped");
+                System.Diagnostics.Debug.WriteLine("Synchronized noise system stopped");
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error stopping noise effect: {ex.Message}");
-            }
-        }
-        
-        /// <summary>
-        /// ノイズタイマーティック処理
-        /// </summary>
-        private void NoiseTimer_Tick(object sender, EventArgs e)
-        {
-            try
-            {
-                // ノイズパターンを生成
-                GenerateNoisePattern();
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Error in noise timer tick: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Error stopping synchronized noise system: {ex.Message}");
             }
         }
         
@@ -598,6 +584,9 @@ namespace SELLCT.Views
             {
                 System.Diagnostics.Debug.WriteLine("Starting main game transition...");
                 
+                // 統合ノイズシステム停止
+                StopSynchronizedNoiseSystem();
+                
                 // スクリーンショットとノイズエフェクトを非表示にして黒背景のみ残す
                 ScreenImage.Visibility = Visibility.Collapsed;
                 NoiseOverlay.Visibility = Visibility.Collapsed;
@@ -621,6 +610,353 @@ namespace SELLCT.Views
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Error starting main game: {ex.Message}");
+                CompleteAnimation();
+            }
+        }
+        
+        /// <summary>
+        /// 縮小アニメーションと同期したノイズオーバーレイの設定
+        /// </summary>
+        private void SetupSynchronizedNoiseOverlay(double physicalGameWidth, double physicalGameHeight)
+        {
+            try
+            {
+                // ノイズオーバーレイの初期サイズを画面全体に設定
+                var screenSize = ScreenCaptureService.GetScreenSize();
+                NoiseOverlay.Width = screenSize.Width;
+                NoiseOverlay.Height = screenSize.Height;
+                
+                // ScaleTransformは1.0で開始（縮小と同期）
+                NoiseTransform.ScaleX = 1.0;
+                NoiseTransform.ScaleY = 1.0;
+                
+                // 初期状態では非表示
+                NoiseOverlay.Opacity = 0;
+                NoiseOverlay.Visibility = Visibility.Visible;
+                
+                System.Diagnostics.Debug.WriteLine($"Synchronized noise overlay setup - Screen: {screenSize.Width}x{screenSize.Height}, Target: {physicalGameWidth:F0}x{physicalGameHeight:F0}");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error setting up synchronized noise overlay: {ex.Message}");
+            }
+        }
+        
+        /// <summary>
+        /// 段階的ノイズ制御システム開始
+        /// </summary>
+        private void StartSynchronizedNoiseSystem()
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine("Starting synchronized noise system...");
+                
+                // パターン制御タイマーの設定
+                _noisePatternTimer = new DispatcherTimer
+                {
+                    Interval = TimeSpan.FromMilliseconds(100) // 10FPS でフェーズチェック
+                };
+                _noisePatternTimer.Tick += NoisePatternTimer_Tick;
+                _noisePatternTimer.Start();
+                
+                // ノイズ描画タイマーの設定
+                _noiseTimer = new DispatcherTimer
+                {
+                    Interval = TimeSpan.FromMilliseconds(50) // 20FPS でノイズ描画
+                };
+                _noiseTimer.Tick += NoiseRenderTimer_Tick;
+                _noiseTimer.Start();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error starting synchronized noise system: {ex.Message}");
+            }
+        }
+        
+        /// <summary>
+        /// ノイズパターン制御タイマー処理
+        /// </summary>
+        private void NoisePatternTimer_Tick(object sender, EventArgs e)
+        {
+            try
+            {
+                var elapsed = DateTime.Now - _animationStartTime;
+                var elapsedSeconds = elapsed.TotalSeconds;
+                
+                // 現在のフェーズを決定
+                var newPhase = DetermineCurrentPhase(elapsedSeconds);
+                
+                if (newPhase != _currentPhase)
+                {
+                    _currentPhase = newPhase;
+                    System.Diagnostics.Debug.WriteLine($"Noise phase changed to: {_currentPhase} (elapsed: {elapsedSeconds:F1}s)");
+                }
+                
+                // フェーズに応じてノイズパターンを更新
+                UpdateNoisePattern();
+                
+                // 縮小と同期したサイズ更新
+                SyncNoiseWithShrinking();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error in noise pattern timer: {ex.Message}");
+            }
+        }
+        
+        /// <summary>
+        /// ノイズ描画タイマー処理
+        /// </summary>
+        private void NoiseRenderTimer_Tick(object sender, EventArgs e)
+        {
+            try
+            {
+                // ノイズが表示されている場合のみ描画を更新
+                if (_isNoiseVisible)
+                {
+                    GenerateNoisePattern();
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error in noise render timer: {ex.Message}");
+            }
+        }
+        
+        /// <summary>
+        /// 経過時間からノイズフェーズを決定（15秒縮小アニメーションと同期）
+        /// </summary>
+        private NoisePhase DetermineCurrentPhase(double elapsedSeconds)
+        {
+            if (elapsedSeconds < 6.0) return NoisePhase.Initial;      // 0-4秒: 間欠的ノイズ
+            if (elapsedSeconds < 10.0) return NoisePhase.Increasing;   // 4-8秒: 頻度上昇
+            if (elapsedSeconds < 13.0) return NoisePhase.Frequent;    // 8-11秒: 高頻度
+            if (elapsedSeconds < 16.0) return NoisePhase.Constant;    // 11-15秒: 常時表示
+            if (elapsedSeconds < 19.5) return NoisePhase.Maintain;    // 15-15.5秒: 短い維持期間
+            return NoisePhase.Clear;                                  // 15.5秒以降: クリア開始
+        }
+        
+        /// <summary>
+        /// フェーズに応じたノイズパターン更新（調整版：15秒同期）
+        /// </summary>
+        private void UpdateNoisePattern()
+        {
+            switch (_currentPhase)
+            {
+                case NoisePhase.Initial:
+                    // 間欠的ノイズ: 0.1秒表示 / 2秒非表示（頻度調整）
+                    SetNoisePattern(showDuration: 100, hideDuration: 3000, opacity: 0.3);
+                    break;
+                    
+                case NoisePhase.Increasing:
+                    // 頻度上昇: 0.15秒表示 / 1秒非表示（頻度調整）
+                    SetNoisePattern(showDuration: 150, hideDuration: 1000, opacity: 0.6);
+                    break;
+                    
+                case NoisePhase.Frequent:
+                    // 高頻度: 0.2秒表示 / 0.5秒非表示（頻度調整）
+                    SetNoisePattern(showDuration: 200, hideDuration: 500, opacity: 0.8);
+                    break;
+                    
+                case NoisePhase.Constant:
+                    // 常時表示（縮小アニメーション後半と合わせて強化）
+                    SetNoiseConstantDisplay(opacity: 1.0);
+                    break;
+                    
+                case NoisePhase.Maintain:
+                    // 維持期間（短時間、縮小完了直後）
+                    SetNoiseConstantDisplay(opacity: 1.0);
+                    break;
+                    
+                case NoisePhase.Clear:
+                    // クリアフェーズ - 1秒でフェードアウト（同期）
+                    StartNoiseClearTransition();
+                    break;
+            }
+        }
+        
+        /// <summary>
+        /// 縮小アニメーションとノイズサイズの同期
+        /// </summary>
+        private void SyncNoiseWithShrinking()
+        {
+            try
+            {
+                // 現在の縮小スケールを取得
+                var currentScaleX = ScreenTransform.ScaleX;
+                var currentScaleY = ScreenTransform.ScaleY;
+                
+                // ノイズオーバーレイも同じスケールを適用
+                NoiseTransform.ScaleX = currentScaleX;
+                NoiseTransform.ScaleY = currentScaleY;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error syncing noise with shrinking: {ex.Message}");
+            }
+        }
+        
+        // 間欠的ノイズパターン制御用フィールド
+        private DateTime _lastNoiseToggle = DateTime.MinValue;
+        private bool _currentNoiseState = false;
+        private double _currentShowDuration = 0;
+        private double _currentHideDuration = 0;
+        private double _targetOpacity = 0;
+        private bool _isInClearTransition = false;
+        
+        /// <summary>
+        /// 間欠的ノイズパターンの設定
+        /// </summary>
+        private void SetNoisePattern(int showDuration, int hideDuration, double opacity)
+        {
+            if (_isInClearTransition) return;
+            
+            _currentShowDuration = showDuration;
+            _currentHideDuration = hideDuration;
+            _targetOpacity = opacity;
+            
+            // 初回またはパターン変更時の状態リセット
+            if (_lastNoiseToggle == DateTime.MinValue)
+            {
+                _lastNoiseToggle = DateTime.Now;
+                _currentNoiseState = false;
+                _isNoiseVisible = false;
+                NoiseOverlay.Opacity = 0;
+            }
+            
+            // 現在の状態に応じて次の切り替えタイミングをチェック
+            var elapsed = (DateTime.Now - _lastNoiseToggle).TotalMilliseconds;
+            var shouldToggle = false;
+            
+            if (_currentNoiseState && elapsed >= _currentShowDuration)
+            {
+                // 表示中 → 非表示に切り替え
+                shouldToggle = true;
+                _currentNoiseState = false;
+                _isNoiseVisible = false;
+                NoiseOverlay.Opacity = 0;
+            }
+            else if (!_currentNoiseState && elapsed >= _currentHideDuration)
+            {
+                // 非表示中 → 表示に切り替え
+                shouldToggle = true;
+                _currentNoiseState = true;
+                _isNoiseVisible = true;
+                NoiseOverlay.Opacity = _targetOpacity;
+            }
+            
+            if (shouldToggle)
+            {
+                _lastNoiseToggle = DateTime.Now;
+            }
+        }
+        
+        /// <summary>
+        /// 常時ノイズ表示の設定
+        /// </summary>
+        private void SetNoiseConstantDisplay(double opacity)
+        {
+            if (_isInClearTransition) return;
+            
+            _isNoiseVisible = true;
+            _targetOpacity = opacity;
+            NoiseOverlay.Opacity = opacity;
+        }
+        
+        /// <summary>
+        /// ノイズクリアトランジション開始（メインウィンドウを先行表示）
+        /// </summary>
+        private void StartNoiseClearTransition()
+        {
+            if (_isInClearTransition) return;
+            
+            try
+            {
+                System.Diagnostics.Debug.WriteLine("Starting noise clear transition with main window pre-display...");
+                _isInClearTransition = true;
+                
+                // ノイズクリア開始時にメインウィンドウを表示（ノイズの下で準備）
+                ShowMainWindowDuringTransition();
+                
+                // ノイズのフェードアウトアニメーション（1秒）
+                var fadeAnimation = new DoubleAnimation
+                {
+                    From = NoiseOverlay.Opacity,
+                    To = 0.0,
+                    Duration = TimeSpan.FromSeconds(1.0), // 1秒かけてフェードアウト
+                    EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
+                };
+                
+                fadeAnimation.Completed += (s, e) =>
+                {
+                    _isNoiseVisible = false;
+                    NoiseOverlay.Opacity = 0;
+                    
+                    // ノイズクリア完了 → 最終調整処理のみ
+                    FinishTransition();
+                };
+                
+                NoiseOverlay.BeginAnimation(UIElement.OpacityProperty, fadeAnimation);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error starting noise clear transition: {ex.Message}");
+                StartMainGame(); // エラー時は従来通り
+            }
+        }
+        
+        /// <summary>
+        /// ノイズトランジション中にメインウィンドウを表示
+        /// </summary>
+        private void ShowMainWindowDuringTransition()
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine("Showing main window during noise transition...");
+                
+                // 統合ノイズシステム停止
+                StopSynchronizedNoiseSystem();
+                
+                // スクリーンショットを非表示（ノイズは残す）
+                ScreenImage.Visibility = Visibility.Collapsed;
+                
+                // Topmostを無効にしてメインウィンドウが前面に表示されるようにする
+                this.Topmost = false;
+                
+                // メインウィンドウ表示処理があれば実行
+                if (_mainWindowShowAction != null)
+                {
+                    System.Diagnostics.Debug.WriteLine("Executing main window show action during transition...");
+                    _mainWindowShowAction.Invoke();
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error showing main window during transition: {ex.Message}");
+            }
+        }
+        
+        /// <summary>
+        /// トランジション完了後の最終処理
+        /// </summary>
+        private async void FinishTransition()
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine("Finishing transition - main window already visible...");
+                
+                // ノイズオーバーレイを非表示
+                NoiseOverlay.Visibility = Visibility.Collapsed;
+                
+                // 少し待機してから完了処理
+                await Task.Delay(100);
+                
+                // アニメーション完了処理（ウィンドウは閉じずに黒背景を保持）
+                CompleteAnimationWithoutClosing();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error finishing transition: {ex.Message}");
                 CompleteAnimation();
             }
         }
