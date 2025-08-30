@@ -192,6 +192,9 @@ namespace SELLCT.Views
                         // ノイズトランジション完了後にメインウィンドウを表示
                         System.Diagnostics.Debug.WriteLine("Showing main window after noise transition...");
                         this.Show();
+                        
+                        // メインウィンドウを最前面に固定
+                        this.SetTopmost(true);
                     });
                     
                     System.Diagnostics.Debug.WriteLine("Warning flood with noise transition completed.");
@@ -207,8 +210,8 @@ namespace SELLCT.Views
                 }
 
                 // ローディング表示
-                LoadingOverlay.Visibility = Visibility.Visible;
-                await Task.Delay(2000); // 初期化演出
+               // LoadingOverlay.Visibility = Visibility.Visible;
+                //await Task.Delay(2000); // 初期化演出
 
                 // サービス初期化
                 InitializeServices();
@@ -863,6 +866,32 @@ namespace SELLCT.Views
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Error in OnKeyDown: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// ウィンドウの最前面表示を制御
+        /// </summary>
+        /// <param name="topmost">最前面に表示するかどうか</param>
+        public void SetTopmost(bool topmost)
+        {
+            try
+            {
+                this.Topmost = topmost;
+                if (topmost)
+                {
+                    this.Activate();
+                    this.Focus();
+                    System.Diagnostics.Debug.WriteLine("MainWindow set to topmost and activated");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("MainWindow topmost disabled");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error setting MainWindow topmost: {ex.Message}");
             }
         }
 
