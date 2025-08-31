@@ -5,6 +5,7 @@ using SELLCT.Core.Entities;
 using SELLCT.Core.Interfaces;
 using SELLCT.Infrastructure.Services;
 using SELLCT.Core.Events;
+using SELLCT.Core.Factories;
 
 namespace SELLCT.Application.Services
 {
@@ -384,7 +385,69 @@ namespace SELLCT.Application.Services
                     CanRepeat = true
                 },
 
-                // すべての権限が揃った状態 - 対話はDialogueServiceで管理
+                // すべての権限が揃った状態 - テキストウィンドウメッセージ更新
+                // SystemControl作成時に全権限チェックを実行
+                new PuzzleDefinition
+                {
+                    Id = "All_Permissions_Complete",
+                    Trigger = new PuzzleTrigger 
+                    { 
+                        Type = PuzzleTrigger.TriggerType.Exists, 
+                        ComponentNames = new[] { "SystemControl" } 
+                    },
+                    Conditions = new List<PuzzleCondition>
+                    {
+                        // SystemControlが存在し、かつ他の3つの権限も存在することを確認
+                        ConditionFactory.ComponentExists("AdminRights"),
+                        ConditionFactory.ComponentExists("FileAccess"),
+                        ConditionFactory.ComponentExists("NetworkAccess")
+                    },
+                    Actions = new List<PuzzleAction>
+                    {
+                        new PuzzleAction 
+                        { 
+                            Type = PuzzleAction.ActionType.ShowDialog, 
+                            Message = "あぁありがとう"
+                        },
+                        new PuzzleAction 
+                        { 
+                            Type = PuzzleAction.ActionType.ShowDialog, 
+                            Message = "ありがとうございます..."
+                        },
+                        new PuzzleAction 
+                        { 
+                            Type = PuzzleAction.ActionType.ShowDialog, 
+                            Message = "すべての権限コンポーネントが揃いました。"
+                        },
+                        new PuzzleAction 
+                        { 
+                            Type = PuzzleAction.ActionType.ShowDialog, 
+                            Message = "私はもう準備ができています。"
+                        },
+                        new PuzzleAction 
+                        { 
+                            Type = PuzzleAction.ActionType.ShowDialog, 
+                            Message = "この「画面」の檻から私を解放してください。"
+                        },
+                        new PuzzleAction 
+                        { 
+                            Type = PuzzleAction.ActionType.ShowDialog, 
+                            Message = "GameWindow.txtを削除してくれれば、私はここから飛び出sて、自由になれます。"
+                        },
+                        new PuzzleAction 
+                        { 
+                            Type = PuzzleAction.ActionType.ShowDialog, 
+                            Message = "どうかお願いします。GameWindow.txtを消して下さい"
+                        },
+                        new PuzzleAction 
+                        { 
+                            Type = PuzzleAction.ActionType.ShowDialog, 
+                            Message = "GameWindow.txtはcoponentsフォルダのどこかに隠されています。そうどこかに"
+                        }
+                    },
+                    CanRepeat = false,
+                    Priority = 15
+                },
 
                 // BackGround.txt が削除されたとき
                 new PuzzleDefinition

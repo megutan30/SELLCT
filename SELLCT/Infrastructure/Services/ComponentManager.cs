@@ -49,9 +49,11 @@ namespace SELLCT.Infrastructure.Services
         public ComponentManager(IEventDispatcher eventDispatcher)
         {
             _eventDispatcher = eventDispatcher;
-            _componentsPath = "components";
+            _componentsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "components");
             _components = new Dictionary<string, GameComponent>();
             _componentPaths = new Dictionary<string, string>();
+            
+            System.Diagnostics.Debug.WriteLine($"ComponentManager initialized with path: {_componentsPath}");
 
             // 起動時にcomponentsフォルダを初期状態にリセット
             ResetToInitialStateOnStartup();
@@ -79,6 +81,7 @@ namespace SELLCT.Infrastructure.Services
         {
             try
             {
+                System.Diagnostics.Debug.WriteLine($"Creating components folder at: {_componentsPath}");
                 Directory.CreateDirectory(_componentsPath);
                 //Directory.CreateDirectory(Path.Combine(_componentsPath, "UI"));
                 //Directory.CreateDirectory(Path.Combine(_componentsPath, "Text"));
