@@ -8,6 +8,22 @@ using SELLCT.Core.Events;
 
 namespace SELLCT.Infrastructure.Services
 {
+    /// <summary>
+    /// コンポーネント変更イベント用のEventArgsクラス
+    /// </summary>
+    public class ComponentChangeEventArgs : EventArgs
+    {
+        public WatcherChangeTypes ChangeType { get; set; }
+        public string FilePath { get; set; }
+        public string OldPath { get; set; } // Renamed用
+        
+        public ComponentChangeEventArgs(WatcherChangeTypes changeType, string filePath, string oldPath = null)
+        {
+            ChangeType = changeType;
+            FilePath = filePath;
+            OldPath = oldPath;
+        }
+    }
     public class FileSystemWatcherManager : IDisposable
     {
         private readonly string _watchPath;
@@ -22,7 +38,7 @@ namespace SELLCT.Infrastructure.Services
         private const int DEBOUNCE_INTERVAL_MS = 100;
         private const int MAX_PENDING_EVENTS = 1000;
 
-        public event EventHandler ComponentsFolderChanged;
+        public event EventHandler<ComponentChangeEventArgs> ComponentsFolderChanged;
         public event EventHandler SELLCTFolderBetrayed;
 
         public FileSystemWatcherManager(string watchPath, IEventDispatcher eventDispatcher)
@@ -70,7 +86,11 @@ namespace SELLCT.Infrastructure.Services
             try
             {
                 CheckSELLCTFolderStatus();
-                ComponentsFolderChanged?.Invoke(this, EventArgs.Empty);
+                
+                // 変更種別に応じたイベント引数を作成
+                var changeEventArgs = new ComponentChangeEventArgs(e.ChangeType, e.FullPath);
+                ComponentsFolderChanged?.Invoke(this, changeEventArgs);
+                
                 ScheduleDelayedEvent(e);
             }
             catch (Exception ex)
@@ -91,7 +111,9 @@ namespace SELLCT.Infrastructure.Services
                 var createEvent = new FileSystemEventArgs(WatcherChangeTypes.Created, Path.GetDirectoryName(e.FullPath), e.Name);
                 ScheduleDelayedEvent(createEvent);
 
-                ComponentsFolderChanged?.Invoke(this, EventArgs.Empty);
+                // 名前変更イベントの詳細情報を含む引数を作成
+                var changeEventArgs = new ComponentChangeEventArgs(WatcherChangeTypes.Renamed, e.FullPath, e.OldFullPath);
+                ComponentsFolderChanged?.Invoke(this, changeEventArgs);
             }
             catch (Exception ex)
             {

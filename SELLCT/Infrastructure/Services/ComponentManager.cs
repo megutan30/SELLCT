@@ -31,7 +31,7 @@ namespace SELLCT.Infrastructure.Services
         /// <summary>
         /// componentsフォルダ変更イベント（ウィンドウ最前面表示用）
         /// </summary>
-        public event EventHandler ComponentsFolderChanged;
+        public event EventHandler<ComponentChangeEventArgs> ComponentsFolderChanged;
 
         /// <summary>
         /// SELLCTフォルダ削除/空状態検出イベント（裏切りエンディング用）
@@ -58,7 +58,7 @@ namespace SELLCT.Infrastructure.Services
             
             // FileSystemWatcherManagerを初期化
             _watcherManager = new FileSystemWatcherManager(_componentsPath, _eventDispatcher);
-            _watcherManager.ComponentsFolderChanged += (s, e) => ComponentsFolderChanged?.Invoke(this, EventArgs.Empty);
+            _watcherManager.ComponentsFolderChanged += (s, e) => ComponentsFolderChanged?.Invoke(this, e);
             _watcherManager.SELLCTFolderBetrayed += (s, e) => {
                 if (!_betrayalEndingTriggered) {
                     _betrayalEndingTriggered = true;

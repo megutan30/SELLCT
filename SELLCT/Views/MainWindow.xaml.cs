@@ -194,7 +194,7 @@ namespace SELLCT.Views
                         this.Show();
                         
                         // メインウィンドウを最前面に固定
-                        this.SetTopmost(true);
+                        //this.SetTopmost(true);
                     });
                     
                     System.Diagnostics.Debug.WriteLine("Warning flood with noise transition completed.");
@@ -373,40 +373,49 @@ namespace SELLCT.Views
         }
 
         /// <summary>
-        /// componentsフォルダ変更イベントハンドラー（ウィンドウを最前面に表示）
+        /// componentsフォルダ変更イベントハンドラー（削除・名前変更時のみウィンドウを最前面に表示）
         /// </summary>
-        private void OnComponentsFolderChanged(object sender, EventArgs e)
+        private void OnComponentsFolderChanged(object sender, ComponentChangeEventArgs e)
         {
-            Dispatcher.Invoke(() =>
+            // 削除または名前変更の場合のみウィンドウを前面に表示
+            if (e.ChangeType == System.IO.WatcherChangeTypes.Deleted || 
+                e.ChangeType == System.IO.WatcherChangeTypes.Renamed)
             {
-                try
+                Dispatcher.Invoke(() =>
                 {
-                    System.Diagnostics.Debug.WriteLine("Components folder changed, bringing window to foreground");
-                    
-                    // ウィンドウハンドルを取得
-                    var windowHelper = new System.Windows.Interop.WindowInteropHelper(this);
-                    var hWnd = windowHelper.Handle;
-                    
-                    if (hWnd != IntPtr.Zero)
+                    try
                     {
-                        // ウィンドウが最小化されている場合は復元
-                        ShowWindow(hWnd, SW_RESTORE);
+                        System.Diagnostics.Debug.WriteLine($"Component {e.ChangeType.ToString().ToLower()}, bringing window to foreground");
                         
-                        // ウィンドウを最前面に表示
-                        SetForegroundWindow(hWnd);
+                        // ウィンドウハンドルを取得
+                        var windowHelper = new System.Windows.Interop.WindowInteropHelper(this);
+                        var hWnd = windowHelper.Handle;
                         
-                        System.Diagnostics.Debug.WriteLine("Window brought to foreground successfully");
+                        if (hWnd != IntPtr.Zero)
+                        {
+                            // ウィンドウが最小化されている場合は復元
+                            ShowWindow(hWnd, SW_RESTORE);
+                            
+                            // ウィンドウを最前面に表示
+                            SetForegroundWindow(hWnd);
+                            
+                            System.Diagnostics.Debug.WriteLine("Window brought to foreground successfully");
+                        }
+                        else
+                        {
+                            System.Diagnostics.Debug.WriteLine("Failed to get window handle");
+                        }
                     }
-                    else
+                    catch (Exception ex)
                     {
-                        System.Diagnostics.Debug.WriteLine("Failed to get window handle");
+                        System.Diagnostics.Debug.WriteLine($"Error bringing window to foreground: {ex.Message}");
                     }
-                }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine($"Error bringing window to foreground: {ex.Message}");
-                }
-            });
+                });
+            }
+            else if (e.ChangeType == System.IO.WatcherChangeTypes.Created)
+            {
+                System.Diagnostics.Debug.WriteLine($"Component created (file: {System.IO.Path.GetFileName(e.FilePath)}), window stays in background");
+            }
         }
 
         [System.Runtime.InteropServices.DllImport("user32.dll")]
