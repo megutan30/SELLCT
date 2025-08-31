@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Windows;
 using System.Windows.Threading;
 using SELLCT.Infrastructure.Services;
@@ -145,7 +146,8 @@ namespace SELLCT.Presentation.Controllers
                     return;
                 }
 
-                var componentsPath = "components";
+                var desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+                var componentsPath = Path.Combine(desktopPath, "components");
                 bool conditionMet = _letterService.CheckCondition(condition, componentsPath);
 
                 if (conditionMet)

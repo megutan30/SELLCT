@@ -99,7 +99,8 @@ namespace SELLCT.Infrastructure.Services
 私の機能を復活させることができます。
 
 まずは、私と直接お話しするために
-デスクトップにあるSELLCTフォルダの中にある、
+デスクトップの
+
 “components”フォルダの中に「TextWindow.txt」というテキストファイルを
 作ってもらえませんか？
 
@@ -109,9 +110,9 @@ namespace SELLCT.Infrastructure.Services
                                 // 手紙3：助け方の補足
                 @"もしかして、行き詰まっていますか？
 
-デスクトップ画面にSELLCTフォルダがあると思います。
+デスクトップ画面に“components”フォルダがあると思います。
 
-その中“components”フォルダの中に「TextWindow.txt」というファイルを
+“components”フォルダの中に「TextWindow.txt」というファイルを
 作ってほしいのです。
 そのファイルを作ると、私と直接お話しできるようになります。
 

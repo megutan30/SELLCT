@@ -89,8 +89,8 @@ namespace SELLCT.Infrastructure.Services
 
                     await Task.Delay(1000); 
 
-                    string appBaseDirectory = AppDomain.CurrentDomain.BaseDirectory;
-                    string mouseFilePath = Path.Combine(appBaseDirectory, "components", "System", "Mouse.txt");
+                    var desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+                    string mouseFilePath = Path.Combine(desktopPath, "components", "System", "Mouse.txt");
 
                     if (File.Exists(mouseFilePath))
                     {

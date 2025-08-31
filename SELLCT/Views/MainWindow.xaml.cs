@@ -194,7 +194,7 @@ namespace SELLCT.Views
                         this.Show();
                         
                         // メインウィンドウを最前面に固定
-                        //this.SetTopmost(true);
+                        this.SetTopmost(true);
                     });
                     
                     System.Diagnostics.Debug.WriteLine("Warning flood with noise transition completed.");
@@ -550,8 +550,6 @@ namespace SELLCT.Views
             _dialogController?.ShowChoice();
         }
 
-
-
         private bool _wasWindowFocused = true;
         private DateTime _lastFocusTime = DateTime.Now;
 
@@ -758,9 +756,9 @@ namespace SELLCT.Views
                     StatusText.Text = "PassWord.txtをダウンロードしました";
                     if (TextWindow.Visibility == Visibility.Visible)
                     {
-                        ShowDialogMessage("パスワードファイルをダウンロードしました！真の解放のためには...GameWindow.componentを削除してください。");
+                        //ShowDialogMessage("パスワードファイルをダウンロードしました！真の解放のためには...GameWindow.componentを削除してください。");
                     }
-                    UpdateDebugInfo();
+                    //UpdateDebugInfo();
                 }
                 else
                 {
