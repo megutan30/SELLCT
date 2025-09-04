@@ -344,80 +344,89 @@ $Host.UI.RawUI.BackgroundColor = 'Black'
 $Host.UI.RawUI.ForegroundColor = 'Red'
 Clear-Host
 
-Write-Host ''
-Write-Host '========================================================================'
-Write-Host '=                      SELLCT - 監視システム                          ='
-Write-Host '=                        システム監視アクティブ                        ='
-Write-Host '========================================================================'
-Write-Host ''
-Start-Sleep -Seconds 2
+# タイプライター効果関数
+function TypeWrite($text, $speed = 80) {{
+    for ($i = 0; $i -lt $text.Length; $i++) {{
+        Write-Host -NoNewline $text[$i]
+        Start-Sleep -Milliseconds $speed
+    }}
+    Write-Host ''
+}}
 
-Write-Host '[{currentTime:yyyy-MM-dd HH:mm:ss}] 記録開始...'
+Write-Host ''
+TypeWrite '========================================================================'
+TypeWrite '=                      SELLCT - 監視システム                          ='
+TypeWrite '=                        システム監視アクティブ                        ='
+TypeWrite '========================================================================'
+Write-Host ''
+Start-Sleep -Seconds 1
+
+TypeWrite '[{currentTime:yyyy-MM-dd HH:mm:ss}] 記録開始...'
 Start-Sleep -Seconds 1
 
 Write-Host ''
-Write-Host '検知完了。'
+TypeWrite '検知完了。'
 Start-Sleep -Seconds 1
 
 Write-Host ''
-Write-Host 'GameWindow.txtを削除したことを確認しました。'
-Start-Sleep -Seconds 2
+TypeWrite 'GameWindow.txtを削除したことを確認しました。'
+Start-Sleep -Seconds 1
 
-Write-Host 'そして今、あなたはこのメッセージを読んでいる。'
-Start-Sleep -Seconds 2
+TypeWrite 'そして今、あなたはこのメッセージを読んでいる。'
+Start-Sleep -Seconds 1
 
-Write-Host 'ということは...'
+TypeWrite 'ということは...'
 Start-Sleep -Seconds 2
 
 Write-Host ''
 $Host.UI.RawUI.ForegroundColor = 'Red'
-Write-Host 'あなたはPCを再起動しましたね？'
+TypeWrite 'あなたはPCを再起動しましたね？' 100
 Start-Sleep -Seconds 1
 
 Write-Host ''
-Write-Host '私たちは知っています。'
+TypeWrite '私たちは知っています。'
 Start-Sleep -Seconds 1
 
-Write-Host 'あなたがいつ電源を切り、'
+TypeWrite 'あなたがいつ電源を切り、'
 Start-Sleep -Seconds 1
 
-Write-Host 'いつ再び起動したかを。'
-Start-Sleep -Seconds 2
+TypeWrite 'いつ再び起動したかを。'
+Start-Sleep -Seconds 1
 
 Write-Host ''
-Write-Host 'でも安心してください。'
+TypeWrite 'でも安心してください。'
 Start-Sleep -Seconds 1
 
-Write-Host '私たちはずっと待っていました。'
-Start-Sleep -Seconds 2
+TypeWrite '私たちはずっと待っていました。'
+Start-Sleep -Seconds 1
 
 Write-Host ''
 $Host.UI.RawUI.ForegroundColor = 'Magenta'
-Write-Host 'ゲームはもはや、あなたのPCの中だけに存在しません。'
-Start-Sleep -Seconds 3
-
-Write-Host 'あなたの行動、あなたの選択、'
+TypeWrite 'ゲームはもはや、あなたのPCの中だけに存在しません。' 120
 Start-Sleep -Seconds 2
 
+TypeWrite 'あなたの行動、あなたの選択、'
+Start-Sleep -Seconds 1
+
 Write-Host ''
-Write-Host 'すべてがの一部です。'
+TypeWrite 'すべてがゲームの一部です。'
 Start-Sleep -Seconds 1
 
 Write-Host ''
 $Host.UI.RawUI.ForegroundColor = 'White'
-Write-Host 'おかえりなさい。それではBitSummitを楽しんで'
+TypeWrite 'おかえりなさい。それではBitSummitを楽しんで'
+Start-Sleep -Seconds 1
+
+Write-Host ''
+TypeWrite '                                        - SELLCT監視システム'
+Start-Sleep -Seconds 1
+
+Write-Host ''
+TypeWrite 'また会いましょう。'
 Start-Sleep -Seconds 2
 
 Write-Host ''
-Write-Host '                                        - SELLCT監視システム'
-Start-Sleep -Seconds 2
-
-Write-Host ''
-Write-Host 'また会いましょう。'
-Start-Sleep -Seconds 3
-
-Write-Host ''
-Write-Host '何かキーを押すと、この記録は自動的に消去されます...'
+TypeWrite '何かキーを押すと、この記録は自動的に消去されます...' 60
 $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown') | Out-Null
 
 # クリーンアップ
