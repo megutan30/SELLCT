@@ -168,16 +168,6 @@ namespace SELLCT.Core.Builders
         }
 
         /// <summary>
-        /// ゲームコマンドを追加（IGameCommandから自動変換）
-        /// </summary>
-        public DialogueNodeBuilder Do(IGameCommand command)
-        {
-            // GameCommandをPuzzleActionに変換する処理（簡略版）
-            // 実装の詳細は省略（必要に応じて後で拡張）
-            return this;
-        }
-
-        /// <summary>
         /// 選択肢を追加
         /// </summary>
         public DialogueNodeBuilder WithChoice(DialogueChoice choice)
