@@ -72,7 +72,13 @@
       "Read(/C:\\Users\\megam\\source\\repos\\SELLCT\\SELLCT\\Application\\Services/**)",
       "Read(/C:\\Users\\megam\\source\\repos\\SELLCT\\SELLCT\\Application\\Services/**)",
       "Read(/C:\\Users\\megam\\source\\repos\\SELLCT\\SELLCT\\Application\\Services/**)",
-      "Read(/C:\\Users\\megam\\source\\repos\\SELLCT\\SELLCT\\Application\\Services/**)"
+      "Read(/C:\\Users\\megam\\source\\repos\\SELLCT\\SELLCT\\Application\\Services/**)",
+      "Read(/C:\\Users\\megam\\source\\repos\\SELLCT\\SELLCT\\Infrastructure\\Services/**)",
+      "Read(/C:\\Users\\megam\\source\\repos\\SELLCT\\SELLCT\\Infrastructure\\Services/**)",
+      "Read(/C:\\Users\\megam\\source\\repos\\SELLCT\\SELLCT\\Infrastructure\\Services/**)",
+      "Read(/C:\\Users\\megam\\source\\repos\\SELLCT\\SELLCT\\Infrastructure\\Services/**)",
+      "Read(/C:\\Users\\megam\\source\\repos\\SELLCT\\SELLCT\\Infrastructure\\Services/**)",
+      "Read(/C:\\Users\\megam\\source\\repos\\SELLCT\\SELLCT\\Infrastructure\\Services/**)"
     ],
     "deny": []
   }

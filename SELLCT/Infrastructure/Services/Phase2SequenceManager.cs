@@ -224,11 +224,13 @@ namespace SELLCT.Infrastructure.Services
 
         private async Task ExecutePhase2_4_SystemTakeoverStage()
         {
-            // コマンドプロンプトでエクスプローラー終了演出とスタートアップ登録
-            await _metaGameController.TerminateExplorer();
-            await _metaGameController.RegisterForStartup();
+            // スクリーンショット縮小演出中にエクスプローラー終了を並列実行（こっそり）
+            System.Diagnostics.Debug.WriteLine("Starting screen shrink effect with hidden explorer termination...");
+            bool shrinkSuccess = await ScreenShrinkWindow.ShowShrinkEffectWithExplorerKill(_metaGameController);
+            System.Diagnostics.Debug.WriteLine($"Screen shrink effect with explorer termination completed: {shrinkSuccess}");
 
-            await Task.Delay(2000);
+            // 縮小演出完了後、少し待機
+            await Task.Delay(1000);
 
             AutoClosingMessageBox.Show(
                 "PCの背景を削除しました。",

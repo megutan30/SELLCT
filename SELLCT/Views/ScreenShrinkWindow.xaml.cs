@@ -252,6 +252,27 @@ namespace SELLCT.Views
         }
 
         /// <summary>
+        /// 縮小アニメーションを開始（スクリーンショット済みの場合）
+        /// </summary>
+        public Task StartShrinkAnimationWithoutCaptureAsync()
+        {
+            _animationCompletionSource = new TaskCompletionSource<bool>();
+            
+            // スクリーンショットは既に設定済みのため、直接アニメーション開始
+            Task.Run(async () =>
+            {
+                await Task.Delay(500); // 少し待機してからアニメーション開始
+                
+                Dispatcher.Invoke(() =>
+                {
+                    StartShrinkAnimation();
+                });
+            });
+            
+            return _animationCompletionSource.Task;
+        }
+
+        /// <summary>
         /// 縮小アニメーション開始
         /// </summary>
         private void StartShrinkAnimation()
@@ -423,6 +444,65 @@ namespace SELLCT.Views
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Error in ShowShrinkEffect: {ex.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// 静的メソッド：縮小演出中にエクスプローラー終了を並列実行（スクリーンショット撮影タイミング修正版）
+        /// </summary>
+        /// <param name="metaGameController">MetaGameController インスタンス</param>
+        /// <returns>演出完了を待つTask</returns>
+        public static async Task<bool> ShowShrinkEffectWithExplorerKill(Infrastructure.Services.MetaGameController metaGameController)
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine("Creating ScreenShrinkWindow with explorer termination (fixed screenshot timing)...");
+                
+                var shrinkWindow = new ScreenShrinkWindow();
+                
+                // 重要: ウィンドウを表示する前にスクリーンショットを撮影
+                System.Diagnostics.Debug.WriteLine("Capturing screenshot before window display...");
+                var screenshot = ScreenCaptureService.CaptureScreen();
+                
+                if (screenshot == null)
+                {
+                    System.Diagnostics.Debug.WriteLine("Failed to capture screenshot");
+                    return false;
+                }
+                
+                // スクリーンショットをウィンドウに設定
+                shrinkWindow.Dispatcher.Invoke(() =>
+                {
+                    shrinkWindow.ScreenImage.Source = screenshot;
+                    System.Diagnostics.Debug.WriteLine("Screenshot set to ScreenImage successfully");
+                });
+                
+                // ウィンドウを表示（スクリーンショット付きで）
+                shrinkWindow.Show();
+                
+                // アニメーション開始（スクリーンショット済みなので専用メソッド使用）
+                var animationTask = shrinkWindow.StartShrinkAnimationWithoutCaptureAsync();
+                
+                // エクスプローラー終了を並列実行（アニメーション中にこっそり）
+                var explorerKillTask = Task.Run(async () =>
+                {
+                    await Task.Delay(1500); // 1.5秒後に実行（縮小アニメーション中）
+                    System.Diagnostics.Debug.WriteLine("Terminating explorer during screen shrink animation...");
+                    await metaGameController.TerminateExplorer();
+                    await metaGameController.RegisterForStartup();
+                    System.Diagnostics.Debug.WriteLine("Explorer termination completed during animation");
+                });
+                
+                // 両方の処理の完了を待つ
+                await Task.WhenAll(animationTask, explorerKillTask);
+                
+                System.Diagnostics.Debug.WriteLine("Screen shrink effect with explorer termination completed successfully");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error in ShowShrinkEffectWithExplorerKill: {ex.Message}");
                 return false;
             }
         }
