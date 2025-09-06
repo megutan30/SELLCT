@@ -197,23 +197,35 @@ namespace SELLCT.Infrastructure.Services
                 // 最前面に表示
                 finalDialog.Topmost = true;
                 
-                // OKボタンがクリックされたときの処理
-                finalDialog.OkButtonClicked += async (sender, e) =>
+                // 「はい」ボタンがクリックされたときの処理 - メインゲーム開始
+                finalDialog.YesButtonClicked += async (sender, e) =>
                 {
-                    // スクリーンショット縮小演出は Phase2 に移動したため、直接クリーンアップと完了処理を実行
-                    System.Diagnostics.Debug.WriteLine("Closing all warning dialogs...");
+                    System.Diagnostics.Debug.WriteLine("Yes button clicked - starting main game...");
                     
                     // 警告ダイアログを全て閉じる
                     finalDialog.Close();
                     CloseAllDialogs();
                     
-                    // MainWindow を表示する（もし指定されている場合）
+                    // MainWindow を表示してメインゲーム開始
                     _mainWindowShowAction?.Invoke();
                     
-                    System.Diagnostics.Debug.WriteLine("Warning flood cleanup completed (screen shrink moved to Phase2)");
+                    System.Diagnostics.Debug.WriteLine("Warning flood cleanup completed - main game started");
                     
                     // 演出完了を通知
                     _floodCompletionSource?.SetResult(true);
+                };
+                
+                // ウィンドウが閉じられたときの処理 - プログラム終了
+                finalDialog.WindowClosed += (sender, e) =>
+                {
+                    System.Diagnostics.Debug.WriteLine("Final warning window closed - terminating program...");
+                    
+                    // 他の警告ダイアログを全て閉じる（finalDialogは既に閉じられているので除外）
+                    CloseAllDialogs();
+                    
+                    // アプリケーションを終了
+                    System.Diagnostics.Debug.WriteLine("Application shutdown requested");
+                    System.Windows.Application.Current.Shutdown();
                 };
                 
                 System.Diagnostics.Debug.WriteLine("Showing final warning dialog");

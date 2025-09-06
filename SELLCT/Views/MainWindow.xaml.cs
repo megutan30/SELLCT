@@ -186,15 +186,12 @@ namespace SELLCT.Views
                     
                     var warningFloodService = new Infrastructure.Services.WarningFloodService();
                     
-                    // ノイズトランジション付きの警告演出を実行
+                    // 警告演出を実行
                     await warningFloodService.StartWarningFloodWithNoiseTransition(() =>
                     {
-                        // ノイズトランジション完了後にメインウィンドウを表示
+                        // メインウィンドウを表示
                         System.Diagnostics.Debug.WriteLine("Showing main window after noise transition...");
                         this.Show();
-                        
-                        // メインウィンドウを最前面に固定
-                        this.SetTopmost(true);
                     });
                     
                     System.Diagnostics.Debug.WriteLine("Warning flood with noise transition completed.");

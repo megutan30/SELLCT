@@ -16,9 +16,14 @@ namespace SELLCT.Infrastructure.Services
         private readonly bool _isFinalWarning;
         
         /// <summary>
-        /// 最終警告のOKボタンがクリックされた時のイベント
+        /// 最終警告の「はい」ボタンがクリックされた時のイベント
         /// </summary>
-        public event EventHandler OkButtonClicked;
+        public event EventHandler YesButtonClicked;
+        
+        /// <summary>
+        /// ウィンドウが閉じられた時のイベント
+        /// </summary>
+        public event EventHandler WindowClosed;
         
         public WarningDialog(bool isFinalWarning = false)
         {
@@ -99,23 +104,32 @@ namespace SELLCT.Infrastructure.Services
                 VerticalAlignment = VerticalAlignment.Center
             };
             
-            var okButton = new Button
+            if (_isFinalWarning)
             {
-                Content = "OK",
-                Width = 75,
-                Height = 25,
-                IsDefault = true
-            };
-            okButton.Click += OkButton_Click;
-            
-            // 最終警告以外の場合はクリック無効化
-            if (!_isFinalWarning)
-            {
-                okButton.IsEnabled = false;
-                okButton.Content = "待機中...";
+                // 最終警告の場合は「はい」ボタンのみ
+                var yesButton = new Button
+                {
+                    Content = "はい",
+                    Width = 75,
+                    Height = 25,
+                    IsDefault = true
+                };
+                yesButton.Click += YesButton_Click;
+                
+                buttonPanel.Children.Add(yesButton);
             }
-            
-            buttonPanel.Children.Add(okButton);
+            else
+            {
+                // 通常の警告の場合はOKボタン（無効化）
+                var okButton = new Button
+                {
+                    Content = "待機中...",
+                    Width = 75,
+                    Height = 25,
+                    IsEnabled = false
+                };
+                buttonPanel.Children.Add(okButton);
+            }
             Grid.SetRow(buttonPanel, 1);
             mainGrid.Children.Add(buttonPanel);
             
@@ -190,20 +204,12 @@ namespace SELLCT.Infrastructure.Services
             }
         }
         
-        private void OkButton_Click(object sender, RoutedEventArgs e)
+        private void YesButton_Click(object sender, RoutedEventArgs e)
         {
-            if (_isFinalWarning)
-            {
-                DialogResult = true;
-                
-                // 最終警告の場合、カスタムイベントを発火してダイアログは閉じない
-                OkButtonClicked?.Invoke(this, EventArgs.Empty);
-            }
-            else
-            {
-                // 通常の警告の場合は即座に閉じる
-                Close();
-            }
+            DialogResult = true;
+            
+            // 「はい」ボタンがクリックされた場合、ゲーム開始イベントを発火
+            YesButtonClicked?.Invoke(this, EventArgs.Empty);
         }
         
         protected override void OnSourceInitialized(EventArgs e)
@@ -222,6 +228,17 @@ namespace SELLCT.Infrastructure.Services
                     style &= ~WS_SYSMENU;
                     SetWindowLong(hwnd, GWL_STYLE, style);
                 }
+            }
+        }
+        
+        protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
+        {
+            base.OnClosing(e);
+            
+            // 最終警告ダイアログが閉じボタンで閉じられた場合、プログラム終了イベントを発火
+            if (_isFinalWarning && DialogResult != true)
+            {
+                WindowClosed?.Invoke(this, EventArgs.Empty);
             }
         }
         
