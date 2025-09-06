@@ -602,9 +602,9 @@ namespace SELLCT.Views
                 // ボタン要素の判定
                 if (current is Button button)
                 {
-                    // MainButton、YesButton、NoButton、LogButton、CloseLogButtonは優先度が高い
+                    // MainButton、YesButton、NoButton、LogButton、CloseLogButton、CustomCloseButtonは優先度が高い
                     if (button.Name == "MainButton" || button.Name == "YesButton" || button.Name == "NoButton" || 
-                        button.Name == "LogButton" || button.Name == "CloseLogButton")
+                        button.Name == "LogButton" || button.Name == "CloseLogButton" || button.Name == "CustomCloseButton")
                     {
                         return true;
                     }
@@ -623,7 +623,26 @@ namespace SELLCT.Views
             return false;
         }
 
+        /// <summary>
+        /// カスタム閉じるボタンのクリックハンドラー
+        /// </summary>
+        private void CustomCloseButton_Click(object sender, RoutedEventArgs e)
+        {
+            System.Diagnostics.Debug.WriteLine("Custom close button clicked - closing application...");
+            this.Close();
+        }
 
+        /// <summary>
+        /// ウィンドウドラッグの無効化
+        /// </summary>
+        protected override void OnMouseDown(MouseButtonEventArgs e)
+        {
+            // カスタムタイトルバー以外でのドラッグを無効化
+            // base.OnMouseDown(e) を呼ばないことでドラッグを阻止
+            
+            // 既存のMainWindow_MouseDownロジックを実行
+            MainWindow_MouseDown(this, e);
+        }
 
         /// <summary>
         /// 構成要素数更新
@@ -920,6 +939,17 @@ namespace SELLCT.Views
         {
             // 背景画像の表示/非表示を設定
             BackgroundImage.Visibility = isVisible ? Visibility.Visible : Visibility.Collapsed;
+            
+            // 背景画像が非表示のときはウィンドウを透明化
+            // GameCanvasなどの必要な要素は不透明度を維持
+            if (!isVisible)
+            {
+                System.Diagnostics.Debug.WriteLine("背景画像が非表示 - ウィンドウを透明化");
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("背景画像が表示 - ウィンドウを不透明化");
+            }
         }
 
         /// <summary>
