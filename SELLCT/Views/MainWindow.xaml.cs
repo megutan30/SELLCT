@@ -98,7 +98,7 @@ namespace SELLCT.Views
             // 左、上、右、下 の順
             GameCanvas.Margin = new Thickness(
                 -borderThickness.Left,
-                -(borderThickness.Top + captionHeight-5),
+                -(borderThickness.Top-12),
                 -borderThickness.Right,
                 -borderThickness.Bottom
             );
@@ -186,7 +186,6 @@ namespace SELLCT.Views
                     System.Windows.Application.Current.Shutdown();
                     return;
                 }
-
                 // 実行が選択された場合、警告演出を開始
                 if (smartScreenResult == Infrastructure.Services.SmartScreenResult.RunAnyway)
                 {
