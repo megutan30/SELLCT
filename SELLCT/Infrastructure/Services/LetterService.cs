@@ -194,6 +194,9 @@ namespace SELLCT.Infrastructure.Services
                             // ダウンロード状態を記録
                             _downloadedLetters.Add(letterIndex);
 
+                            // ダウンロードパスをDownloadTrackerに記録
+                            DownloadTracker.RecordDownload(dialog.FileName, "Letter");
+
                             _eventDispatcher.Dispatch(new LetterClickedEvent(letterIndex));
                             success = true;
                         }

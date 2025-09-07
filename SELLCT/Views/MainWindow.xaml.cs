@@ -1038,6 +1038,48 @@ namespace SELLCT.Views
         }
 
         /// <summary>
+        /// クリーンアップボタンクリック（デバッグ用）
+        /// </summary>
+        private void CleanupButton_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine("Manual cleanup initiated from debug panel");
+                
+                // 確認ダイアログを表示
+                var result = MessageBox.Show(
+                    "すべてのゲームファイル（components、Authority、手紙ファイル等）を削除します。\n続行しますか？",
+                    "SELLCT - クリーンアップ確認",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Warning,
+                    MessageBoxResult.No
+                );
+
+                if (result == MessageBoxResult.Yes)
+                {
+                    CleanupService.PerformManualCleanup();
+                    
+                    MessageBox.Show(
+                        "クリーンアップが完了しました。",
+                        "SELLCT - クリーンアップ完了",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information
+                    );
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error in CleanupButton_Click: {ex.Message}");
+                MessageBox.Show(
+                    $"クリーンアップ中にエラーが発生しました。\n\nエラー: {ex.Message}",
+                    "SELLCT - エラー",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error
+                );
+            }
+        }
+
+        /// <summary>
         /// ウィンドウクローズ処理
         /// </summary>
         private void Window_Closing(object sender, CancelEventArgs e)

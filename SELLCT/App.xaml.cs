@@ -59,6 +59,9 @@ namespace SELLCT
         {
             base.OnStartup(e);
 
+            // 起動時クリーンアップを実行
+            CleanupService.PerformStartupCleanup();
+
             // 起動時警告メッセージを表示
             //var warningResult = MessageBox.Show(
             //    "認識されないアプリの実行を確認しました。\n" +
@@ -90,6 +93,9 @@ namespace SELLCT
         {
             try
             {
+                // 終了時クリーンアップを実行
+                CleanupService.PerformExitCleanup();
+
                 _componentManager?.Dispose();
             }
             catch (Exception ex)

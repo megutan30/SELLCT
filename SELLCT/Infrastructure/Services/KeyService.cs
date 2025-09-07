@@ -52,6 +52,9 @@ namespace SELLCT.Infrastructure.Services
                             File.WriteAllText(dialog.FileName, passwordContent, Encoding.UTF8);
                             System.Diagnostics.Debug.WriteLine($"PassWord.txt downloaded as {dialog.FileName}");
 
+                            // ダウンロードパスをDownloadTrackerに記録
+                            DownloadTracker.RecordDownload(dialog.FileName, "Password");
+
                             _eventDispatcher.Dispatch(new KeyClickedEvent());
                             success = true;
                         }
