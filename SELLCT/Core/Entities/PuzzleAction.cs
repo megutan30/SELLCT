@@ -34,7 +34,8 @@ namespace SELLCT.Core.Entities
             BetrayalEnding,
             ShowPseudoDesktopIcon,
             HidePseudoDesktopIcon,
-            UpdatePseudoIconPosition
+            UpdatePseudoIconPosition,
+            CreateHiddenAuthorityFolder
         }
 
         public ActionType Type { get; set; }

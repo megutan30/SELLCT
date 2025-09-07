@@ -458,11 +458,12 @@ namespace SELLCT.Application.Services
                     {
                         new PuzzleAction { Type = PuzzleAction.ActionType.SetBackgroundVisibility, IsVisible = false },
                         new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "背景が消失しました。" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.CreateHiddenAuthorityFolder },
                         new PuzzleAction 
                         { 
                             Type = PuzzleAction.ActionType.ShowPseudoDesktopIcon, 
                             IconName = "Authority",
-                            FolderPath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "components", "SELLCT")
+                            FolderPath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "Authority")
                         }
                     },
                     CanRepeat = true,

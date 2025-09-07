@@ -79,7 +79,8 @@
       "Read(/C:\\Users\\megam\\source\\repos\\SELLCT\\SELLCT\\Infrastructure\\Services/**)",
       "Read(/C:\\Users\\megam\\source\\repos\\SELLCT\\SELLCT\\Infrastructure\\Services/**)",
       "Read(/C:\\Users\\megam\\source\\repos\\SELLCT\\SELLCT\\Infrastructure\\Services/**)",
-      "WebFetch(domain:docs.microsoft.com)"
+      "WebFetch(domain:docs.microsoft.com)",
+      "WebSearch"
     ],
     "deny": []
   }

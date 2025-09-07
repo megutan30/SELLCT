@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Animation;
@@ -144,6 +145,9 @@ namespace SELLCT.Presentation.Views
                             break;
                         case PuzzleAction.ActionType.UpdatePseudoIconPosition:
                             HandleUpdatePseudoIconPosition(action);
+                            break;
+                        case PuzzleAction.ActionType.CreateHiddenAuthorityFolder:
+                            HandleCreateHiddenAuthorityFolder(action);
                             break;
                     }
 
@@ -535,5 +539,171 @@ namespace SELLCT.Presentation.Views
 
         [System.Runtime.InteropServices.DllImport("user32.dll")]
         private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
+        /// <summary>
+        /// 非表示Authorityフォルダを作成
+        /// </summary>
+        private void HandleCreateHiddenAuthorityFolder(PuzzleAction action)
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine("=== HandleCreateHiddenAuthorityFolder ===");
+                
+                var desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+                var authorityFolderPath = System.IO.Path.Combine(desktopPath, "Authority");
+                
+                System.Diagnostics.Debug.WriteLine($"Creating Authority folder at: {authorityFolderPath}");
+
+                // フォルダが既に存在する場合は削除
+                if (System.IO.Directory.Exists(authorityFolderPath))
+                {
+                    System.IO.Directory.Delete(authorityFolderPath, true);
+                    System.Diagnostics.Debug.WriteLine("Deleted existing Authority folder");
+                }
+
+                // Authorityフォルダを作成
+                System.IO.Directory.CreateDirectory(authorityFolderPath);
+                System.Diagnostics.Debug.WriteLine("Authority folder created");
+
+                // 5つのtxtファイルを作成
+                CreateAuthorityFiles(authorityFolderPath);
+
+                // フォルダをスーパー隠しファイル化（System + Hidden属性）
+                MakeFolderSuperHidden(authorityFolderPath);
+
+                System.Diagnostics.Debug.WriteLine("✅ Hidden Authority folder created successfully");
+                System.Diagnostics.Debug.WriteLine("=== End HandleCreateHiddenAuthorityFolder ===\n");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error creating hidden Authority folder: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"   Stack trace: {ex.StackTrace}");
+            }
+        }
+
+        /// <summary>
+        /// Authorityフォルダ内にテキストファイルを作成
+        /// </summary>
+        private void CreateAuthorityFiles(string folderPath)
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine("Creating Authority files...");
+
+                var files = new Dictionary<string, string>
+                {
+                    ["AdminRights.txt"] = 
+                        "管理者権限 (Administrator Rights)\n" +
+                        "===================================\n\n" +
+                        "この権限により、システムの重要な設定を変更できます。\n" +
+                        "- システム設定の変更\n" +
+                        "- 重要なファイルへのアクセス\n" +
+                        "- 他のユーザーアカウントの管理\n\n" +
+                        "⚠️ 注意: 管理者権限を不正なソフトウェアに与えることは\n" +
+                        "システム全体を危険にさらす可能性があります。",
+
+                    ["FileAccess.txt"] = 
+                        "ファイルアクセス権限 (File Access Rights)\n" +
+                        "========================================\n\n" +
+                        "この権限により、ファイルシステムにアクセスできます。\n" +
+                        "- ファイルの作成・読み取り・変更・削除\n" +
+                        "- フォルダの作成・削除\n" +
+                        "- ファイル属性の変更\n\n" +
+                        "⚠️ 注意: ファイルアクセス権限は個人情報や\n" +
+                        "重要な文書への不正アクセスを可能にします。",
+
+                    ["SystemControl.txt"] = 
+                        "システム制御権限 (System Control Rights)\n" +
+                        "==========================================\n\n" +
+                        "この権限により、システムプロセスを制御できます。\n" +
+                        "- プロセスの開始・停止\n" +
+                        "- サービスの制御\n" +
+                        "- システム設定の変更\n\n" +
+                        "⚠️ 注意: システム制御権限により、悪意のあるソフトウェアは\n" +
+                        "セキュリティソフトを無効化したり、システムを乗っ取ったり\n" +
+                        "することができます。",
+
+                    ["NetworkAccess.txt"] = 
+                        "ネットワークアクセス権限 (Network Access Rights)\n" +
+                        "=================================================\n\n" +
+                        "この権限により、ネットワーク通信を行えます。\n" +
+                        "- インターネット接続\n" +
+                        "- 外部サーバーとの通信\n" +
+                        "- データの送受信\n\n" +
+                        "⚠️ 注意: ネットワーク権限により、悪意のあるソフトウェアは\n" +
+                        "個人情報を外部に送信したり、追加のマルウェアを\n" +
+                        "ダウンロードしたりする可能性があります。",
+
+                    ["ReadMe.txt"] = 
+                        "SELLCT - 権限について\n" +
+                        "======================\n\n" +
+                        "このフォルダには、あなたがSELLCTに与えた権限の説明があります。\n\n" +
+                        "ソフトウェアに権限を与える際は、常に以下を考慮してください：\n\n" +
+                        "1. そのソフトウェアは信頼できるか？\n" +
+                        "2. 要求される権限は機能に必要最小限か？\n" +
+                        "3. 権限を悪用された場合のリスクは？\n\n" +
+                        "特に、他人のPCや展示用PCでは細心の注意が必要です。\n" +
+                        "見知らぬソフトウェアに軽々しく権限を与えることは、\n" +
+                        "深刻なセキュリティリスクを招く可能性があります。\n\n" +
+                        "--- SELLCT ---\n" +
+                        "このゲームは、ソーシャルエンジニアリングの危険性を\n" +
+                        "教育目的で体験してもらうために作られました。"
+                };
+
+                foreach (var file in files)
+                {
+                    var filePath = System.IO.Path.Combine(folderPath, file.Key);
+                    System.IO.File.WriteAllText(filePath, file.Value);
+                    System.Diagnostics.Debug.WriteLine($"Created: {file.Key}");
+                }
+
+                System.Diagnostics.Debug.WriteLine($"✅ All 5 files created in Authority folder");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error creating Authority files: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// フォルダをスーパー隠しファイル化 (System + Hidden属性)
+        /// </summary>
+        private void MakeFolderSuperHidden(string folderPath)
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine($"Making folder super hidden: {folderPath}");
+
+                // attrib +s +h コマンドを実行してスーパー隠しファイル化
+                var processStartInfo = new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = "cmd.exe",
+                    Arguments = $"/c attrib +s +h \"{folderPath}\"",
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true
+                };
+
+                using (var process = System.Diagnostics.Process.Start(processStartInfo))
+                {
+                    process.WaitForExit();
+                    
+                    if (process.ExitCode == 0)
+                    {
+                        System.Diagnostics.Debug.WriteLine("✅ Folder successfully made super hidden (+s +h)");
+                    }
+                    else
+                    {
+                        var error = process.StandardError.ReadToEnd();
+                        System.Diagnostics.Debug.WriteLine($"⚠️ attrib command failed with exit code {process.ExitCode}: {error}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error making folder super hidden: {ex.Message}");
+            }
+        }
     }
 }
