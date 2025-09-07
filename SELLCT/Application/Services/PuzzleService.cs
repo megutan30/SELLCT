@@ -457,7 +457,13 @@ namespace SELLCT.Application.Services
                     Actions = new List<PuzzleAction>
                     {
                         new PuzzleAction { Type = PuzzleAction.ActionType.SetBackgroundVisibility, IsVisible = false },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "背景が消失しました。" }
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "背景が消失しました。" },
+                        new PuzzleAction 
+                        { 
+                            Type = PuzzleAction.ActionType.ShowPseudoDesktopIcon, 
+                            IconName = "Authority",
+                            FolderPath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "components", "SELLCT")
+                        }
                     },
                     CanRepeat = true,
                     Priority = 10
@@ -471,7 +477,12 @@ namespace SELLCT.Application.Services
                     Actions = new List<PuzzleAction>
                     {
                         new PuzzleAction { Type = PuzzleAction.ActionType.SetBackgroundVisibility, IsVisible = true },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "背景が復元されました。" }
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "背景が復元されました。" },
+                        new PuzzleAction 
+                        { 
+                            Type = PuzzleAction.ActionType.HidePseudoDesktopIcon, 
+                            IconName = "Authority"
+                        }
                     },
                     CanRepeat = true,
                     Priority = 10

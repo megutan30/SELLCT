@@ -136,6 +136,15 @@ namespace SELLCT.Presentation.Views
                         case PuzzleAction.ActionType.BetrayalEnding:
                             HandleBetrayalEnding(action);
                             break;
+                        case PuzzleAction.ActionType.ShowPseudoDesktopIcon:
+                            HandleShowPseudoDesktopIcon(action);
+                            break;
+                        case PuzzleAction.ActionType.HidePseudoDesktopIcon:
+                            HandleHidePseudoDesktopIcon(action);
+                            break;
+                        case PuzzleAction.ActionType.UpdatePseudoIconPosition:
+                            HandleUpdatePseudoIconPosition(action);
+                            break;
                     }
 
                     _mainWindow.UpdateComponentCount();
@@ -415,6 +424,108 @@ namespace SELLCT.Presentation.Views
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"[BringWindowToForeground] Error: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// 疑似デスクトップアイコンを表示
+        /// </summary>
+        private void HandleShowPseudoDesktopIcon(PuzzleAction action)
+        {
+            try
+            {
+                var iconManager = _mainWindow.GetPseudoDesktopIconManager();
+                if (iconManager == null)
+                {
+                    System.Diagnostics.Debug.WriteLine("⚠️ PseudoDesktopIconManager is null");
+                    return;
+                }
+
+                var iconName = action.IconName ?? "Authority";
+                var folderPath = action.FolderPath;
+
+                // アイコン位置を計算（指定されていない場合は画面中央）
+                System.Windows.Point position;
+                if (action.IconX != 0 || action.IconY != 0)
+                {
+                    position = new System.Windows.Point(action.IconX, action.IconY);
+                }
+                else
+                {
+                    // メインウィンドウの位置とサイズを取得してアイコン位置を計算
+                    var windowPosition = new System.Windows.Point(_mainWindow.Left, _mainWindow.Top);
+                    var windowSize = new System.Windows.Size(_mainWindow.Width, _mainWindow.Height);
+                    position = iconManager.CalculateIconPosition(windowPosition, windowSize, 
+                        new System.Windows.Point(100, 100)); // 少しオフセット
+                }
+
+                var success = iconManager.CreatePseudoIcon(iconName, position, folderPath);
+                
+                System.Diagnostics.Debug.WriteLine($"ShowPseudoDesktopIcon: {iconName} at ({position.X:F0},{position.Y:F0}) - Success: {success}");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error in HandleShowPseudoDesktopIcon: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// 疑似デスクトップアイコンを非表示
+        /// </summary>
+        private void HandleHidePseudoDesktopIcon(PuzzleAction action)
+        {
+            try
+            {
+                var iconManager = _mainWindow.GetPseudoDesktopIconManager();
+                if (iconManager == null)
+                {
+                    System.Diagnostics.Debug.WriteLine("⚠️ PseudoDesktopIconManager is null");
+                    return;
+                }
+
+                var iconName = action.IconName ?? "Authority";
+                
+                if (string.IsNullOrEmpty(iconName))
+                {
+                    // アイコン名が指定されていない場合は全て非表示
+                    iconManager.SetAllIconsVisibility(false);
+                    System.Diagnostics.Debug.WriteLine("HidePseudoDesktopIcon: All icons hidden");
+                }
+                else
+                {
+                    var success = iconManager.SetIconVisibility(iconName, false);
+                    System.Diagnostics.Debug.WriteLine($"HidePseudoDesktopIcon: {iconName} - Success: {success}");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error in HandleHidePseudoDesktopIcon: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// 疑似デスクトップアイコンの位置を更新
+        /// </summary>
+        private void HandleUpdatePseudoIconPosition(PuzzleAction action)
+        {
+            try
+            {
+                var iconManager = _mainWindow.GetPseudoDesktopIconManager();
+                if (iconManager == null)
+                {
+                    System.Diagnostics.Debug.WriteLine("⚠️ PseudoDesktopIconManager is null");
+                    return;
+                }
+
+                var iconName = action.IconName ?? "Authority";
+                var newPosition = new System.Windows.Point(action.IconX, action.IconY);
+
+                var success = iconManager.UpdateIconPosition(iconName, newPosition);
+                System.Diagnostics.Debug.WriteLine($"UpdatePseudoIconPosition: {iconName} to ({newPosition.X:F0},{newPosition.Y:F0}) - Success: {success}");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error in HandleUpdatePseudoIconPosition: {ex.Message}");
             }
         }
 

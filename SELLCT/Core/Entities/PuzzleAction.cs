@@ -31,7 +31,10 @@ namespace SELLCT.Core.Entities
             ExitWithMessageBox,
             DelayedExitWithMessageBox,
             StartExplorer,
-            BetrayalEnding
+            BetrayalEnding,
+            ShowPseudoDesktopIcon,
+            HidePseudoDesktopIcon,
+            UpdatePseudoIconPosition
         }
 
         public ActionType Type { get; set; }
@@ -40,6 +43,10 @@ namespace SELLCT.Core.Entities
         public string TargetComponent { get; set; }
         public string HiddenItemFolder { get; set; }
         public string HiddenItemDisplayName { get; set; }
+        public string IconName { get; set; }
+        public string FolderPath { get; set; }
+        public double IconX { get; set; }
+        public double IconY { get; set; }
         public List<PuzzleAction> YesActions { get; set; }
         public List<PuzzleAction> NoActions { get; set; }
         public List<PuzzleAction> NetherChoiceActions { get; set; }

@@ -30,6 +30,7 @@ namespace SELLCT.Views
         private LetterService _letterService;
         private KeyService _keyService;
         private MetaGameController _metaGameController;
+        private Infrastructure.Services.PseudoDesktopIconManager _pseudoDesktopIconManager;
         private bool _isPhase2 = false;
 
         // 統合されたコントローラー
@@ -78,6 +79,10 @@ namespace SELLCT.Views
             this.Loaded += Window_Loaded; // Window_Loadedイベントハンドラを登録
             this.Activated += Window_Activated; // ウィンドウアクティベートイベント
             this.Deactivated += Window_Deactivated; // ウィンドウディアクティベートイベント
+
+            // 疑似デスクトップアイコンマネージャーを初期化
+            _pseudoDesktopIconManager = new Infrastructure.Services.PseudoDesktopIconManager();
+            System.Diagnostics.Debug.WriteLine("PseudoDesktopIconManager initialized in MainWindow");
 
             InitializeAsync();
         }
@@ -540,6 +545,14 @@ namespace SELLCT.Views
         }
 
         /// <summary>
+        /// 疑似デスクトップアイコンマネージャーを取得
+        /// </summary>
+        public Infrastructure.Services.PseudoDesktopIconManager GetPseudoDesktopIconManager()
+        {
+            return _pseudoDesktopIconManager;
+        }
+
+        /// <summary>
         /// 選択肢を表示
         /// </summary>
         public void ShowChoice()
@@ -862,6 +875,8 @@ namespace SELLCT.Views
                 // リソース解放
                 _letterService?.Dispose();
                 _componentManager?.Dispose();
+                _pseudoDesktopIconManager?.Dispose();
+                System.Diagnostics.Debug.WriteLine("PseudoDesktopIconManager disposed in MainWindow");
             }
             catch (Exception ex)
             {
