@@ -111,7 +111,7 @@ namespace SELLCT.Infrastructure.Services
                 {
                     Content = "はい",
                     Width = 75,
-                    Height = 25,
+                    Height = 40,
                     IsDefault = true
                 };
                 yesButton.Click += YesButton_Click;
@@ -125,7 +125,7 @@ namespace SELLCT.Infrastructure.Services
                 {
                     Content = "待機中...",
                     Width = 75,
-                    Height = 25,
+                    Height = 40,
                     IsEnabled = false
                 };
                 buttonPanel.Children.Add(okButton);

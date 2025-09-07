@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
 using SELLCT.Core.Entities;
 using SELLCT.Core.Interfaces;
 using SELLCT.Core.Events;
@@ -121,7 +122,9 @@ namespace SELLCT.Infrastructure.Services
                 //CreateHiddenFile("System/Mouse.txt", "");
                 //CreateHiddenFile("System/Keyboard.txt", "");
                 //CreateHiddenFile("System/Explorer.txt", "");
-                CreateHiddenFile("GameWindow.txt", "");
+                // GameWindow.txtを画面中央座標で初期化
+                var centerPosition = GetScreenCenterPosition();
+                CreateHiddenFile("GameWindow.txt", $"Position = {centerPosition.X:F0},{centerPosition.Y:F0}");
 
                 // 基本システムファイル
                 //CreateHiddenFile("SELLCT/AI.dll.txt", "");
@@ -838,6 +841,47 @@ namespace SELLCT.Infrastructure.Services
                 _components.Clear();
                 _componentPaths.Clear();
                 System.Diagnostics.Debug.WriteLine("ComponentManager disposed");
+            }
+        }
+
+        /// <summary>
+        /// 画面中央座標を取得
+        /// </summary>
+        /// <returns>画面中央のPoint</returns>
+        private Point GetScreenCenterPosition()
+        {
+            try
+            {
+                var screenWidth = System.Windows.SystemParameters.PrimaryScreenWidth;
+                var screenHeight = System.Windows.SystemParameters.PrimaryScreenHeight;
+
+                // 標準的なウィンドウサイズを想定（実際のMainWindowサイズが分からない場合の推定値）
+                double estimatedWindowWidth = 800;
+                double estimatedWindowHeight = 600;
+
+                // MainWindowが利用可能な場合は実際のサイズを取得
+                var mainWindow = System.Windows.Application.Current?.MainWindow;
+                if (mainWindow != null)
+                {
+                    estimatedWindowWidth = mainWindow.ActualWidth > 0 ? mainWindow.ActualWidth : mainWindow.Width;
+                    estimatedWindowHeight = mainWindow.ActualHeight > 0 ? mainWindow.ActualHeight : mainWindow.Height;
+                }
+
+                // 画面中央座標を計算
+                var centerX = (screenWidth - estimatedWindowWidth) / 2;
+                var centerY = (screenHeight - estimatedWindowHeight) / 2;
+
+                var result = new Point(centerX, centerY);
+
+                System.Diagnostics.Debug.WriteLine($"Screen center calculated: ({result.X:F0}, {result.Y:F0})");
+                System.Diagnostics.Debug.WriteLine($"Screen: {screenWidth}x{screenHeight}, EstimatedWindow: {estimatedWindowWidth}x{estimatedWindowHeight}");
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error getting screen center: {ex.Message}");
+                return new Point(100, 100); // フォールバック
             }
         }
     }

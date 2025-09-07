@@ -102,6 +102,9 @@ namespace SELLCT.Views
                 -borderThickness.Right,
                 -borderThickness.Bottom
             );
+
+            // ウィンドウを画面中央に配置
+            CenterWindowOnScreen();
         }
 
         /// <summary>
@@ -379,6 +382,18 @@ namespace SELLCT.Views
         /// </summary>
         private void OnComponentsFolderChanged(object sender, ComponentChangeEventArgs e)
         {
+            // GameWindow.txtの変更を特別に処理
+            var fileName = System.IO.Path.GetFileName(e.FilePath);
+            if (fileName.Equals("GameWindow.txt", StringComparison.OrdinalIgnoreCase))
+            {
+                if (e.ChangeType == System.IO.WatcherChangeTypes.Changed)
+                {
+                    // GameWindow.txtの内容変更時にウィンドウ位置を更新
+                    Dispatcher.Invoke(() => HandleGameWindowPositionChange(e.FilePath));
+                }
+                return; // GameWindow.txtは前面表示処理をスキップ
+            }
+
             // 削除または名前変更の場合のみウィンドウを前面に表示
             if (e.ChangeType == System.IO.WatcherChangeTypes.Deleted || 
                 e.ChangeType == System.IO.WatcherChangeTypes.Renamed)
@@ -417,6 +432,56 @@ namespace SELLCT.Views
             else if (e.ChangeType == System.IO.WatcherChangeTypes.Created)
             {
                 System.Diagnostics.Debug.WriteLine($"Component created (file: {System.IO.Path.GetFileName(e.FilePath)}), window stays in background");
+            }
+        }
+
+        /// <summary>
+        /// GameWindow.txtの変更を処理してウィンドウ位置を更新
+        /// </summary>
+        /// <param name="filePath">GameWindow.txtのパス</param>
+        private void HandleGameWindowPositionChange(string filePath)
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine($"=== HandleGameWindowPositionChange ===");
+                System.Diagnostics.Debug.WriteLine($"GameWindow.txt changed: {filePath}");
+
+                if (!System.IO.File.Exists(filePath))
+                {
+                    System.Diagnostics.Debug.WriteLine("GameWindow.txt does not exist, skipping position update");
+                    return;
+                }
+
+                // ファイルの内容を読み取り
+                string content = System.IO.File.ReadAllText(filePath);
+                System.Diagnostics.Debug.WriteLine($"File content: '{content}'");
+
+                // ウィンドウ位置を解析
+                var newPosition = ParseWindowPosition(content);
+                if (newPosition.HasValue)
+                {
+                    // ウィンドウ位置を更新
+                    MoveWindowToPosition(newPosition.Value);
+                    
+                    // GameWindowPositionChangedイベントを発火
+                    var eventDispatcher = (System.Windows.Application.Current as App)?.GetEventDispatcher();
+                    if (eventDispatcher != null)
+                    {
+                        var positionChangedEvent = new Core.Events.GameWindowPositionChangedEvent(newPosition.Value);
+                        eventDispatcher.Dispatch(positionChangedEvent);
+                        System.Diagnostics.Debug.WriteLine($"GameWindowPositionChangedEvent dispatched: {positionChangedEvent}");
+                    }
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("Failed to parse position from GameWindow.txt, keeping current position");
+                }
+
+                System.Diagnostics.Debug.WriteLine($"=== End HandleGameWindowPositionChange ===\n");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error handling GameWindow position change: {ex.Message}");
             }
         }
 
@@ -643,6 +708,135 @@ namespace SELLCT.Views
         {
             System.Diagnostics.Debug.WriteLine("Custom close button clicked - closing application...");
             this.Close();
+        }
+
+        /// <summary>
+        /// ウィンドウを画面中央に配置
+        /// </summary>
+        private void CenterWindowOnScreen()
+        {
+            try
+            {
+                var screenWidth = SystemParameters.PrimaryScreenWidth;
+                var screenHeight = SystemParameters.PrimaryScreenHeight;
+                var windowWidth = this.ActualWidth > 0 ? this.ActualWidth : this.Width;
+                var windowHeight = this.ActualHeight > 0 ? this.ActualHeight : this.Height;
+
+                // 画面中央座標を計算
+                var centerX = (screenWidth - windowWidth) / 2;
+                var centerY = (screenHeight - windowHeight) / 2;
+
+                // ウィンドウ位置を設定
+                this.Left = centerX;
+                this.Top = centerY;
+
+                System.Diagnostics.Debug.WriteLine($"Window centered at: ({this.Left:F0}, {this.Top:F0})");
+                System.Diagnostics.Debug.WriteLine($"Screen: {screenWidth}x{screenHeight}, Window: {windowWidth}x{windowHeight}");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error centering window: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// 画面中央座標を取得
+        /// </summary>
+        /// <returns>画面中央のPoint</returns>
+        public Point GetScreenCenter()
+        {
+            try
+            {
+                var screenWidth = SystemParameters.PrimaryScreenWidth;
+                var screenHeight = SystemParameters.PrimaryScreenHeight;
+                var windowWidth = this.ActualWidth > 0 ? this.ActualWidth : this.Width;
+                var windowHeight = this.ActualHeight > 0 ? this.ActualHeight : this.Height;
+
+                var centerX = (screenWidth - windowWidth) / 2;
+                var centerY = (screenHeight - windowHeight) / 2;
+
+                return new Point(centerX, centerY);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error getting screen center: {ex.Message}");
+                return new Point(100, 100); // フォールバック
+            }
+        }
+
+        /// <summary>
+        /// GameWindow.txtの内容からウィンドウ位置を解析
+        /// </summary>
+        /// <param name="content">ファイルの内容</param>
+        /// <returns>解析された位置のPoint、失敗時はnull</returns>
+        private Point? ParseWindowPosition(string content)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(content))
+                {
+                    System.Diagnostics.Debug.WriteLine("GameWindow.txt content is empty");
+                    return null;
+                }
+
+                System.Diagnostics.Debug.WriteLine($"Parsing GameWindow.txt content: '{content.Trim()}'");
+
+                // "Position = x,y" 形式を解析
+                var lines = content.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+                foreach (var line in lines)
+                {
+                    var trimmedLine = line.Trim();
+                    if (trimmedLine.StartsWith("Position", StringComparison.OrdinalIgnoreCase))
+                    {
+                        // "Position = x,y" から "x,y" 部分を抽出
+                        var equalIndex = trimmedLine.IndexOf('=');
+                        if (equalIndex > 0 && equalIndex < trimmedLine.Length - 1)
+                        {
+                            var positionPart = trimmedLine.Substring(equalIndex + 1).Trim();
+                            var coordinates = positionPart.Split(',');
+                            
+                            if (coordinates.Length == 2)
+                            {
+                                if (double.TryParse(coordinates[0].Trim(), out double x) && 
+                                    double.TryParse(coordinates[1].Trim(), out double y))
+                                {
+                                    System.Diagnostics.Debug.WriteLine($"Successfully parsed position: ({x:F0}, {y:F0})");
+                                    return new Point(x, y);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                System.Diagnostics.Debug.WriteLine("No valid Position line found in GameWindow.txt");
+                return null;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error parsing GameWindow.txt position: {ex.Message}");
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// ウィンドウ位置を指定された座標に移動
+        /// </summary>
+        /// <param name="newPosition">新しい位置</param>
+        private void MoveWindowToPosition(Point newPosition)
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine($"Moving window to position: ({newPosition.X:F0}, {newPosition.Y:F0})");
+                
+                this.Left = newPosition.X;
+                this.Top = newPosition.Y;
+
+                System.Diagnostics.Debug.WriteLine($"Window moved successfully. New position: ({this.Left:F0}, {this.Top:F0})");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error moving window to position: {ex.Message}");
+            }
         }
 
         /// <summary>
