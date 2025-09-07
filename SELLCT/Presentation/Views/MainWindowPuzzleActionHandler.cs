@@ -89,6 +89,9 @@ namespace SELLCT.Presentation.Views
                         case PuzzleAction.ActionType.SetKeyVisibility:
                             _mainWindow.SetKeyVisibility(action.IsVisible);
                             break;
+                        case PuzzleAction.ActionType.SetDoorVisibility:
+                            _mainWindow.SetDoorVisibility(action.IsVisible);
+                            break;
                         case PuzzleAction.ActionType.SetTextWindowVisibility:
                             _mainWindow.SetTextWindowVisibility(action.IsVisible);
                             break;

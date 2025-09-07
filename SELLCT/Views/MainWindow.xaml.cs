@@ -376,13 +376,15 @@ namespace SELLCT.Views
             });
         }
 
+
         /// <summary>
         /// componentsフォルダ変更イベントハンドラー（削除・名前変更時のみウィンドウを最前面に表示）
         /// </summary>
         private void OnComponentsFolderChanged(object sender, ComponentChangeEventArgs e)
         {
-            // GameWindow.txtの変更を特別に処理
             var fileName = System.IO.Path.GetFileName(e.FilePath);
+            
+            // GameWindow.txtの変更を特別に処理
             if (fileName.Equals("GameWindow.txt", StringComparison.OrdinalIgnoreCase))
             {
                 if (e.ChangeType == System.IO.WatcherChangeTypes.Changed)
@@ -392,6 +394,7 @@ namespace SELLCT.Views
                 }
                 return; // GameWindow.txtは前面表示処理をスキップ
             }
+
 
             // 削除または名前変更の場合のみウィンドウを前面に表示
             if (e.ChangeType == System.IO.WatcherChangeTypes.Deleted || 
@@ -1177,6 +1180,11 @@ namespace SELLCT.Views
         public void SetKeyVisibility(bool isVisible)
         {
             KeyImage.Visibility = isVisible ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        public void SetDoorVisibility(bool isVisible)
+        {
+            DoorImage.Visibility = isVisible ? Visibility.Visible : Visibility.Collapsed;
         }
 
         public void SetTextWindowVisibility(bool isVisible)

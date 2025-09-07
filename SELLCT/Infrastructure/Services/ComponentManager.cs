@@ -117,6 +117,8 @@ namespace SELLCT.Infrastructure.Services
                 //CreateComponentFile("UI/GameWindow.txt", "");
                 CreateComponentFile("YES.txt", "");
                 CreateComponentFile("Background.txt", "");
+                CreateComponentFile("Door.txt", "");
+                CreateComponentFile("Key.txt", "");
 
                 // 隠しファイル（.hidden拡張子）
                 //CreateHiddenFile("System/Mouse.txt", "");

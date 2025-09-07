@@ -18,6 +18,7 @@ namespace SELLCT.Core.Entities
             // 指示書からの新しいアクション
             SetMainButtonVisibility,
             SetKeyVisibility,
+            SetDoorVisibility,
             SetTextWindowVisibility,
             SetBackgroundVisibility,
             TerminateExplorer,

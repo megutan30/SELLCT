@@ -116,6 +116,74 @@ namespace SELLCT.Application.Services
                     }
                 },
 
+                // Door.txt コンポーネント定義
+                new PuzzleDefinition
+                {
+                    Id = "Door_Exists",
+                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Exists, ComponentNames = new[] { "Door", "door", "DOOR" } },
+                    Actions = new List<PuzzleAction> { new PuzzleAction { Type = PuzzleAction.ActionType.SetDoorVisibility, IsVisible = true } },
+                    CanRepeat = true,
+                    Priority = 5
+                },
+                new PuzzleDefinition
+                {
+                    Id = "Door_Deleted",
+                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Deleted, ComponentNames = new[] { "Door", "door", "DOOR" } },
+                    Actions = new List<PuzzleAction>
+                    {
+                        new PuzzleAction { Type = PuzzleAction.ActionType.SetDoorVisibility, IsVisible = false },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "ドアが消失しました。" }
+                    },
+                    CanRepeat = true,
+                    Priority = 10
+                },
+                new PuzzleDefinition
+                {
+                    Id = "Door_Created",
+                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Created, ComponentNames = new[] { "Door", "door", "DOOR" } },
+                    Actions = new List<PuzzleAction>
+                    {
+                        new PuzzleAction { Type = PuzzleAction.ActionType.SetDoorVisibility, IsVisible = true },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "ドアが復元されました。" }
+                    },
+                    CanRepeat = true,
+                    Priority = 10
+                },
+
+                // Key.txt コンポーネント定義
+                new PuzzleDefinition
+                {
+                    Id = "Key_Exists",
+                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Exists, ComponentNames = new[] { "Key", "key", "KEY" } },
+                    Actions = new List<PuzzleAction> { new PuzzleAction { Type = PuzzleAction.ActionType.SetKeyVisibility, IsVisible = true } },
+                    CanRepeat = true,
+                    Priority = 5
+                },
+                new PuzzleDefinition
+                {
+                    Id = "Key_Deleted",
+                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Deleted, ComponentNames = new[] { "Key", "key", "KEY" } },
+                    Actions = new List<PuzzleAction>
+                    {
+                        new PuzzleAction { Type = PuzzleAction.ActionType.SetKeyVisibility, IsVisible = false },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "鍵が消失しました。" }
+                    },
+                    CanRepeat = true,
+                    Priority = 10
+                },
+                new PuzzleDefinition
+                {
+                    Id = "Key_Created",
+                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Created, ComponentNames = new[] { "Key", "key", "KEY" } },
+                    Actions = new List<PuzzleAction>
+                    {
+                        new PuzzleAction { Type = PuzzleAction.ActionType.SetKeyVisibility, IsVisible = true },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "鍵が復元されました。" }
+                    },
+                    CanRepeat = true,
+                    Priority = 10
+                },
+
                 // Password.txt (複数パターン対応)
                 new PuzzleDefinition
                 {
