@@ -62,6 +62,9 @@ namespace SELLCT.Infrastructure.Services
                     iconWindow.SetIcon(iconImage, iconSize);
                     iconWindow.SetName(iconName);
                     iconWindow.SetPosition(position);
+                    
+                    // Z-orderを設定してメインウィンドウの後ろに配置
+                    iconWindow.EnsureBehindMainWindow();
                 });
                 
                 // フォルダパスが指定されている場合は関連付け
@@ -108,6 +111,8 @@ namespace SELLCT.Infrastructure.Services
                     System.Windows.Application.Current.Dispatcher.Invoke(() =>
                     {
                         iconWindow.SetPosition(newPosition);
+                        // 位置更新後もZ-orderを維持
+                        iconWindow.EnsureBehindMainWindow();
                     });
                     System.Diagnostics.Debug.WriteLine($"✅ Icon position updated: {iconName} -> ({newPosition.X:F2}, {newPosition.Y:F2})");
                     return true;
@@ -140,6 +145,11 @@ namespace SELLCT.Infrastructure.Services
                     System.Windows.Application.Current.Dispatcher.Invoke(() =>
                     {
                         iconWindow.SetVisible(visible);
+                        // 表示切り替え後もZ-orderを維持（visible=trueの場合のみ）
+                        if (visible)
+                        {
+                            iconWindow.EnsureBehindMainWindow();
+                        }
                     });
                     System.Diagnostics.Debug.WriteLine($"✅ Icon visibility changed: {iconName} -> {(visible ? "Visible" : "Hidden")}");
                     return true;
@@ -174,6 +184,11 @@ namespace SELLCT.Infrastructure.Services
                         try
                         {
                             kvp.Value.SetVisible(visible);
+                            // 表示切り替え後もZ-orderを維持（visible=trueの場合のみ）
+                            if (visible)
+                            {
+                                kvp.Value.EnsureBehindMainWindow();
+                            }
                         }
                         catch (Exception ex)
                         {

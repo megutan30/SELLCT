@@ -1,9 +1,11 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
+using System.Windows.Interop;
 
 namespace SELLCT.Views
 {
@@ -274,6 +276,19 @@ namespace SELLCT.Views
         private void PseudoDesktopIconWindow_Loaded(object sender, RoutedEventArgs e)
         {
             System.Diagnostics.Debug.WriteLine("PseudoDesktopIconWindow loaded");
+            
+            // ウィンドウハンドルが確実に生成されるまで少し遅延してZ-orderを設定
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                SetIconBehindMainWindow();
+                
+                // 追加の遅延後にもう一度確認（WindowsのZ-order更新タイミング対策）
+                Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    SetIconBehindMainWindow();
+                }), System.Windows.Threading.DispatcherPriority.Background);
+                
+            }), System.Windows.Threading.DispatcherPriority.ApplicationIdle);
         }
 
         /// <summary>
@@ -283,6 +298,108 @@ namespace SELLCT.Views
         {
             System.Diagnostics.Debug.WriteLine("PseudoDesktopIconWindow closed");
             Dispose();
+        }
+
+        /// <summary>
+        /// アイコンをメインウィンドウの後ろに配置
+        /// </summary>
+        private void SetIconBehindMainWindow()
+        {
+            try
+            {
+                var windowHelper = new WindowInteropHelper(this);
+                var hwnd = windowHelper.Handle;
+                
+                System.Diagnostics.Debug.WriteLine($"=== SetIconBehindMainWindow Debug ===");
+                System.Diagnostics.Debug.WriteLine($"Icon window handle: {hwnd}");
+                
+                if (hwnd == IntPtr.Zero)
+                {
+                    System.Diagnostics.Debug.WriteLine("⚠️ Icon window handle is zero, cannot set Z-order");
+                    return;
+                }
+
+                // メインウィンドウのハンドルを取得
+                var mainWindow = System.Windows.Application.Current.MainWindow;
+                if (mainWindow == null)
+                {
+                    System.Diagnostics.Debug.WriteLine("⚠️ MainWindow is null, using HWND_BOTTOM");
+                    bool result = SetWindowPos(hwnd, HWND_BOTTOM, 0, 0, 0, 0, 
+                        SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+                    System.Diagnostics.Debug.WriteLine($"SetWindowPos(HWND_BOTTOM) result: {result}");
+                    if (!result)
+                    {
+                        uint error = GetLastError();
+                        System.Diagnostics.Debug.WriteLine($"❌ SetWindowPos failed with error: {error}");
+                    }
+                    return;
+                }
+
+                var mainWindowHelper = new WindowInteropHelper(mainWindow);
+                var mainHwnd = mainWindowHelper.Handle;
+                
+                System.Diagnostics.Debug.WriteLine($"Main window handle: {mainHwnd}");
+                
+                if (mainHwnd == IntPtr.Zero)
+                {
+                    System.Diagnostics.Debug.WriteLine("⚠️ Main window handle is zero, using HWND_BOTTOM");
+                    bool result = SetWindowPos(hwnd, HWND_BOTTOM, 0, 0, 0, 0, 
+                        SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+                    System.Diagnostics.Debug.WriteLine($"SetWindowPos(HWND_BOTTOM) result: {result}");
+                    if (!result)
+                    {
+                        uint error = GetLastError();
+                        System.Diagnostics.Debug.WriteLine($"❌ SetWindowPos failed with error: {error}");
+                    }
+                }
+                else
+                {
+                    // 戦略1: まずメインウィンドウを最前面にする
+                    bool mainResult = SetWindowPos(mainHwnd, HWND_TOP, 0, 0, 0, 0, 
+                        SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+                    System.Diagnostics.Debug.WriteLine($"SetWindowPos(MainWindow to TOP) result: {mainResult}");
+                    
+                    // 戦略2: アイコンウィンドウを最下層に配置
+                    bool iconResult = SetWindowPos(hwnd, HWND_BOTTOM, 0, 0, 0, 0, 
+                        SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+                    System.Diagnostics.Debug.WriteLine($"SetWindowPos(Icon to BOTTOM) result: {iconResult}");
+                    
+                    if (!iconResult)
+                    {
+                        uint error = GetLastError();
+                        System.Diagnostics.Debug.WriteLine($"❌ SetWindowPos(Icon) failed with error: {error}");
+                    }
+                    
+                    System.Diagnostics.Debug.WriteLine("✅ Icon positioned behind main window using HWND_BOTTOM strategy");
+                }
+                
+                System.Diagnostics.Debug.WriteLine($"=== End SetIconBehindMainWindow Debug ===\\n");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error setting icon Z-order: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"   Stack trace: {ex.StackTrace}");
+            }
+        }
+        
+        /// <summary>
+        /// メインウィンドウの後ろにアイコンを配置（パブリックメソッド）
+        /// </summary>
+        public void EnsureBehindMainWindow()
+        {
+            // ウィンドウハンドルが生成されるまで少し待つ
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                if (!IsLoaded)
+                {
+                    // ウィンドウがまだロードされていない場合は、Loadedイベント後に実行
+                    Loaded += (s, e) => SetIconBehindMainWindow();
+                }
+                else
+                {
+                    SetIconBehindMainWindow();
+                }
+            }), System.Windows.Threading.DispatcherPriority.ApplicationIdle);
         }
 
         /// <summary>
@@ -308,5 +425,23 @@ namespace SELLCT.Views
                 }
             }
         }
+
+        // Win32 API定義
+        [DllImport("user32.dll")]
+        private static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
+
+        [DllImport("kernel32.dll")]
+        private static extern uint GetLastError();
+
+        // SetWindowPos用フラグ
+        private const uint SWP_NOMOVE = 0x0002;
+        private const uint SWP_NOSIZE = 0x0001;
+        private const uint SWP_NOACTIVATE = 0x0010;
+
+        // Z-order用特別値
+        private static readonly IntPtr HWND_BOTTOM = new IntPtr(1);
+        private static readonly IntPtr HWND_NOTOPMOST = new IntPtr(-2);
+        private static readonly IntPtr HWND_TOP = new IntPtr(0);
+        private static readonly IntPtr HWND_TOPMOST = new IntPtr(-1);
     }
 }
