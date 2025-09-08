@@ -402,6 +402,11 @@ namespace SELLCT.Views
                 if (e.ChangeType == System.IO.WatcherChangeTypes.Changed)
                 {
                     var componentName = System.IO.Path.GetFileNameWithoutExtension(fileName);
+                    
+                    // 位置情報を記録
+                    _componentManager.OnFileContentChanged(e.FilePath);
+                    
+                    // 位置制御を実行
                     Dispatcher.Invoke(() => HandleComponentPositionChange(e.FilePath, componentName));
                 }
             }

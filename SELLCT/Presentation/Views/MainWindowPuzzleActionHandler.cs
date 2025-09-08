@@ -173,6 +173,14 @@ namespace SELLCT.Presentation.Views
                         case PuzzleAction.ActionType.SetBackgroundPosition:
                             _mainWindow.SetBackgroundPosition(action.IconX, action.IconY);
                             break;
+
+                        case PuzzleAction.ActionType.RecreateComponentWithPosition:
+                            if (!string.IsNullOrEmpty(action.TargetComponent))
+                            {
+                                _componentManager.RecreateComponent(action.TargetComponent);
+                                System.Diagnostics.Debug.WriteLine($"Component {action.TargetComponent} recreated with Position");
+                            }
+                            break;
                     }
 
                     _mainWindow.UpdateComponentCount();

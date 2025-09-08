@@ -43,7 +43,10 @@ namespace SELLCT.Core.Entities
             SetYESPosition,
             SetKeyPosition,
             SetDoorPosition,
-            SetBackgroundPosition
+            SetBackgroundPosition,
+
+            // コンポーネント再作成アクション
+            RecreateComponentWithPosition
         }
 
         public ActionType Type { get; set; }
