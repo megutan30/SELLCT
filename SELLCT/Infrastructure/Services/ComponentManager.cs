@@ -112,13 +112,13 @@ namespace SELLCT.Infrastructure.Services
         {
             try
             {
-                // 表示される初期構成要素
-                CreateComponentFile("Button.txt", "");
+                // 表示される初期構成要素（XAML初期位置に合わせたPosition付き）
+                CreateComponentFile("Button.txt", "Position = 52,478");
                 //CreateComponentFile("UI/GameWindow.txt", "");
-                CreateComponentFile("YES.txt", "");
-                CreateComponentFile("Background.txt", "");
-                CreateComponentFile("Door.txt", "");
-                CreateComponentFile("Key.txt", "");
+                CreateComponentFile("YES.txt", "Position = 312,370"); // StackPanel想定位置
+                CreateComponentFile("Background.txt", "Position = 0,0");
+                CreateComponentFile("Door.txt", "Position = 367,221");
+                CreateComponentFile("Key.txt", "Position = 128,491");
 
                 // 隠しファイル（.hidden拡張子）
                 //CreateHiddenFile("System/Mouse.txt", "");

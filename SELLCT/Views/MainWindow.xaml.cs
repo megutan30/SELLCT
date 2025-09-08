@@ -395,6 +395,17 @@ namespace SELLCT.Views
                 return; // GameWindow.txtは前面表示処理をスキップ
             }
 
+            // その他のコンポーネントファイルの位置制御処理
+            string[] positionControlledComponents = { "Button.txt", "YES.txt", "Key.txt", "Door.txt", "Background.txt" };
+            if (positionControlledComponents.Any(name => fileName.Equals(name, StringComparison.OrdinalIgnoreCase)))
+            {
+                if (e.ChangeType == System.IO.WatcherChangeTypes.Changed)
+                {
+                    var componentName = System.IO.Path.GetFileNameWithoutExtension(fileName);
+                    Dispatcher.Invoke(() => HandleComponentPositionChange(e.FilePath, componentName));
+                }
+            }
+
 
             // 削除または名前変更の場合のみウィンドウを前面に表示
             if (e.ChangeType == System.IO.WatcherChangeTypes.Deleted || 
@@ -438,19 +449,20 @@ namespace SELLCT.Views
         }
 
         /// <summary>
-        /// GameWindow.txtの変更を処理してウィンドウ位置を更新
+        /// コンポーネントファイルの変更を処理して位置を更新
         /// </summary>
-        /// <param name="filePath">GameWindow.txtのパス</param>
-        private void HandleGameWindowPositionChange(string filePath)
+        /// <param name="filePath">ファイルパス</param>
+        /// <param name="componentName">コンポーネント名</param>
+        private void HandleComponentPositionChange(string filePath, string componentName)
         {
             try
             {
-                System.Diagnostics.Debug.WriteLine($"=== HandleGameWindowPositionChange ===");
-                System.Diagnostics.Debug.WriteLine($"GameWindow.txt changed: {filePath}");
+                System.Diagnostics.Debug.WriteLine($"=== HandleComponentPositionChange ===");
+                System.Diagnostics.Debug.WriteLine($"Component {componentName} changed: {filePath}");
 
                 if (!System.IO.File.Exists(filePath))
                 {
-                    System.Diagnostics.Debug.WriteLine("GameWindow.txt does not exist, skipping position update");
+                    System.Diagnostics.Debug.WriteLine($"{componentName} does not exist, skipping position update");
                     return;
                 }
 
@@ -458,32 +470,76 @@ namespace SELLCT.Views
                 string content = System.IO.File.ReadAllText(filePath);
                 System.Diagnostics.Debug.WriteLine($"File content: '{content}'");
 
-                // ウィンドウ位置を解析
-                var newPosition = ParseWindowPosition(content);
+                // 位置を解析
+                var newPosition = ParseComponentPosition(content);
                 if (newPosition.HasValue)
                 {
-                    // ウィンドウ位置を更新
-                    MoveWindowToPosition(newPosition.Value);
-                    
-                    // GameWindowPositionChangedイベントを発火
-                    var eventDispatcher = (System.Windows.Application.Current as App)?.GetEventDispatcher();
-                    if (eventDispatcher != null)
+                    // コンポーネントタイプに応じて位置を更新
+                    switch (componentName.ToLower())
                     {
-                        var positionChangedEvent = new Core.Events.GameWindowPositionChangedEvent(newPosition.Value);
-                        eventDispatcher.Dispatch(positionChangedEvent);
-                        System.Diagnostics.Debug.WriteLine($"GameWindowPositionChangedEvent dispatched: {positionChangedEvent}");
+                        case "gamewindow":
+                            MoveWindowToPosition(newPosition.Value);
+                            break;
+                        case "button":
+                            SetButtonPosition(newPosition.Value.X, newPosition.Value.Y);
+                            break;
+                        case "yes":
+                            SetYESPosition(newPosition.Value.X, newPosition.Value.Y);
+                            break;
+                        case "key":
+                            SetKeyPosition(newPosition.Value.X, newPosition.Value.Y);
+                            break;
+                        case "door":
+                            SetDoorPosition(newPosition.Value.X, newPosition.Value.Y);
+                            break;
+                        case "background":
+                            SetBackgroundPosition(newPosition.Value.X, newPosition.Value.Y);
+                            break;
                     }
                 }
                 else
                 {
-                    System.Diagnostics.Debug.WriteLine("Failed to parse position from GameWindow.txt, keeping current position");
+                    System.Diagnostics.Debug.WriteLine($"Failed to parse position from {componentName}, keeping current position");
                 }
 
-                System.Diagnostics.Debug.WriteLine($"=== End HandleGameWindowPositionChange ===\n");
+                System.Diagnostics.Debug.WriteLine($"=== End HandleComponentPositionChange ===\n");
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"❌ Error handling GameWindow position change: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"❌ Error handling {componentName} position change: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// GameWindow.txtの変更を処理してウィンドウ位置を更新
+        /// </summary>
+        /// <param name="filePath">GameWindow.txtのパス</param>
+        private void HandleGameWindowPositionChange(string filePath)
+        {
+            HandleComponentPositionChange(filePath, "GameWindow");
+            
+            // GameWindowPositionChangedイベントを発火
+            try
+            {
+                if (System.IO.File.Exists(filePath))
+                {
+                    string content = System.IO.File.ReadAllText(filePath);
+                    var newPosition = ParseComponentPosition(content);
+                    if (newPosition.HasValue)
+                    {
+                        var eventDispatcher = (System.Windows.Application.Current as App)?.GetEventDispatcher();
+                        if (eventDispatcher != null)
+                        {
+                            var positionChangedEvent = new Core.Events.GameWindowPositionChangedEvent(newPosition.Value);
+                            eventDispatcher.Dispatch(positionChangedEvent);
+                            System.Diagnostics.Debug.WriteLine($"GameWindowPositionChangedEvent dispatched: {positionChangedEvent}");
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error dispatching GameWindowPositionChangedEvent: {ex.Message}");
             }
         }
 
@@ -767,21 +823,21 @@ namespace SELLCT.Views
         }
 
         /// <summary>
-        /// GameWindow.txtの内容からウィンドウ位置を解析
+        /// コンポーネントファイルの内容からPositionを解析
         /// </summary>
         /// <param name="content">ファイルの内容</param>
         /// <returns>解析された位置のPoint、失敗時はnull</returns>
-        private Point? ParseWindowPosition(string content)
+        private Point? ParseComponentPosition(string content)
         {
             try
             {
                 if (string.IsNullOrWhiteSpace(content))
                 {
-                    System.Diagnostics.Debug.WriteLine("GameWindow.txt content is empty");
+                    System.Diagnostics.Debug.WriteLine("Component content is empty");
                     return null;
                 }
 
-                System.Diagnostics.Debug.WriteLine($"Parsing GameWindow.txt content: '{content.Trim()}'");
+                System.Diagnostics.Debug.WriteLine($"Parsing component content: '{content.Trim()}'");
 
                 // "Position = x,y" 形式を解析
                 var lines = content.Split('\n', StringSplitOptions.RemoveEmptyEntries);
@@ -810,12 +866,12 @@ namespace SELLCT.Views
                     }
                 }
 
-                System.Diagnostics.Debug.WriteLine("No valid Position line found in GameWindow.txt");
+                System.Diagnostics.Debug.WriteLine("No valid Position line found in component file");
                 return null;
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error parsing GameWindow.txt position: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Error parsing component position: {ex.Message}");
                 return null;
             }
         }
@@ -1208,6 +1264,42 @@ namespace SELLCT.Views
             {
                 System.Diagnostics.Debug.WriteLine("背景画像が表示 - ウィンドウを不透明化");
             }
+        }
+
+        // 位置制御メソッド
+        public void SetButtonPosition(double x, double y)
+        {
+            Canvas.SetLeft(MainButton, x);
+            Canvas.SetTop(MainButton, y);
+            System.Diagnostics.Debug.WriteLine($"Button position set to ({x}, {y})");
+        }
+
+        public void SetYESPosition(double x, double y)
+        {
+            Canvas.SetLeft(YesButton, x);
+            Canvas.SetTop(YesButton, y);
+            System.Diagnostics.Debug.WriteLine($"YES button position set to ({x}, {y})");
+        }
+
+        public void SetKeyPosition(double x, double y)
+        {
+            Canvas.SetLeft(KeyImage, x);
+            Canvas.SetTop(KeyImage, y);
+            System.Diagnostics.Debug.WriteLine($"Key position set to ({x}, {y})");
+        }
+
+        public void SetDoorPosition(double x, double y)
+        {
+            Canvas.SetLeft(DoorImage, x);
+            Canvas.SetTop(DoorImage, y);
+            System.Diagnostics.Debug.WriteLine($"Door position set to ({x}, {y})");
+        }
+
+        public void SetBackgroundPosition(double x, double y)
+        {
+            Canvas.SetLeft(BackgroundImage, x);
+            Canvas.SetTop(BackgroundImage, y);
+            System.Diagnostics.Debug.WriteLine($"Background position set to ({x}, {y})");
         }
 
         /// <summary>

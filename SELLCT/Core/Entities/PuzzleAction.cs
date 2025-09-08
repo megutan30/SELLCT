@@ -36,7 +36,14 @@ namespace SELLCT.Core.Entities
             ShowPseudoDesktopIcon,
             HidePseudoDesktopIcon,
             UpdatePseudoIconPosition,
-            CreateHiddenAuthorityFolder
+            CreateHiddenAuthorityFolder,
+
+            // 位置制御アクション
+            SetButtonPosition,
+            SetYESPosition,
+            SetKeyPosition,
+            SetDoorPosition,
+            SetBackgroundPosition
         }
 
         public ActionType Type { get; set; }

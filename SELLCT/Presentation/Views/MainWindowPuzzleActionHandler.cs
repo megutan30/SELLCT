@@ -152,6 +152,27 @@ namespace SELLCT.Presentation.Views
                         case PuzzleAction.ActionType.CreateHiddenAuthorityFolder:
                             HandleCreateHiddenAuthorityFolder(action);
                             break;
+
+                        // 位置制御アクション
+                        case PuzzleAction.ActionType.SetButtonPosition:
+                            _mainWindow.SetButtonPosition(action.IconX, action.IconY);
+                            break;
+
+                        case PuzzleAction.ActionType.SetYESPosition:
+                            _mainWindow.SetYESPosition(action.IconX, action.IconY);
+                            break;
+
+                        case PuzzleAction.ActionType.SetKeyPosition:
+                            _mainWindow.SetKeyPosition(action.IconX, action.IconY);
+                            break;
+
+                        case PuzzleAction.ActionType.SetDoorPosition:
+                            _mainWindow.SetDoorPosition(action.IconX, action.IconY);
+                            break;
+
+                        case PuzzleAction.ActionType.SetBackgroundPosition:
+                            _mainWindow.SetBackgroundPosition(action.IconX, action.IconY);
+                            break;
                     }
 
                     _mainWindow.UpdateComponentCount();
