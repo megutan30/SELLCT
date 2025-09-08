@@ -409,12 +409,14 @@ namespace SELLCT.Views
                     // 位置制御を実行
                     Dispatcher.Invoke(() => HandleComponentPositionChange(e.FilePath, componentName));
                 }
+                // 位置制御後も前面表示処理に進む（returnしない）
             }
 
 
-            // 削除または名前変更の場合のみウィンドウを前面に表示
+            // 削除、名前変更、または内容変更の場合にウィンドウを前面に表示
             if (e.ChangeType == System.IO.WatcherChangeTypes.Deleted || 
-                e.ChangeType == System.IO.WatcherChangeTypes.Renamed)
+                e.ChangeType == System.IO.WatcherChangeTypes.Renamed ||
+                e.ChangeType == System.IO.WatcherChangeTypes.Changed)
             {
                 Dispatcher.Invoke(() =>
                 {
