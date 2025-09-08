@@ -887,8 +887,8 @@ namespace SELLCT.Views
             // カスタムタイトルバー以外でのドラッグを無効化
             // base.OnMouseDown(e) を呼ばないことでドラッグを阻止
             
-            // 既存のMainWindow_MouseDownロジックを実行
-            MainWindow_MouseDown(this, e);
+            // MainWindow_MouseDownはXAMLのMouseDownイベントで既に呼ばれるため、ここでは呼ばない
+            // 重複呼び出しを防ぐ
         }
 
         /// <summary>
