@@ -420,33 +420,8 @@ namespace SELLCT.Views
             {
                 Dispatcher.Invoke(() =>
                 {
-                    try
-                    {
-                        System.Diagnostics.Debug.WriteLine($"Component {e.ChangeType.ToString().ToLower()}, bringing window to foreground");
-                        
-                        // ウィンドウハンドルを取得
-                        var windowHelper = new System.Windows.Interop.WindowInteropHelper(this);
-                        var hWnd = windowHelper.Handle;
-                        
-                        if (hWnd != IntPtr.Zero)
-                        {
-                            // ウィンドウが最小化されている場合は復元
-                            ShowWindow(hWnd, SW_RESTORE);
-                            
-                            // ウィンドウを最前面に表示
-                            SetForegroundWindow(hWnd);
-                            
-                            System.Diagnostics.Debug.WriteLine("Window brought to foreground successfully");
-                        }
-                        else
-                        {
-                            System.Diagnostics.Debug.WriteLine("Failed to get window handle");
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        System.Diagnostics.Debug.WriteLine($"Error bringing window to foreground: {ex.Message}");
-                    }
+                    System.Diagnostics.Debug.WriteLine($"Component {e.ChangeType.ToString().ToLower()}, bringing window to foreground with reliable method");
+                    BringToForegroundReliable();
                 });
             }
             else if (e.ChangeType == System.IO.WatcherChangeTypes.Created)
@@ -1307,6 +1282,58 @@ namespace SELLCT.Views
             Canvas.SetLeft(BackgroundImage, x);
             Canvas.SetTop(BackgroundImage, y);
             System.Diagnostics.Debug.WriteLine($"Background position set to ({x}, {y})");
+        }
+
+        /// <summary>
+        /// 確実なウィンドウ前面表示（Windows 10/11対応）
+        /// </summary>
+        private void BringToForegroundReliable()
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine("BringToForegroundReliable: Starting reliable foreground process");
+                
+                // 1. ウィンドウが非表示の場合は表示
+                if (!this.IsVisible)
+                {
+                    System.Diagnostics.Debug.WriteLine("Window is not visible, showing window");
+                    this.Show();
+                }
+                
+                // 2. 最小化されている場合は通常状態に復元
+                if (this.WindowState == WindowState.Minimized)
+                {
+                    System.Diagnostics.Debug.WriteLine("Window is minimized, restoring to normal state");
+                    this.WindowState = WindowState.Normal;
+                }
+                
+                // 3. ウィンドウをアクティブ化
+                this.Activate();
+                
+                // 4. Topmostトリック（最も重要 - Windows 10/11で確実に動作）
+                System.Diagnostics.Debug.WriteLine("Applying Topmost trick for reliable foreground display");
+                this.Topmost = true;
+                this.Topmost = false;
+                
+                // 5. フォーカス設定
+                this.Focus();
+                
+                // 6. 従来のWin32 API（補完的）
+                var windowHelper = new System.Windows.Interop.WindowInteropHelper(this);
+                var hWnd = windowHelper.Handle;
+                if (hWnd != IntPtr.Zero)
+                {
+                    ShowWindow(hWnd, SW_RESTORE);
+                    SetForegroundWindow(hWnd);
+                    System.Diagnostics.Debug.WriteLine("Applied Win32 APIs as fallback");
+                }
+                
+                System.Diagnostics.Debug.WriteLine("BringToForegroundReliable: Window brought to foreground successfully");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error in BringToForegroundReliable: {ex.Message}");
+            }
         }
 
         /// <summary>

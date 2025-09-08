@@ -203,8 +203,8 @@
                 <Border Name="TextWindow" 
                     Style="{StaticResource TextWindowStyle}"
                     Width="450" Height="90"
-                    Canvas.Left="350" Canvas.Top="488"
-                    Visibility="Collapsed"
+                    Canvas.Left="350" Canvas.Top="465"
+                    Visibility="Visible"
                     Panel.ZIndex="3" HorizontalAlignment="Left" VerticalAlignment="Top">
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -312,7 +312,7 @@
                 <StackPanel Name="ChoiceButtonsPanel"
                         Orientation="Horizontal" 
                         HorizontalAlignment="Center"
-                        Canvas.Left="330" Canvas.Top="262"
+                        Canvas.Left="330nvas.Top="262"
                         Panel.ZIndex="4"
                         Visibility="Collapsed" VerticalAlignment="Top"
                         d:Visibility="Visible">
@@ -322,11 +322,10 @@
                         Width="60" Height="30"
                         Margin="5,0"
                         Click="YesButton_Click"/>
-                    <Button Name="NoButton" 
+                    <Button x:Name="NoButton" 
                                 Content="はい" 
                                 Style="{StaticResource PixelButtonStyle}"
                                 Width="60" Height="30"
-                                Margin="5,0"
                                 Click="NoButton_Click"/>
                 </StackPanel>
             </Canvas>
