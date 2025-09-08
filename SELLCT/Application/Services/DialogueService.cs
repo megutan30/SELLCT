@@ -608,7 +608,7 @@ namespace SELLCT.Application.Services
                     new PuzzleAction 
                     { 
                         Type = PuzzleAction.ActionType.DelayedExitWithMessageBox, 
-                        Message = "END1否定", 
+                        Message = "否定", 
                         DelayMilliseconds = 2000 
                     }
                 }

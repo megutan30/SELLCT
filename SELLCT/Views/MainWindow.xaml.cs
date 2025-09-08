@@ -983,13 +983,6 @@ namespace SELLCT.Views
             return Array.Exists(knownTexts, text => text.Equals(buttonText, StringComparison.OrdinalIgnoreCase));
         }
 
-
-
-
-
-
-
-
         /// <summary>
         /// 手紙クリック
         /// </summary>

@@ -204,7 +204,7 @@
                     Style="{StaticResource TextWindowStyle}"
                     Width="450" Height="90"
                     Canvas.Left="350" Canvas.Top="465"
-                    Visibility="Visible"
+                    Visibility="Collapsed"
                     Panel.ZIndex="3" HorizontalAlignment="Left" VerticalAlignment="Top">
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -312,7 +312,7 @@
                 <StackPanel Name="ChoiceButtonsPanel"
                         Orientation="Horizontal" 
                         HorizontalAlignment="Center"
-                        Canvas.Left="330nvas.Top="262"
+                        Canvas.Left="360" Canvas.Top="262"
                         Panel.ZIndex="4"
                         Visibility="Collapsed" VerticalAlignment="Top"
                         d:Visibility="Visible">
