@@ -149,11 +149,11 @@ namespace SELLCT.Application.Services
                     Priority = 10
                 },
 
-                // Key.txt コンポーネント定義
+                // message.txt コンポーネント定義
                 new PuzzleDefinition
                 {
                     Id = "Key_Exists",
-                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Exists, ComponentNames = new[] { "Key", "key", "KEY" } },
+                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Exists, ComponentNames = new[] { "message", "Message", "MESSAGE" } },
                     Actions = new List<PuzzleAction> { new PuzzleAction { Type = PuzzleAction.ActionType.SetKeyVisibility, IsVisible = true } },
                     CanRepeat = true,
                     Priority = 5
@@ -161,11 +161,11 @@ namespace SELLCT.Application.Services
                 new PuzzleDefinition
                 {
                     Id = "Key_Deleted",
-                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Deleted, ComponentNames = new[] { "Key", "key", "KEY" } },
+                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Deleted, ComponentNames = new[] { "message", "Message", "MESSAGE" } },
                     Actions = new List<PuzzleAction>
                     {
                         new PuzzleAction { Type = PuzzleAction.ActionType.SetKeyVisibility, IsVisible = false },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "鍵が消失しました。" }
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "メッセージが消失しました。" }
                     },
                     CanRepeat = true,
                     Priority = 10
@@ -306,18 +306,18 @@ namespace SELLCT.Application.Services
                     Priority = 5
                 },
 
-                // KEY.txt (複数パターン対応)
+                // MESSAGE.txt (複数パターン対応)
                 new PuzzleDefinition
                 {
                     Id = "KEY_Create",
-                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Exists, ComponentNames = new[] { "KEY", "key", "Key" } },
+                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Exists, ComponentNames = new[] { "MESSAGE", "Message", "message" } },
                     Actions = new List<PuzzleAction> { new PuzzleAction { Type = PuzzleAction.ActionType.SetKeyVisibility, IsVisible = true } },
                     CanRepeat = true
                 },
                 new PuzzleDefinition
                 {
                     Id = "KEY_Delete",
-                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Deleted, ComponentNames = new[] { "KEY", "key", "Key" } },
+                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Deleted, ComponentNames = new[] { "MESSAGE", "Message", "message" } },
                     Actions = new List<PuzzleAction> { new PuzzleAction { Type = PuzzleAction.ActionType.SetKeyVisibility, IsVisible = false } },
                     CanRepeat = true
                 },

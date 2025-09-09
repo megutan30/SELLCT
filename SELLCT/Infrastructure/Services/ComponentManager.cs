@@ -120,7 +120,7 @@ namespace SELLCT.Infrastructure.Services
                 CreateComponentFile("YES.txt", "Position = 312,370"); // StackPanel想定位置
                 CreateComponentFile("Background.txt", "Position = 0,0");
                 CreateComponentFile("Door.txt", "Position = 367,221");
-                CreateComponentFile("Key.txt", "Position = 128,491");
+                CreateComponentFile("message.txt", "Position = 128,491");
 
                 // 隠しファイル（.hidden拡張子）
                 //CreateHiddenFile("System/Mouse.txt", "");

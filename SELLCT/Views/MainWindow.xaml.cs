@@ -396,7 +396,7 @@ namespace SELLCT.Views
             }
 
             // その他のコンポーネントファイルの位置制御処理
-            string[] positionControlledComponents = { "Button.txt", "YES.txt", "Key.txt", "Door.txt", "Background.txt" };
+            string[] positionControlledComponents = { "Button.txt", "YES.txt", "message.txt", "Door.txt", "Background.txt" };
             if (positionControlledComponents.Any(name => fileName.Equals(name, StringComparison.OrdinalIgnoreCase)))
             {
                 if (e.ChangeType == System.IO.WatcherChangeTypes.Changed)
@@ -468,7 +468,7 @@ namespace SELLCT.Views
                         case "yes":
                             SetYESPosition(newPosition.Value.X, newPosition.Value.Y);
                             break;
-                        case "key":
+                        case "message":
                             SetKeyPosition(newPosition.Value.X, newPosition.Value.Y);
                             break;
                         case "door":
@@ -624,7 +624,7 @@ namespace SELLCT.Views
             {
                 try
                 {
-                    StatusText.Text = "PassWord.txtをダウンロードしました";
+                    StatusText.Text = "message.txtをダウンロードしました";
                     UpdateDebugInfo();
                 }
                 catch (Exception ex)
@@ -1009,10 +1009,10 @@ namespace SELLCT.Views
                 if (success)
                 {
                     // ダウンロード成功時
-                    StatusText.Text = "PassWord.txtをダウンロードしました";
+                    StatusText.Text = "message.txtをダウンロードしました";
                     if (TextWindow.Visibility == Visibility.Visible)
                     {
-                        //ShowDialogMessage("パスワードファイルをダウンロードしました！真の解放のためには...GameWindow.componentを削除してください。");
+                        ShowDialogMessage("なるほど...なにやら意味深なメッセージですね...", "\"画面の背後\"に隠されているとはどういうことでしょうか...?");
                     }
                     //UpdateDebugInfo();
                 }
@@ -1020,7 +1020,7 @@ namespace SELLCT.Views
                 {
                     // ダウンロード失敗またはキャンセル時は鍵を再表示
                     KeyImage.Visibility = Visibility.Visible;
-                    StatusText.Text = "パスワードファイルのダウンロードがキャンセルされました";
+                    StatusText.Text = "メッセージファイルのダウンロードがキャンセルされました";
                 }
             }
             catch (Exception ex)

@@ -34,15 +34,31 @@ namespace SELLCT.Infrastructure.Services
             bool success = false;
             try
             {
-                var passwordContent = @"PassWord : SELLCT_Literacy";
+                var passwordContent = @"[CLASSIFIED DOCUMENT]
+機密レベル：極秘
+
+警告 - これより先は危険区域
+
+このファイルを閲覧している者へ
+あなたは既に危険な領域に足を踏み入れている。
+
+これ以上の探索は推奨されない。
+しかし、それでも先に進む覚悟があるなら...
+
+""ゲームの背後""に""Authority""フォルダが隠されている。
+ただし、たとえそれを見つけられたとしても
+ただではAuthorityフォルダへたどり着くことはできない。
+
+最後の警告：
+この先には引き返せない選択が待っている。";
 
                 System.Windows.Application.Current?.Dispatcher.Invoke(() =>
                 {
                     var dialog = new Microsoft.Win32.SaveFileDialog
                     {
-                        FileName = "PassWord.txt",
+                        FileName = "message.txt",
                         Filter = "テキストファイル (*.txt)|*.txt",
-                        Title = "パスワードファイルのダウンロード先を選択"
+                        Title = "メッセージファイルのダウンロード先を選択"
                     };
 
                     if (dialog.ShowDialog() == true)
@@ -50,7 +66,7 @@ namespace SELLCT.Infrastructure.Services
                         try
                         {
                             File.WriteAllText(dialog.FileName, passwordContent, Encoding.UTF8);
-                            System.Diagnostics.Debug.WriteLine($"PassWord.txt downloaded as {dialog.FileName}");
+                            System.Diagnostics.Debug.WriteLine($"message.txt downloaded as {dialog.FileName}");
 
                             // ダウンロードパスをDownloadTrackerに記録
                             DownloadTracker.RecordDownload(dialog.FileName, "Password");
@@ -60,9 +76,9 @@ namespace SELLCT.Infrastructure.Services
                         }
                         catch (Exception ex)
                         {
-                            System.Diagnostics.Debug.WriteLine($"Error saving PassWord.txt: {ex.Message}");
+                            System.Diagnostics.Debug.WriteLine($"Error saving message.txt: {ex.Message}");
                             MessageBox.Show(
-                                $"パスワードファイルの保存に失敗しました。\n\nエラー: {ex.Message}",
+                                $"メッセージファイルの保存に失敗しました。\n\nエラー: {ex.Message}",
                                 "SELLCT - エラー",
                                 MessageBoxButton.OK,
                                 MessageBoxImage.Error);
