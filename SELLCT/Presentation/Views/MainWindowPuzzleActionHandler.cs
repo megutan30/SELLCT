@@ -191,6 +191,16 @@ namespace SELLCT.Presentation.Views
                             _mainWindow.DialogController?.CancelButtonHint();
                             System.Diagnostics.Debug.WriteLine("Button hint cancelled");
                             break;
+                            
+                        case PuzzleAction.ActionType.StartAuthorityHints:
+                            _mainWindow.DialogController?.StartAuthorityHints(action.DelayMilliseconds / 1000);
+                            System.Diagnostics.Debug.WriteLine($"Authority hints started with {action.DelayMilliseconds}ms delay");
+                            break;
+                            
+                        case PuzzleAction.ActionType.CancelAuthorityHints:
+                            _mainWindow.DialogController?.CancelAuthorityHints();
+                            System.Diagnostics.Debug.WriteLine("Authority hints cancelled");
+                            break;
                     }
 
                     _mainWindow.UpdateComponentCount();

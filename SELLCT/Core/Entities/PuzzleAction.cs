@@ -50,7 +50,11 @@ namespace SELLCT.Core.Entities
             
             // Buttonヒント関連アクション
             StartButtonHint,
-            CancelButtonHint
+            CancelButtonHint,
+            
+            // Authorityヒント関連アクション
+            StartAuthorityHints,
+            CancelAuthorityHints
         }
 
         public ActionType Type { get; set; }

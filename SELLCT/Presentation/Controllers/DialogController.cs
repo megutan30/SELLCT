@@ -27,6 +27,7 @@ namespace SELLCT.Presentation.Controllers
         private readonly Queue<DialogItem> _dialogMessageQueue;
         private readonly DispatcherTimer _typingTimer;
         private readonly DispatcherTimer _hintTimer;
+        private readonly DispatcherTimer _authorityHintTimer;
         private readonly List<string> _messageHistory;
         private readonly ComponentManager _componentManager;
         private readonly GameState _gameState;
@@ -35,6 +36,8 @@ namespace SELLCT.Presentation.Controllers
         private bool _awaitingChoice;
         private bool _isButtonProcessing = false;
         private bool _buttonHintEnabled = false;
+        private bool _authorityHintEnabled = false;
+        private int _currentAuthorityHintStep = 0;
         private string _currentFullMessage;
         private int _currentMessageCharIndex;
 
@@ -62,6 +65,9 @@ namespace SELLCT.Presentation.Controllers
 
             _hintTimer = new DispatcherTimer(DispatcherPriority.Background);
             _hintTimer.Tick += HintTimer_Tick;
+
+            _authorityHintTimer = new DispatcherTimer(DispatcherPriority.Background);
+            _authorityHintTimer.Tick += AuthorityHintTimer_Tick;
         }
 
         public void InjectUIElements(
@@ -404,6 +410,88 @@ namespace SELLCT.Presentation.Controllers
             }
         }
 
+        /// <summary>
+        /// Authorityヒントタイマーを開始
+        /// </summary>
+        public void StartAuthorityHints(int firstDelaySeconds = 60)
+        {
+            if (_authorityHintEnabled) return;
+            
+            _authorityHintEnabled = true;
+            _currentAuthorityHintStep = 1;
+            _authorityHintTimer.Interval = TimeSpan.FromSeconds(firstDelaySeconds);
+            _authorityHintTimer.Start();
+        }
+
+        /// <summary>
+        /// Authorityヒントタイマーをキャンセル
+        /// </summary>
+        public void CancelAuthorityHints()
+        {
+            _authorityHintEnabled = false;
+            _currentAuthorityHintStep = 0;
+            _authorityHintTimer.Stop();
+        }
+
+        /// <summary>
+        /// AuthorityヒントタイマーのTick処理
+        /// </summary>
+        private void AuthorityHintTimer_Tick(object sender, EventArgs e)
+        {
+            _authorityHintTimer.Stop();
+            
+            if (!CanAddToQueue()) return;
+            if (!_componentManager.HasTextWindowComponent()) return;
+            if (_textWindow.Visibility != Visibility.Visible) return;
+
+            try
+            {
+                string[] hintMessages = null;
+                int nextDelaySeconds = 0;
+
+                switch (_currentAuthorityHintStep)
+                {
+                    case 1: // 隠しファイル表示設定とGameWindowに関するヒント
+                        if (!_gameState.AuthorityHint1Shown)
+                        {
+                            hintMessages = new[]
+                            {
+                                "エクスプローラーには隠しファイルの表示を切り替える設定があるようです",
+                                "それをONにすれば\"GameWindow\"が見つかるかもしれません。"
+                            };
+                            _gameState.AuthorityHint1Shown = true;
+                            _authorityHintEnabled = false; // 単発ヒントなので終了
+                        }
+                        break;
+                }
+
+                if (hintMessages != null)
+                {
+                    foreach (var message in hintMessages)
+                    {
+                        EnqueueUniqueMessage(message);
+                    }
+
+                    if (!_isTyping && !_awaitingChoice && _dialogMessageQueue.Count > 0)
+                    {
+                        ProcessNextDialogMessage();
+                    }
+                }
+
+                // 次のヒントをスケジュール
+                if (_authorityHintEnabled && nextDelaySeconds > 0)
+                {
+                    _currentAuthorityHintStep++;
+                    _authorityHintTimer.Interval = TimeSpan.FromSeconds(nextDelaySeconds);
+                    _authorityHintTimer.Start();
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error in AuthorityHintTimer_Tick: {ex.Message}");
+            }
+        }
+
         public void Dispose()
         {
             if (!_disposed)
@@ -411,6 +499,7 @@ namespace SELLCT.Presentation.Controllers
                 _disposed = true;
                 _typingTimer?.Stop();
                 _hintTimer?.Stop();
+                _authorityHintTimer?.Stop();
             }
         }
     }

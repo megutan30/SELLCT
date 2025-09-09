@@ -117,5 +117,38 @@ namespace SELLCT.Core.Entities
             get => GetVariable("ButtonHintShown", false);
             set => SetVariable("ButtonHintShown", value);
         }
+
+        /// <summary>
+        /// Authority関連のヒント状態プロパティ
+        /// </summary>
+        public bool IsAuthorityFolderRevealed
+        {
+            get => GetVariable("IsAuthorityFolderRevealed", false);
+            set => SetVariable("IsAuthorityFolderRevealed", value);
+        }
+
+        public bool AuthorityHint1Shown
+        {
+            get => GetVariable("AuthorityHint1Shown", false);
+            set => SetVariable("AuthorityHint1Shown", value);
+        }
+
+        public bool AuthorityHint2Shown
+        {
+            get => GetVariable("AuthorityHint2Shown", false);
+            set => SetVariable("AuthorityHint2Shown", value);
+        }
+
+        public bool AuthorityHint3Shown
+        {
+            get => GetVariable("AuthorityHint3Shown", false);
+            set => SetVariable("AuthorityHint3Shown", value);
+        }
+
+        public bool IsGameWindowMoved
+        {
+            get => GetVariable("IsGameWindowMoved", false);
+            set => SetVariable("IsGameWindowMoved", value);
+        }
     }
 }

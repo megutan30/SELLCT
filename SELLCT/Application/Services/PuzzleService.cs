@@ -533,6 +533,11 @@ namespace SELLCT.Application.Services
                             Type = PuzzleAction.ActionType.ShowPseudoDesktopIcon, 
                             IconName = "Authority",
                             FolderPath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "Authority")
+                        },
+                        new PuzzleAction
+                        {
+                            Type = PuzzleAction.ActionType.StartAuthorityHints,
+                            DelayMilliseconds = 120000 // 2分後に最初のヒントを表示
                         }
                     },
                     CanRepeat = true,
@@ -659,6 +664,9 @@ namespace SELLCT.Application.Services
                 // Buttonヒント関連の特別処理
                 HandleButtonHintCancellation(puzzle);
                 
+                // Authority関連の特別処理
+                HandleAuthorityState(puzzle);
+                
                 // リピート不可の場合は完了マーク
                 if (!puzzle.CanRepeat)
                 {
@@ -711,6 +719,45 @@ namespace SELLCT.Application.Services
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"[PuzzleService] Error in HandleButtonHintCancellation: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Authority関連の状態管理処理
+        /// </summary>
+        private void HandleAuthorityState(PuzzleDefinition puzzle)
+        {
+            try
+            {
+                // Background削除検出時の状態更新
+                if (puzzle.Id == "Background_Deleted")
+                {
+                    _gameState.IsAuthorityFolderRevealed = true;
+                    System.Diagnostics.Debug.WriteLine("[PuzzleService] Authority folder revealed, updating GameState");
+                }
+
+                // GameWindow移動検出時の状態更新とヒントキャンセル
+                bool isGameWindowMoved = puzzle.Id.Contains("GameWindow") && 
+                                       (puzzle.Trigger?.Type == PuzzleTrigger.TriggerType.Created ||
+                                        puzzle.Trigger?.Type == PuzzleTrigger.TriggerType.Renamed);
+
+                if (isGameWindowMoved)
+                {
+                    _gameState.IsGameWindowMoved = true;
+                    
+                    // Authorityヒントをキャンセル
+                    var cancelAction = new PuzzleAction
+                    {
+                        Type = PuzzleAction.ActionType.CancelAuthorityHints
+                    };
+                    _actionHandler.HandleAction(cancelAction);
+                    
+                    System.Diagnostics.Debug.WriteLine($"[PuzzleService] GameWindow moved, Authority hints cancelled: {puzzle.Id}");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[PuzzleService] Error in HandleAuthorityState: {ex.Message}");
             }
         }
 
