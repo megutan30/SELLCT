@@ -522,10 +522,11 @@ namespace SELLCT.Application.Services
                         new PuzzleAction { Type = PuzzleAction.ActionType.SetBackgroundVisibility, IsVisible = false },
                         new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "背景が消えて、Authorityフォルダが見えています！！" },
                         new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "......" },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "どうやら画面の後ろにあって開けないようですね…" },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "Buttonのようにどうにか動かせないでしょうか..." },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "GameWindowがどこかに隠されているようです。" },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "componentsフォルダのどこかに隠されているようです。そうどこかに..." },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "どうやらゲーム画面の後ろにあって開けないようですね…" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "ゲーム画面自体をButtonのようにどうにか動かせないでしょうか..." },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "私が調べる限り、coponentsフォルダの中にGameWindow.txtがあるようです..." },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "それを動かすことができるかもしれません" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "GameWindow.txtはcomponentsフォルダのどこかにあります。見えていないのならもしかしたら隠されているのかもしれません。" },
                         new PuzzleAction { Type = PuzzleAction.ActionType.CreateHiddenAuthorityFolder },
                         new PuzzleAction 
                         { 
