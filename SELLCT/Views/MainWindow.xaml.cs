@@ -31,6 +31,7 @@ namespace SELLCT.Views
         private KeyService _keyService;
         private MetaGameController _metaGameController;
         private Infrastructure.Services.PseudoDesktopIconManager _pseudoDesktopIconManager;
+        private Infrastructure.Services.HiddenFileSettingService _hiddenFileSettingService;
         private bool _isPhase2 = false;
 
         // 統合されたコントローラー
@@ -81,10 +82,15 @@ namespace SELLCT.Views
             this.Loaded += Window_Loaded; // Window_Loadedイベントハンドラを登録
             this.Activated += Window_Activated; // ウィンドウアクティベートイベント
             this.Deactivated += Window_Deactivated; // ウィンドウディアクティベートイベント
+            this.Closing += Window_Closing; // ウィンドウクロージングイベント
 
             // 疑似デスクトップアイコンマネージャーを初期化
             _pseudoDesktopIconManager = new Infrastructure.Services.PseudoDesktopIconManager();
             System.Diagnostics.Debug.WriteLine("PseudoDesktopIconManager initialized in MainWindow");
+
+            // 隠しファイル設定サービスを初期化
+            _hiddenFileSettingService = new Infrastructure.Services.HiddenFileSettingService();
+            System.Diagnostics.Debug.WriteLine("HiddenFileSettingService initialized in MainWindow");
 
             InitializeAsync();
         }
@@ -107,6 +113,17 @@ namespace SELLCT.Views
 
             // ウィンドウを画面中央に配置
             CenterWindowOnScreen();
+
+            // 隠しファイル表示を無効にする（ゲーム開始時の設定変更）
+            try
+            {
+                bool result = _hiddenFileSettingService.DisableHiddenFileDisplay();
+                System.Diagnostics.Debug.WriteLine($"[MainWindow] Hidden file display disabled: {result}");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[MainWindow] Error disabling hidden file display: {ex.Message}");
+            }
         }
 
         /// <summary>
@@ -127,6 +144,7 @@ namespace SELLCT.Views
             _wasWindowFocused = false;
             System.Diagnostics.Debug.WriteLine("[Window_Deactivated] Window deactivated, focus lost.");
         }
+
 
         /// <summary>
         /// 現在のウィンドウがフォアグラウンドかどうかを確認
@@ -1141,6 +1159,17 @@ namespace SELLCT.Views
                 if (_componentManager != null)
                 {
                     _componentManager.ComponentsFolderChanged -= OnComponentsFolderChanged;
+                }
+
+                // 隠しファイル表示設定を復元する（ゲーム終了時）
+                try
+                {
+                    bool result = _hiddenFileSettingService?.RestoreHiddenFileDisplay() ?? false;
+                    System.Diagnostics.Debug.WriteLine($"[MainWindow] Hidden file display settings restored: {result}");
+                }
+                catch (Exception hiddenFileEx)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[MainWindow] Error restoring hidden file display: {hiddenFileEx.Message}");
                 }
 
                 // リソース解放
