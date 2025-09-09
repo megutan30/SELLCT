@@ -644,6 +644,15 @@ namespace SELLCT.Application.Services
                 _gameState.IncrementActionCount(actionKey);
                 System.Diagnostics.Debug.WriteLine($"[PuzzleService] Action count for {actionKey}: {_gameState.GetActionCount(actionKey)}");
                 
+                // Button_Delete_First の特別処理：RepeatパズルのためにDeleted_Buttonもカウント
+                if (puzzle.Id == "Button_Delete_First")
+                {
+                    var repeatActionKey = "Deleted_Button";
+                    _gameState.IncrementActionCount(repeatActionKey);
+                    System.Diagnostics.Debug.WriteLine($"[PuzzleService] Additional action key for repeat: {repeatActionKey}");
+                    System.Diagnostics.Debug.WriteLine($"[PuzzleService] Action count for {repeatActionKey}: {_gameState.GetActionCount(repeatActionKey)}");
+                }
+                
                 ExecutePuzzleActions(puzzle);
                 
                 // リピート不可の場合は完了マーク
