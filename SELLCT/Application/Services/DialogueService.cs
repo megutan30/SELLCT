@@ -339,7 +339,7 @@ namespace SELLCT.Application.Services
                     var hintAction = new PuzzleAction
                     {
                         Type = PuzzleAction.ActionType.StartButtonHint,
-                        DelayMilliseconds = 90000 // 1分半後
+                        DelayMilliseconds = 60000 // 1分後
                     };
                     _actionHandler.HandleAction(hintAction);
                     
