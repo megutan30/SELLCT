@@ -300,14 +300,14 @@
 
                 <!--：KEY画像 -->
                 <Image Name="KeyImage" 
-                   Source="/Resources/KEY.png"
+                   Source="/Resources/Letter.png"
                    Width="50" Height="50"
                    Canvas.Left="128" Canvas.Top="491"
                    Visibility="Visible"
                    MouseLeftButtonDown="Key_Click"
                    Cursor="Hand"
                    Panel.ZIndex="2"
-                   d:Source="pack://application:,,,/Resources/KEY.png"/>
+                   d:Source="pack://application:,,,/Resources/Letter.png"/>
                 <!-- 選択肢ボタン -->
                 <StackPanel Name="ChoiceButtonsPanel"
                         Orientation="Horizontal" 

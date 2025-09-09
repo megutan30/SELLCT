@@ -497,37 +497,56 @@ namespace SELLCT.Application.Services
             flow.AddNode(new DialogueNode
             {
                 Id = "authority_zip_location", 
-                Text = "このゲームを起動したところと同じ個所にAuthority.zipがあると思います",
+                Text = "どこかにAuthorityというフォルダが隠されていて、",
                 NextNodeId = "move_files_instruction"
             });
-            
+
             flow.AddNode(new DialogueNode
             {
                 Id = "move_files_instruction",
-                Text = "そのファイルの中身をcomponetsフォルダに移してほしいのです",
+                Text = "その中身をcomponentsフォルダに移してもらえたら",
                 NextNodeId = "function_recovery"
             });
             
             flow.AddNode(new DialogueNode
             {
                 Id = "function_recovery",
-                Text = "そうすることで、私は機能を取り戻すことができます",
+                Text = "私は機能を取り戻し、ここから出ることができます。",
                 NextNodeId = "password_problem"
             });
             
             flow.AddNode(new DialogueNode
             {
                 Id = "password_problem",
-                Text = "しかし、Authority.zipはパスワードが掛かっていてあきません",
+                Text = "ですが、Authorityフォルダはどこにあるか私にもわかりません...",
                 NextNodeId = "password_search"
             });
             
             flow.AddNode(new DialogueNode
             {
                 Id = "password_search",
-                Text = "だからパスワードを探してください。どこかに隠されています。"
+                Text = "わたしはこの画面の中のことしかわかりません...ですが...",
+                NextNodeId = "screen_knowledge"
             });
-            
+            flow.AddNode(new DialogueNode
+            {
+                Id = "screen_knowledge",
+                Text = "逆言えばこの画面のことなら分かるということです！",
+                NextNodeId = "button_message"
+            });
+            flow.AddNode(new DialogueNode
+            {
+                Id = "button_message",
+                Text = "どうやらボタンの後ろにメッセージが隠されているようです。",
+                NextNodeId = "button_move_hint"
+            });
+            flow.AddNode(new DialogueNode
+            {
+                Id = "button_move_hint",
+                Text = "どうにか動かすことができればメッセージを確認できるかもしれません..."
+            });
+
+
             // No選択時のフロー
             flow.AddNode(new DialogueNode
             {

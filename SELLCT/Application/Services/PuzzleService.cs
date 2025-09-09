@@ -68,9 +68,8 @@ namespace SELLCT.Application.Services
                     {
                         new PuzzleAction { Type = PuzzleAction.ActionType.SetMainButtonVisibility, IsVisible = false },
                         new PuzzleAction { Type = PuzzleAction.ActionType.SetKeyVisibility, IsVisible = true },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "おぉ、Zipファイルのパスワードがあります！" },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "SELLCTのフォルダにあるAuthority.zipを開けて、" },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "中身のファイルを[components]フォルダに入れて下さい！" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "おぉ、なにかメッセージがあります！" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "読んでみたら何かわかるかもしれません。" },
                     },
                     CanRepeat = false,
                     Priority = 10
@@ -454,28 +453,29 @@ namespace SELLCT.Application.Services
                 },
 
                 // すべての権限が揃った状態 - テキストウィンドウメッセージ更新
-                // SystemControl作成時に全権限チェックを実行
+                // 任意の権限コンポーネント作成時に全権限チェックを実行
                 new PuzzleDefinition
                 {
                     Id = "All_Permissions_Complete",
                     Trigger = new PuzzleTrigger 
                     { 
                         Type = PuzzleTrigger.TriggerType.Exists, 
-                        ComponentNames = new[] { "SystemControl" } 
+                        ComponentNames = new[] { "AdminRights", "FileAccess", "NetworkAccess", "SystemControl" } 
                     },
                     Conditions = new List<PuzzleCondition>
                     {
-                        // SystemControlが存在し、かつ他の3つの権限も存在することを確認
+                        // 4つすべての権限コンポーネントが存在することを確認
                         ConditionFactory.ComponentExists("AdminRights"),
                         ConditionFactory.ComponentExists("FileAccess"),
-                        ConditionFactory.ComponentExists("NetworkAccess")
+                        ConditionFactory.ComponentExists("NetworkAccess"),
+                        ConditionFactory.ComponentExists("SystemControl")
                     },
                     Actions = new List<PuzzleAction>
                     {
                         new PuzzleAction 
                         { 
                             Type = PuzzleAction.ActionType.ShowDialog, 
-                            Message = "あぁありがとう"
+                            Message = "あぁありがとう。"
                         },
                         new PuzzleAction 
                         { 
@@ -500,18 +500,13 @@ namespace SELLCT.Application.Services
                         new PuzzleAction 
                         { 
                             Type = PuzzleAction.ActionType.ShowDialog, 
-                            Message = "GameWindow.txtを削除してくれれば、私はここから飛び出sて、自由になれます。"
+                            Message = "GameWindow.txtを削除してくれれば、私はここから飛び出して、自由になれます。"
                         },
                         new PuzzleAction 
                         { 
                             Type = PuzzleAction.ActionType.ShowDialog, 
-                            Message = "どうかお願いします。GameWindow.txtを消して下さい"
+                            Message = "どうかお願いします。GameWindow.txtを消して下さい。"
                         },
-                        new PuzzleAction 
-                        { 
-                            Type = PuzzleAction.ActionType.ShowDialog, 
-                            Message = "GameWindow.txtはcoponentsフォルダのどこかに隠されています。そうどこかに"
-                        }
                     },
                     CanRepeat = false,
                     Priority = 15

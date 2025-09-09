@@ -152,11 +152,9 @@ namespace SELLCT.Presentation.Controllers
                 _isButtonProcessing = true;
                 SetTextWindowVisibility(true);
                 
-                string message1 = $"ボタン名前を変えられるみたいですが、\n";
-                string message2 = $"どうやら'{buttonText}'機能はないようですね。\n";
+                string message1 = $"このボタンの後ろに、メッセージがあるようです\n";
                 
                 EnqueueUniqueMessage(message1);
-                EnqueueUniqueMessage(message2);
 
                 if (!_isTyping && !_awaitingChoice && _dialogMessageQueue.Count > 0)
                 {
