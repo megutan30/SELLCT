@@ -51,7 +51,7 @@ namespace SELLCT.Presentation.Controllers
             _dialogMessageQueue = new Queue<DialogItem>();
             _messageHistory = new List<string>();
             
-            _typingTimer = new DispatcherTimer();
+            _typingTimer = new DispatcherTimer(DispatcherPriority.Input);
             _typingTimer.Interval = TimeSpan.FromMilliseconds(50);
             _typingTimer.Tick += TypingTimer_Tick;
         }
