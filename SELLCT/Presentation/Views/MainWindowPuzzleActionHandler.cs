@@ -492,7 +492,7 @@ namespace SELLCT.Presentation.Views
                     var windowPosition = new System.Windows.Point(_mainWindow.Left, _mainWindow.Top);
                     var windowSize = new System.Windows.Size(_mainWindow.Width, _mainWindow.Height);
                     position = iconManager.CalculateIconPosition(windowPosition, windowSize, 
-                        new System.Windows.Point(100, 100)); // 少しオフセット
+                        new System.Windows.Point(-100, -100)); // 少しオフセット
                 }
 
                 var success = iconManager.CreatePseudoIcon(iconName, position, folderPath);
