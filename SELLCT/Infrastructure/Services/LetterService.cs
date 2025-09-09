@@ -94,9 +94,9 @@ namespace SELLCT.Infrastructure.Services
 
 
 
-画面を構成する「要素」を
-追加したり、削除したり、名前を変えたりすることで
-私の機能を復活させることができます。
+このゲーム画面を構成する「要素」を
+追加したり、削除したり、ファイルを変更したりすることで
+ゲームが変化します。
 
 まずは、私と直接お話しするために
 デスクトップの
@@ -279,16 +279,16 @@ namespace SELLCT.Infrastructure.Services
                 LetterTriggerCondition.CreateTimeOnly(1, 3),
                 
                 // 手紙2: 15秒後かつ手紙1がダウンロードされている場合
-                LetterTriggerCondition.CreateTimeOnly(2, 15),
+                LetterTriggerCondition.CreateTimeOnly(2, 10),
                 
                 // 手紙3: 20秒後かつ手紙2がダウンロードされている場合
-                LetterTriggerCondition.CreateTimeOnly(3, 20),
+                LetterTriggerCondition.CreateTimeOnly(3, 15),
 
                 // 手紙4: 20秒後かつ手紙3がダウンロードされている場合
-                LetterTriggerCondition.CreateTimeOnly(4, 20),
+                LetterTriggerCondition.CreateTimeOnly(4, 15),
 
                 // 手紙5: 60秒後かつTextWindow系ファイルがすべて存在しない場合かつ手紙4がダウンロードされている場合
-                LetterTriggerCondition.CreateTimeAndAllFilesNotExist(5, 60, new List<string> { "TextWindow", "textwindow", "TEXTWINDOW", "Textwindow" }),
+                LetterTriggerCondition.CreateTimeAndAllFilesNotExist(5, 30, new List<string> { "TextWindow", "textwindow", "TEXTWINDOW", "Textwindow" }),
                 
                 // 今後の手紙は必要に応じて追加
             };
