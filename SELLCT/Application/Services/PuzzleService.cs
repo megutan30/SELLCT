@@ -57,11 +57,11 @@ namespace SELLCT.Application.Services
                     Conditions = new List<PuzzleCondition>
                     {
                         new PuzzleCondition 
-                        { 
-                            Type = PuzzleCondition.ConditionType.ActionCount, 
-                            Key = "Deleted_Button_button_BUTTON", 
-                            ExpectedValue = 0, 
-                            Operator = PuzzleCondition.ComparisonOperator.Equal 
+                        {
+                            Type = PuzzleCondition.ConditionType.ActionCount,
+                            Key = "Deleted_ButtonON",
+                            ExpectedValue = 0,
+                            Operator = PuzzleCondition.ComparisonOperator.Equal
                         }
                     },
                     Actions = new List<PuzzleAction>
@@ -86,9 +86,9 @@ namespace SELLCT.Application.Services
                         new PuzzleCondition 
                         { 
                             Type = PuzzleCondition.ConditionType.ActionCount, 
-                            Key = "Deleted_Button_button_BUTTON", 
+                            Key = "Deleted_Button", 
                             ExpectedValue = 0, 
-                            Operator = PuzzleCondition.ComparisonOperator.GreaterThan 
+                            Operator = PuzzleCondition.ComparisonOperator.GreaterThan
                         }
                     },
                     Actions = new List<PuzzleAction>
@@ -334,7 +334,7 @@ namespace SELLCT.Application.Services
                         new PuzzleCondition 
                         { 
                             Type = PuzzleCondition.ConditionType.ActionCount, 
-                            Key = "Exists_TextWindow_textwindow_TEXTWINDOW_Textwindow", 
+                            Key = "Exists_TextWindow", 
                             ExpectedValue = 0, 
                             Operator = PuzzleCondition.ComparisonOperator.GreaterThan 
                         }
@@ -618,11 +618,21 @@ namespace SELLCT.Application.Services
             System.Diagnostics.Debug.WriteLine($"[PuzzleService] Checking puzzles...");
             
             // 条件を満たすパズルを取得し、優先度順にソート
-            var candidatePuzzles = _puzzles.Where(predicate)
+            var matchedPuzzles = _puzzles.Where(predicate).ToList();
+            System.Diagnostics.Debug.WriteLine($"[PuzzleService] Found {matchedPuzzles.Count} puzzles matching trigger predicate");
+            
+            foreach (var puzzle in matchedPuzzles)
+            {
+                System.Diagnostics.Debug.WriteLine($"[PuzzleService] Evaluating puzzle: {puzzle.Id}, CanRepeat: {puzzle.CanRepeat}, IsCompleted: {puzzle.IsCompleted}, Priority: {puzzle.Priority}");
+            }
+            
+            var candidatePuzzles = matchedPuzzles
                 .Where(puzzle => puzzle.CanRepeat || !puzzle.IsCompleted)
                 .Where(puzzle => AreConditionsSatisfied(puzzle))
                 .OrderByDescending(puzzle => puzzle.Priority)
                 .ToList();
+                
+            System.Diagnostics.Debug.WriteLine($"[PuzzleService] {candidatePuzzles.Count} puzzles passed all conditions");
 
             foreach (var puzzle in candidatePuzzles)
             {
@@ -660,10 +670,18 @@ namespace SELLCT.Application.Services
 
             foreach (var condition in puzzle.Conditions)
             {
+                // ActionCountの場合は実際の値もログ出力
+                if (condition.Type == PuzzleCondition.ConditionType.ActionCount)
+                {
+                    var actualCount = _gameState.GetActionCount(condition.Key);
+                    System.Diagnostics.Debug.WriteLine($"[PuzzleService] Puzzle {puzzle.Id}: ActionCount check - Key: {condition.Key}, Actual: {actualCount}, Expected: {condition.ExpectedValue}, Operator: {condition.Operator}");
+                }
+                
                 var satisfied = condition.IsSatisfied(_gameState, _componentManager);
                 System.Diagnostics.Debug.WriteLine($"[PuzzleService] Puzzle {puzzle.Id}: Condition {condition.Type} {condition.Key} {condition.Operator} {condition.ExpectedValue} = {satisfied}");
                 if (!satisfied)
                 {
+                    System.Diagnostics.Debug.WriteLine($"[PuzzleService] Puzzle {puzzle.Id}: Condition not satisfied, skipping puzzle");
                     return false;
                 }
             }

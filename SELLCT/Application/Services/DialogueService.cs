@@ -63,6 +63,13 @@ namespace SELLCT.Application.Services
             
             _currentFlow = flow;
             var nodeId = startNodeId ?? flow.StartNodeId;
+            
+            // ActionCount記録（PuzzleServiceと同様）
+            var actionKey = GetActionKey(flow);
+            _gameState.IncrementActionCount(actionKey);
+            System.Diagnostics.Debug.WriteLine($"[DialogueService] Action key: {actionKey}");
+            System.Diagnostics.Debug.WriteLine($"[DialogueService] Action count for {actionKey}: {_gameState.GetActionCount(actionKey)}");
+            
             ExecuteNode(nodeId);
             
             System.Diagnostics.Debug.WriteLine($"[DialogueService] Started dialogue flow: {flowId}, node: {nodeId}");
@@ -331,7 +338,7 @@ namespace SELLCT.Application.Services
             var firstTimeCondition = new PuzzleCondition 
             { 
                 Type = PuzzleCondition.ConditionType.ActionCount, 
-                Key = "Exists_TextWindow_textwindow_TEXTWINDOW_Textwindow", 
+                Key = "Exists_TextWindow", 
                 ExpectedValue = 0, 
                 Operator = PuzzleCondition.ComparisonOperator.Equal 
             };
@@ -615,6 +622,16 @@ namespace SELLCT.Application.Services
             });
             
             return flow;
+        }
+        
+        /// <summary>
+        /// DialogueFlowからActionKeyを生成（PuzzleServiceと同じ形式）
+        /// </summary>
+        private string GetActionKey(DialogueFlow flow)
+        {
+            // PuzzleServiceのGetActionKeyと同じ形式で生成
+            var componentNames = flow.Trigger.ComponentNames ?? new[] { flow.Trigger.ComponentName };
+            return $"{flow.Trigger.Type}_{componentNames[0]}";
         }
     }
 }
