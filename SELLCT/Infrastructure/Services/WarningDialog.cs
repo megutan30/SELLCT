@@ -182,7 +182,7 @@ namespace SELLCT.Infrastructure.Services
             if (_isFinalWarning)
             {
                 return "システムの整合性を確認するため、最後の認証が必要です。\n\n" +
-                       "この操作により、SELLCT教育プログラムが開始されます。\n\n" +
+                       "この操作により、SELLCTプログラムが開始されます。\n\n" +
                        "続行してもよろしいですか？";
             }
             else
