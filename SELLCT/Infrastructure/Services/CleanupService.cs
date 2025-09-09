@@ -218,10 +218,10 @@ namespace SELLCT.Infrastructure.Services
                     
                     try
                     {
-                        // letter*.txtパターンとPassWord.txtを検索
+                        // letter*.txtパターンとmessage.txtを検索
                         var letterFiles = Directory.GetFiles(folder, "letter*.txt", SearchOption.TopDirectoryOnly);
-                        var passwordFiles = Directory.GetFiles(folder, "PassWord.txt", SearchOption.TopDirectoryOnly);
-                        var allFiles = letterFiles.Concat(passwordFiles).ToArray();
+                        var messageFiles = Directory.GetFiles(folder, "message.txt", SearchOption.TopDirectoryOnly);
+                        var allFiles = letterFiles.Concat(messageFiles).ToArray();
                         
                         foreach (var file in allFiles)
                         {

@@ -278,16 +278,16 @@ namespace SELLCT.Infrastructure.Services
                 // 手紙1: 3秒後（最初の手紙は無条件）
                 LetterTriggerCondition.CreateTimeOnly(1, 3),
                 
-                // 手紙2: 15秒後かつ手紙1がダウンロードされている場合
+                // 手紙2: 10秒後かつ手紙1がダウンロードされている場合
                 LetterTriggerCondition.CreateTimeOnly(2, 10),
                 
-                // 手紙3: 20秒後かつ手紙2がダウンロードされている場合
-                LetterTriggerCondition.CreateTimeOnly(3, 15),
+                // 手紙3: 10秒後かつ手紙2がダウンロードされている場合
+                LetterTriggerCondition.CreateTimeOnly(3, 10),
 
-                // 手紙4: 20秒後かつ手紙3がダウンロードされている場合
-                LetterTriggerCondition.CreateTimeOnly(4, 15),
+                // 手紙4: 10秒後かつ手紙3がダウンロードされている場合
+                LetterTriggerCondition.CreateTimeOnly(4, 10),
 
-                // 手紙5: 60秒後かつTextWindow系ファイルがすべて存在しない場合かつ手紙4がダウンロードされている場合
+                // 手紙5: 30秒後かつTextWindow系ファイルがすべて存在しない場合かつ手紙4がダウンロードされている場合
                 LetterTriggerCondition.CreateTimeAndAllFilesNotExist(5, 30, new List<string> { "TextWindow", "textwindow", "TEXTWINDOW", "Textwindow" }),
                 
                 // 今後の手紙は必要に応じて追加

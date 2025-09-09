@@ -69,7 +69,7 @@ namespace SELLCT.Infrastructure.Services
                             System.Diagnostics.Debug.WriteLine($"message.txt downloaded as {dialog.FileName}");
 
                             // ダウンロードパスをDownloadTrackerに記録
-                            DownloadTracker.RecordDownload(dialog.FileName, "Password");
+                            DownloadTracker.RecordDownload(dialog.FileName, "Message");
 
                             _eventDispatcher.Dispatch(new KeyClickedEvent());
                             success = true;
