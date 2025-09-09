@@ -520,7 +520,12 @@ namespace SELLCT.Application.Services
                     Actions = new List<PuzzleAction>
                     {
                         new PuzzleAction { Type = PuzzleAction.ActionType.SetBackgroundVisibility, IsVisible = false },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "背景が消失しました。" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "背景が消えて、Authorityフォルダが見えています！！" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "......" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "どうやら画面の後ろにあって開けないようですね…" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "Buttonのようにどうにか動かせないでしょうか..." },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "GameWindowがどこかに隠されているようです。" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "componentsフォルダのどこかに隠されているようです。そうどこかに..." },
                         new PuzzleAction { Type = PuzzleAction.ActionType.CreateHiddenAuthorityFolder },
                         new PuzzleAction 
                         { 
