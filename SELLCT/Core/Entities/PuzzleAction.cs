@@ -46,7 +46,11 @@ namespace SELLCT.Core.Entities
             SetBackgroundPosition,
 
             // コンポーネント再作成アクション
-            RecreateComponentWithPosition
+            RecreateComponentWithPosition,
+            
+            // Buttonヒント関連アクション
+            StartButtonHint,
+            CancelButtonHint
         }
 
         public ActionType Type { get; set; }

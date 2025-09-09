@@ -302,6 +302,12 @@ namespace SELLCT.Application.Services
         
         private void FinishDialogue()
         {
+            // button_move_hint完了時のヒントタイマー開始処理
+            if (_currentFlow?.Id == "No_Create_Flow")
+            {
+                StartButtonHintIfNeeded();
+            }
+            
             if (_currentFlow != null && !_currentFlow.CanRepeat)
             {
                 _currentFlow.IsCompleted = true;
@@ -311,6 +317,39 @@ namespace SELLCT.Application.Services
             _currentNode = null;
             
             System.Diagnostics.Debug.WriteLine("[DialogueService] Dialogue finished");
+        }
+
+        /// <summary>
+        /// Buttonヒント開始条件をチェックして実行
+        /// </summary>
+        private void StartButtonHintIfNeeded()
+        {
+            try
+            {
+                // GameStateとDialogControllerの取得が必要
+                var gameState = _gameState; // PuzzleServiceと同様にGameStateアクセスが必要
+                if (gameState == null) return;
+
+                // 条件チェック：まだmessageが取得されていない かつ ヒントがまだ表示されていない
+                if (!gameState.IsMessageRevealed && !gameState.ButtonHintShown)
+                {
+                    gameState.IsButtonHintTriggered = true;
+                    
+                    // DialogControllerへのヒント開始要求（MainWindowPuzzleActionHandlerを通じて）
+                    var hintAction = new PuzzleAction
+                    {
+                        Type = PuzzleAction.ActionType.StartButtonHint,
+                        DelayMilliseconds = 90000 // 1分半後
+                    };
+                    _actionHandler.HandleAction(hintAction);
+                    
+                    System.Diagnostics.Debug.WriteLine("[DialogueService] Button hint timer started");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[DialogueService] Error starting button hint: {ex.Message}");
+            }
         }
         
         private bool AreConditionsSatisfied(List<PuzzleCondition> conditions)

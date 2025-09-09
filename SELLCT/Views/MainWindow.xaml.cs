@@ -36,6 +36,8 @@ namespace SELLCT.Views
         // 統合されたコントローラー
         private LetterDisplayController _letterDisplayController;
         private DialogController _dialogController;
+        
+        public DialogController DialogController => _dialogController;
 
         public void SetPhase2(bool value)
         {
@@ -278,9 +280,12 @@ namespace SELLCT.Views
             // MetaGameController初期化
             _metaGameController = new MetaGameController((System.Windows.Application.Current as App).GetEventDispatcher());
 
+            // GameStateを先に作成
+            var gameState = new GameState();
+            
             // Controller初期化
             _letterDisplayController = new LetterDisplayController(_letterService, eventDispatcher);
-            _dialogController = new DialogController(_componentManager);
+            _dialogController = new DialogController(_componentManager, gameState);
             
             // UI要素をControllerに注入
             _letterDisplayController.InjectUIElements(LetterImage, StatusText);
@@ -290,9 +295,6 @@ namespace SELLCT.Views
 
             // PuzzleService初期化
             _puzzleActionHandler = new MainWindowPuzzleActionHandler(this, _componentManager, _metaGameController);
-            
-            // GameStateを共有するために先に作成
-            var gameState = new GameState();
             _puzzleService = new PuzzleService(_componentManager, _puzzleActionHandler, eventDispatcher, gameState);
             
             // DialogueService初期化（GameStateを共有）

@@ -181,6 +181,16 @@ namespace SELLCT.Presentation.Views
                                 System.Diagnostics.Debug.WriteLine($"Component {action.TargetComponent} recreated with Position");
                             }
                             break;
+                            
+                        case PuzzleAction.ActionType.StartButtonHint:
+                            _mainWindow.DialogController?.StartButtonHint(action.DelayMilliseconds / 1000);
+                            System.Diagnostics.Debug.WriteLine($"Button hint started with {action.DelayMilliseconds}ms delay");
+                            break;
+                            
+                        case PuzzleAction.ActionType.CancelButtonHint:
+                            _mainWindow.DialogController?.CancelButtonHint();
+                            System.Diagnostics.Debug.WriteLine("Button hint cancelled");
+                            break;
                     }
 
                     _mainWindow.UpdateComponentCount();

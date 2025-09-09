@@ -650,6 +650,9 @@ namespace SELLCT.Application.Services
                 
                 ExecutePuzzleActions(puzzle);
                 
+                // Buttonヒント関連の特別処理
+                HandleButtonHintCancellation(puzzle);
+                
                 // リピート不可の場合は完了マーク
                 if (!puzzle.CanRepeat)
                 {
@@ -658,6 +661,50 @@ namespace SELLCT.Application.Services
                 
                 // イベント完了をマーク
                 _gameState.MarkEventCompleted(puzzle.Id);
+            }
+        }
+
+        /// <summary>
+        /// Buttonヒント関連のキャンセル処理
+        /// </summary>
+        private void HandleButtonHintCancellation(PuzzleDefinition puzzle)
+        {
+            try
+            {
+                // Button操作検出時のキャンセル
+                bool isButtonOperation = puzzle.Id.Contains("Button_Delete") || 
+                                       puzzle.Id.Contains("Button_Create") ||
+                                       puzzle.Id.Contains("Button_Rename");
+
+                // message取得検出時のキャンセル
+                bool isMessageOperation = puzzle.Id.Contains("Key_") && 
+                                        (puzzle.Trigger?.ComponentNames?.Any(name => 
+                                            name.Equals("message", StringComparison.OrdinalIgnoreCase) ||
+                                            name.Equals("Message", StringComparison.OrdinalIgnoreCase) ||
+                                            name.Equals("MESSAGE", StringComparison.OrdinalIgnoreCase)) ?? false);
+
+                if (isButtonOperation || isMessageOperation)
+                {
+                    // GameStateを更新
+                    if (isMessageOperation && puzzle.Trigger.Type == PuzzleTrigger.TriggerType.Exists)
+                    {
+                        _gameState.IsMessageRevealed = true;
+                        System.Diagnostics.Debug.WriteLine("[PuzzleService] Message revealed, updating GameState");
+                    }
+
+                    // ヒントタイマーキャンセルアクションを実行
+                    var cancelAction = new PuzzleAction
+                    {
+                        Type = PuzzleAction.ActionType.CancelButtonHint
+                    };
+                    _actionHandler.HandleAction(cancelAction);
+                    
+                    System.Diagnostics.Debug.WriteLine($"[PuzzleService] Button hint cancelled due to: {puzzle.Id}");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[PuzzleService] Error in HandleButtonHintCancellation: {ex.Message}");
             }
         }
 

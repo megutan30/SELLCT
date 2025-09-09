@@ -6,6 +6,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
 using SELLCT.Infrastructure.Services;
+using SELLCT.Core.Entities;
 
 namespace SELLCT.Presentation.Controllers
 {
@@ -25,12 +26,15 @@ namespace SELLCT.Presentation.Controllers
 
         private readonly Queue<DialogItem> _dialogMessageQueue;
         private readonly DispatcherTimer _typingTimer;
+        private readonly DispatcherTimer _hintTimer;
         private readonly List<string> _messageHistory;
         private readonly ComponentManager _componentManager;
+        private readonly GameState _gameState;
 
         private bool _isTyping;
         private bool _awaitingChoice;
         private bool _isButtonProcessing = false;
+        private bool _buttonHintEnabled = false;
         private string _currentFullMessage;
         private int _currentMessageCharIndex;
 
@@ -45,15 +49,19 @@ namespace SELLCT.Presentation.Controllers
 
         private bool _disposed = false;
 
-        public DialogController(ComponentManager componentManager)
+        public DialogController(ComponentManager componentManager, GameState gameState)
         {
             _componentManager = componentManager;
+            _gameState = gameState;
             _dialogMessageQueue = new Queue<DialogItem>();
             _messageHistory = new List<string>();
             
             _typingTimer = new DispatcherTimer(DispatcherPriority.Input);
             _typingTimer.Interval = TimeSpan.FromMilliseconds(50);
             _typingTimer.Tick += TypingTimer_Tick;
+
+            _hintTimer = new DispatcherTimer(DispatcherPriority.Background);
+            _hintTimer.Tick += HintTimer_Tick;
         }
 
         public void InjectUIElements(
@@ -146,6 +154,9 @@ namespace SELLCT.Presentation.Controllers
             if (!_componentManager.HasTextWindowComponent()) return;
             
             if (_textWindow.Visibility != Visibility.Visible) return;
+
+            // 条件チェック: ヒントが有効でない場合、またはメッセージが既に取得されている場合は何もしない
+            if (!_gameState.IsButtonHintTriggered || _gameState.IsMessageRevealed) return;
 
             try
             {
@@ -336,12 +347,70 @@ namespace SELLCT.Presentation.Controllers
             }
         }
 
+        /// <summary>
+        /// Buttonヒントタイマーを開始
+        /// </summary>
+        public void StartButtonHint(int delaySeconds = 30)
+        {
+            if (_buttonHintEnabled) return;
+            
+            _buttonHintEnabled = true;
+            _hintTimer.Interval = TimeSpan.FromSeconds(delaySeconds);
+            _hintTimer.Start();
+        }
+
+        /// <summary>
+        /// Buttonヒントタイマーをキャンセル
+        /// </summary>
+        public void CancelButtonHint()
+        {
+            _buttonHintEnabled = false;
+            _hintTimer.Stop();
+        }
+
+        /// <summary>
+        /// ヒントタイマーのTick処理
+        /// </summary>
+        private void HintTimer_Tick(object sender, EventArgs e)
+        {
+            _hintTimer.Stop();
+            _buttonHintEnabled = false;
+            
+            if (!CanAddToQueue()) return;
+            if (!_componentManager.HasTextWindowComponent()) return;
+            if (_textWindow.Visibility != Visibility.Visible) return;
+
+            try
+            {
+                string[] hintMessages = new[]
+                {
+                    "お困りですか...？",
+                    "Buttonファイルを開いてみると何かわかるかもしれません。"
+                };
+
+                foreach (var message in hintMessages)
+                {
+                    EnqueueUniqueMessage(message);
+                }
+
+                if (!_isTyping && !_awaitingChoice && _dialogMessageQueue.Count > 0)
+                {
+                    ProcessNextDialogMessage();
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error in HintTimer_Tick: {ex.Message}");
+            }
+        }
+
         public void Dispose()
         {
             if (!_disposed)
             {
                 _disposed = true;
                 _typingTimer?.Stop();
+                _hintTimer?.Stop();
             }
         }
     }
