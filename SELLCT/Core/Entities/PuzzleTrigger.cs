@@ -10,7 +10,8 @@ namespace SELLCT.Core.Entities
             Created,
             Deleted,
             Renamed,
-            Exists
+            Exists,
+            AuthorityFolderOpened
         }
 
         public TriggerType Type { get; set; }

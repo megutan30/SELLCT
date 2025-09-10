@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Windows;
 using SELLCT.Views;
+using SELLCT.Core.Interfaces;
 
 namespace SELLCT.Infrastructure.Services
 {
@@ -14,12 +15,14 @@ namespace SELLCT.Infrastructure.Services
     {
         private readonly Dictionary<string, PseudoDesktopIconWindow> _activeIcons;
         private readonly SystemIconService _iconService;
+        private readonly IEventDispatcher _eventDispatcher;
         private bool _disposed = false;
 
-        public PseudoDesktopIconManager()
+        public PseudoDesktopIconManager(IEventDispatcher eventDispatcher = null)
         {
             _activeIcons = new Dictionary<string, PseudoDesktopIconWindow>();
             _iconService = new SystemIconService();
+            _eventDispatcher = eventDispatcher;
             
             System.Diagnostics.Debug.WriteLine("PseudoDesktopIconManager initialized");
         }
@@ -56,7 +59,7 @@ namespace SELLCT.Infrastructure.Services
                 PseudoDesktopIconWindow iconWindow = null;
                 System.Windows.Application.Current.Dispatcher.Invoke(() =>
                 {
-                    iconWindow = new PseudoDesktopIconWindow();
+                    iconWindow = new PseudoDesktopIconWindow(_eventDispatcher);
                     
                     // アイコンの設定
                     iconWindow.SetIcon(iconImage, iconSize);

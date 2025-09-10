@@ -28,6 +28,7 @@ namespace SELLCT.Application.Services
             _eventDispatcher.Subscribe<ComponentCreatedEvent>(CheckPuzzlesOnComponentCreated);
             _eventDispatcher.Subscribe<ComponentDeletedEvent>(CheckPuzzlesOnComponentDeleted);
             _eventDispatcher.Subscribe<ComponentRenamedEvent>(CheckPuzzlesOnComponentRenamed);
+            _eventDispatcher.Subscribe<AuthorityFolderOpenedEvent>(CheckPuzzlesOnAuthorityFolderOpened);
             
             // SELLCTフォルダ裏切りイベントをサブスクライブ
             _componentManager.SELLCTFolderBetrayed += OnSELLCTFolderBetrayed;
@@ -569,6 +570,27 @@ namespace SELLCT.Application.Services
                     },
                     CanRepeat = true,
                     Priority = 5
+                },
+
+                // Authorityフォルダ開封時の説明メッセージ
+                new PuzzleDefinition
+                {
+                    Id = "Authority_FolderOpened",
+                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.AuthorityFolderOpened },
+                    Actions = new List<PuzzleAction>
+                    {
+                        new PuzzleAction { Type = PuzzleAction.ActionType.SetTextWindowVisibility, IsVisible = true },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "Authorityフォルダを開きましたね！" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "中には4つの権限ファイルが入っています。" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "AdminRights.txt - 管理者権限" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "FileAccess.txt - ファイルアクセス権限" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "SystemControl.txt - システム制御権限" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "NetworkAccess.txt - ネットワークアクセス権限" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "これらのファイルをcomponentsフォルダに移してください。" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "そうすることで、私により多くの権限を与えることができます。" }
+                    },
+                    CanRepeat = true,
+                    Priority = 5
                 }
             };
         }
@@ -614,6 +636,14 @@ namespace SELLCT.Application.Services
                                _componentManager.GetComponent(@event.NewName) != null); // 実際に存在するか確認
         }
 
+        private void CheckPuzzlesOnAuthorityFolderOpened(AuthorityFolderOpenedEvent @event)
+        {
+            System.Diagnostics.Debug.WriteLine($"[PuzzleService] AuthorityFolderOpened event received: Path={@event.FolderPath}");
+            
+            // AuthorityFolderOpenedトリガーのパズルをチェック
+            CheckPuzzles(p => p.Trigger.Type == PuzzleTrigger.TriggerType.AuthorityFolderOpened);
+        }
+
         private void CheckPuzzles(Func<PuzzleDefinition, bool> predicate)
         {
             System.Diagnostics.Debug.WriteLine($"[PuzzleService] Checking puzzles...");
@@ -634,6 +664,17 @@ namespace SELLCT.Application.Services
                 .ToList();
                 
             System.Diagnostics.Debug.WriteLine($"[PuzzleService] {candidatePuzzles.Count} puzzles passed all conditions");
+            
+            // 候補パズルの詳細情報を出力
+            foreach (var candidate in candidatePuzzles)
+            {
+                System.Diagnostics.Debug.WriteLine($"[PuzzleService] Candidate puzzle: {candidate.Id}, Priority: {candidate.Priority}");
+            }
+
+            if (candidatePuzzles.Count > 0)
+            {
+                System.Diagnostics.Debug.WriteLine($"[PuzzleService] Executing highest priority puzzle: {candidatePuzzles[0].Id} (Priority: {candidatePuzzles[0].Priority})");
+            }
 
             foreach (var puzzle in candidatePuzzles)
             {
