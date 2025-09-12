@@ -99,9 +99,9 @@ namespace SELLCT.Infrastructure.Services
 ゲームが変化します。
 
 まずは、私と直接お話しするために
-デスクトップの
 
-“components”フォルダの中に「TextWindow.txt」というテキストファイルを
+
+デスクトップ画面にある“components”フォルダの中に「TextWindow.txt」というテキストファイルを
 作ってもらえませんか？
 
 よろしくお願いします。
@@ -288,7 +288,7 @@ namespace SELLCT.Infrastructure.Services
                 LetterTriggerCondition.CreateTimeOnly(4, 10),
 
                 // 手紙5: 30秒後かつTextWindow系ファイルがすべて存在しない場合かつ手紙4がダウンロードされている場合
-                LetterTriggerCondition.CreateTimeAndAllFilesNotExist(5, 30, new List<string> { "TextWindow", "textwindow", "TEXTWINDOW", "Textwindow" }),
+                LetterTriggerCondition.CreateTimeAndAllFilesNotExist(5, 45, new List<string> { "TextWindow", "textwindow", "TEXTWINDOW", "Textwindow" }),
                 
                 // 今後の手紙は必要に応じて追加
             };
