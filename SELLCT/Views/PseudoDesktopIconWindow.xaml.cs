@@ -6,6 +6,8 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using System.Windows.Interop;
+using SELLCT.Core.Events;
+using SELLCT.Core.Interfaces;
 
 namespace SELLCT.Views
 {
@@ -17,10 +19,13 @@ namespace SELLCT.Views
     {
         private bool _disposed = false;
         private string _associatedFolderPath;
+        private readonly IEventDispatcher _eventDispatcher;
         
-        public PseudoDesktopIconWindow()
+        public PseudoDesktopIconWindow(IEventDispatcher eventDispatcher = null)
         {
             InitializeComponent();
+            
+            _eventDispatcher = eventDispatcher;
             
             // ウィンドウの初期設定
             InitializeWindow();
@@ -233,6 +238,14 @@ namespace SELLCT.Views
                     });
                     
                     System.Diagnostics.Debug.WriteLine("✅ Folder opened successfully");
+                    
+                    // Authorityフォルダが開封された場合はイベントを発火
+                    if (_associatedFolderPath.Contains("Authority") && _eventDispatcher != null)
+                    {
+                        System.Diagnostics.Debug.WriteLine("Authority folder opened - firing event");
+                        var authorityEvent = new AuthorityFolderOpenedEvent(_associatedFolderPath);
+                        _eventDispatcher.Dispatch(authorityEvent);
+                    }
                 }
                 else
                 {

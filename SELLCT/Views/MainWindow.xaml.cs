@@ -85,7 +85,8 @@ namespace SELLCT.Views
             this.Closing += Window_Closing; // ウィンドウクロージングイベント
 
             // 疑似デスクトップアイコンマネージャーを初期化
-            _pseudoDesktopIconManager = new Infrastructure.Services.PseudoDesktopIconManager();
+            var eventDispatcher = (System.Windows.Application.Current as App)?.GetEventDispatcher();
+            _pseudoDesktopIconManager = new Infrastructure.Services.PseudoDesktopIconManager(eventDispatcher);
             System.Diagnostics.Debug.WriteLine("PseudoDesktopIconManager initialized in MainWindow");
 
             // 隠しファイル設定サービスを初期化
@@ -206,35 +207,35 @@ namespace SELLCT.Views
                     System.Windows.Application.Current.Shutdown();
                     return;
                 }
-                // 実行が選択された場合、警告演出を開始
-                if (smartScreenResult == Infrastructure.Services.SmartScreenResult.RunAnyway)
-                {
-                    System.Diagnostics.Debug.WriteLine("Starting warning flood demonstration with noise transition...");
+                //// 実行が選択された場合、警告演出を開始
+                //if (smartScreenResult == Infrastructure.Services.SmartScreenResult.RunAnyway)
+                //{
+                //    System.Diagnostics.Debug.WriteLine("Starting warning flood demonstration with noise transition...");
                     
-                    var warningFloodService = new Infrastructure.Services.WarningFloodService();
+                //    var warningFloodService = new Infrastructure.Services.WarningFloodService();
                     
-                    // 警告演出を実行
-                    await warningFloodService.StartWarningFloodWithNoiseTransition(() =>
-                    {
-                        // メインウィンドウを表示
-                        System.Diagnostics.Debug.WriteLine("Showing main window after noise transition...");
-                        this.Show();
-                    });
+                //    // 警告演出を実行
+                //    await warningFloodService.StartWarningFloodWithNoiseTransition(() =>
+                //    {
+                //        // メインウィンドウを表示
+                //        System.Diagnostics.Debug.WriteLine("Showing main window after noise transition...");
+                //        this.Show();
+                //    });
                     
-                    System.Diagnostics.Debug.WriteLine("Warning flood with noise transition completed.");
+                //    System.Diagnostics.Debug.WriteLine("Warning flood with noise transition completed.");
                     
-                    // リソースクリーンアップ
-                    warningFloodService.Cleanup();
-                }
-                else
-                {
-                    // SmartScreen で実行しないが選択された場合以外は、通常のMainWindow表示
-                    System.Diagnostics.Debug.WriteLine("Showing main window directly...");
-                    this.Show();
-                }
-
+                //    // リソースクリーンアップ
+                //    warningFloodService.Cleanup();
+                //}
+                //else
+                //{
+                //    // SmartScreen で実行しないが選択された場合以外は、通常のMainWindow表示
+                //    System.Diagnostics.Debug.WriteLine("Showing main window directly...");
+                //    this.Show();
+                //}
+                this.Show();
                 // ローディング表示
-               // LoadingOverlay.Visibility = Visibility.Visible;
+                // LoadingOverlay.Visibility = Visibility.Visible;
                 //await Task.Delay(2000); // 初期化演出
 
                 // サービス初期化

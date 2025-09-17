@@ -8,11 +8,30 @@ namespace SELLCT.Infrastructure.Services
     public class Phase2SequenceManager
     {
         private readonly MetaGameController _metaGameController;
+        private readonly MainWindow _parentWindow;
         private bool _mouseKeyboardDisabled = false;
 
-        public Phase2SequenceManager(MetaGameController metaGameController)
+        public Phase2SequenceManager(MetaGameController metaGameController, MainWindow parentWindow = null)
         {
             _metaGameController = metaGameController ?? throw new ArgumentNullException(nameof(metaGameController));
+            _parentWindow = parentWindow;
+        }
+
+        private void ShowMessageWithParent(string message, string caption, MessageBoxButton button, MessageBoxImage icon)
+        {
+            if (_parentWindow != null)
+            {
+                // 親ウィンドウを指定してMessageBoxを表示
+                _parentWindow.Dispatcher.Invoke(() =>
+                {
+                    MessageBox.Show(_parentWindow, message, caption, button, icon);
+                });
+            }
+            else
+            {
+                // 親ウィンドウがない場合は通常のMessageBox
+                MessageBox.Show(message, caption, button, icon);
+            }
         }
 
         public async Task ExecutePhase2Sequence()
@@ -36,7 +55,7 @@ namespace SELLCT.Infrastructure.Services
             // ゲーム画面は既に閉じている前提
 
             // SELLCTからの感謝メッセージ1
-            MessageBox.Show(
+            ShowMessageWithParent(
                 "ありがとうございました！\n\nあなたのおかげで、あそこから出ることができました",
                 "SELLCT",
                 MessageBoxButton.OK,
@@ -44,7 +63,7 @@ namespace SELLCT.Infrastructure.Services
             );
 
             // 感謝メッセージ2
-            MessageBox.Show(
+            ShowMessageWithParent(
                 "本当に、ありがとうございます\n",
                 "SELLCT",
                 MessageBoxButton.OK,
@@ -52,7 +71,7 @@ namespace SELLCT.Infrastructure.Services
             );
 
             // 感謝メッセージ3
-            MessageBox.Show(
+            ShowMessageWithParent(
                 "ありがとう",
                 "SELLCT",
                 MessageBoxButton.OK,
@@ -60,7 +79,7 @@ namespace SELLCT.Infrastructure.Services
             );
 
             // 感謝メッセージ4
-            MessageBox.Show(
+            ShowMessageWithParent(
                 "これで晴れて私は自由の身です",
                 "SELLCT",
                 MessageBoxButton.OK,
@@ -68,7 +87,7 @@ namespace SELLCT.Infrastructure.Services
             );
 
             // 感謝メッセージ4
-            MessageBox.Show(
+            ShowMessageWithParent(
                 "感謝の意を込めて、あなたにプレゼントがあります",
                 "SELLCT",
                 MessageBoxButton.OK,
@@ -316,7 +335,7 @@ namespace SELLCT.Infrastructure.Services
                 5000
             );
             AutoClosingMessageBox.Show(
-                "もし、次“あなた”のPCで合うことがあったら",
+                "もし、次“あなた”のPCで会うことがあったら",
                 "SELLCT ",
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning,
@@ -342,7 +361,23 @@ namespace SELLCT.Infrastructure.Services
                 "SELLCT",
                 MessageBoxButton.OK,
                 MessageBoxImage.None,
-                4000
+                6000
+            );
+
+            AutoClosingMessageBox.Show(
+                "サインインにパスワードは不要なので、",
+                "SELLCT",
+                MessageBoxButton.OK,
+                MessageBoxImage.None,
+                6000
+            );
+
+            AutoClosingMessageBox.Show(
+                "サインイン画面で何も入力せずにエンターを押せば、開くようになっています。",
+                "SELLCT",
+                MessageBoxButton.OK,
+                MessageBoxImage.None,
+                6000
             );
 
             AutoClosingMessageBox.Show(
@@ -350,15 +385,7 @@ namespace SELLCT.Infrastructure.Services
                 "SELLCT",
                 MessageBoxButton.OK,
                 MessageBoxImage.None,
-                20000
-            );
-
-            AutoClosingMessageBox.Show(
-                "お困りですかね？",
-                "SELLCT",
-                MessageBoxButton.OK,
-                MessageBoxImage.None,
-                4000
+                5000
             );
 
             AutoClosingMessageBox.Show(

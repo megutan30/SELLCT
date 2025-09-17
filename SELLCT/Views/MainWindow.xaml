@@ -87,6 +87,33 @@
             <Setter Property="CornerRadius" Value="0"/>
         </Style>
 
+        <Style x:Key="TextWindowButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#2D2D30"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#3F3F46"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#3E3E42"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="#1E1E1E"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <!-- カスタムタイトルバー用スタイル -->
         <Style x:Key="CustomTitleBarButtonStyle" TargetType="Button">
             <Setter Property="Background" Value="#E0E0E0"/>
@@ -227,10 +254,7 @@
                             Width="40" Height="35"
                             FontSize="12"
                             Margin="0,5,10,0"
-                            Background="#2D2D30"
-                            Foreground="White"
-                            BorderBrush="#3F3F46"
-                            BorderThickness="1"
+                            Style="{StaticResource TextWindowButtonStyle}"
                             Click="LogButton_Click"
                             Grid.Column="1"
                             VerticalAlignment="Top"
@@ -280,10 +304,7 @@
                             Width="60" Height="25"
                             FontSize="10"
                             Margin="5,5,15,10"
-                            Background="#2D2D30"
-                            Foreground="White"
-                            BorderBrush="#3F3F46"
-                            BorderThickness="1"
+                            Style="{StaticResource TextWindowButtonStyle}"
                             Click="CloseLogButton_Click"
                             Grid.Row="2"
                             HorizontalAlignment="Right"/>
