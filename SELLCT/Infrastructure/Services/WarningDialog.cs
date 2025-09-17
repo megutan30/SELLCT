@@ -111,7 +111,7 @@ namespace SELLCT.Infrastructure.Services
                 {
                     Content = "はい",
                     Width = 75,
-                    Height = 25,
+                    Height = 40,
                     IsDefault = true
                 };
                 yesButton.Click += YesButton_Click;
@@ -125,7 +125,7 @@ namespace SELLCT.Infrastructure.Services
                 {
                     Content = "待機中...",
                     Width = 75,
-                    Height = 25,
+                    Height = 40,
                     IsEnabled = false
                 };
                 buttonPanel.Children.Add(okButton);
@@ -182,7 +182,7 @@ namespace SELLCT.Infrastructure.Services
             if (_isFinalWarning)
             {
                 return "システムの整合性を確認するため、最後の認証が必要です。\n\n" +
-                       "この操作により、SELLCT教育プログラムが開始されます。\n\n" +
+                       "この操作により、SELLCTプログラムが開始されます。\n\n" +
                        "続行してもよろしいですか？";
             }
             else

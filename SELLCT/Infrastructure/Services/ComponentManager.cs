@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
 using SELLCT.Core.Entities;
 using SELLCT.Core.Interfaces;
 using SELLCT.Core.Events;
@@ -17,6 +18,7 @@ namespace SELLCT.Infrastructure.Services
     {
         private readonly Dictionary<string, GameComponent> _components;
         private readonly Dictionary<string, string> _componentPaths; // 構成要素名 -> 実際のファイルパス
+        private readonly Dictionary<string, string> _lastKnownPositions; // 構成要素名 -> 最後に記録されたPosition内容
         private readonly string _componentsPath;
         private volatile bool _disposed = false;
         private readonly IEventDispatcher _eventDispatcher;
@@ -52,6 +54,7 @@ namespace SELLCT.Infrastructure.Services
             _componentsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "components");
             _components = new Dictionary<string, GameComponent>();
             _componentPaths = new Dictionary<string, string>();
+            _lastKnownPositions = new Dictionary<string, string>();
             
             System.Diagnostics.Debug.WriteLine($"ComponentManager initialized with path: {_componentsPath}");
 
@@ -111,17 +114,21 @@ namespace SELLCT.Infrastructure.Services
         {
             try
             {
-                // 表示される初期構成要素
-                CreateComponentFile("Button.txt", "");
+                // 表示される初期構成要素（XAML初期位置に合わせたPosition付き）
+                CreateComponentFile("Button.txt", "Position = 52,478");
                 //CreateComponentFile("UI/GameWindow.txt", "");
-                CreateComponentFile("YES.txt", "");
-                CreateComponentFile("Background.txt", "");
+                CreateComponentFile("YES.txt", "Position = 312,370"); // StackPanel想定位置
+                CreateComponentFile("Background.txt", "Position = 0,0");
+                CreateComponentFile("Door.txt", "Position = 367,221");
+                CreateComponentFile("message.txt", "Position = 128,491");
 
                 // 隠しファイル（.hidden拡張子）
                 //CreateHiddenFile("System/Mouse.txt", "");
                 //CreateHiddenFile("System/Keyboard.txt", "");
                 //CreateHiddenFile("System/Explorer.txt", "");
-                CreateHiddenFile("GameWindow.txt", "");
+                // GameWindow.txtを画面中央座標で初期化
+                var centerPosition = GetScreenCenterPosition();
+                CreateHiddenFile("GameWindow.txt", $"Position = {centerPosition.X:F0},{centerPosition.Y:F0}");
 
                 // 基本システムファイル
                 //CreateHiddenFile("SELLCT/AI.dll.txt", "");
@@ -198,6 +205,66 @@ namespace SELLCT.Infrastructure.Services
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Error creating initial components: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// コンポーネント名に基づく内容を取得（削除前位置優先、なければデフォルト）
+        /// </summary>
+        private string GetComponentContent(string componentName)
+        {
+            // 削除前の位置が記録されている場合はそれを使用
+            if (_lastKnownPositions.TryGetValue(componentName, out string lastPosition))
+            {
+                System.Diagnostics.Debug.WriteLine($"Restoring last known position for {componentName}: '{lastPosition}'");
+                return lastPosition;
+            }
+
+            // 削除前位置がない場合はデフォルト位置を使用
+            var defaultContent = componentName.ToLower() switch
+            {
+                "button" => "Position = 52,478",
+                "yes" => "Position = 312,370",
+                "background" => "Position = 0,0",
+                "door" => "Position = 367,221",
+                "key" => "Position = 128,491",
+                "gamewindow" => $"Position = {GetScreenCenterPosition().X:F0},{GetScreenCenterPosition().Y:F0}",
+                _ => "" // その他のコンポーネントは空文字
+            };
+
+            System.Diagnostics.Debug.WriteLine($"Using default position for {componentName}: '{defaultContent}'");
+            return defaultContent;
+        }
+
+        /// <summary>
+        /// コンポーネントの位置情報を記録
+        /// </summary>
+        private void RecordComponentPosition(string componentName, string filePath)
+        {
+            try
+            {
+                // 位置制御対象のコンポーネントかチェック
+                string[] positionControlledComponents = { "Button", "YES", "Background", "Door", "Key", "GameWindow" };
+                if (!positionControlledComponents.Any(name => 
+                    componentName.Equals(name, StringComparison.OrdinalIgnoreCase)))
+                {
+                    return;
+                }
+
+                if (File.Exists(filePath))
+                {
+                    var content = File.ReadAllText(filePath);
+                    if (!string.IsNullOrWhiteSpace(content) && 
+                        content.Contains("Position", StringComparison.OrdinalIgnoreCase))
+                    {
+                        _lastKnownPositions[componentName] = content;
+                        System.Diagnostics.Debug.WriteLine($"Recorded position for {componentName}: '{content}'");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error recording position for {componentName}: {ex.Message}");
             }
         }
 
@@ -328,6 +395,9 @@ namespace SELLCT.Infrastructure.Services
                 _components[component.Name] = component;
                 _componentPaths[component.Name] = component.FilePath;
                 
+                // 空のコンポーネントファイルにデフォルトPosition内容を追加
+                HandleEmptyComponentCreation(component);
+                
                 // 特定構成要素作成時の特別処理
                 HandleSpecialComponentCreation(component);
                 
@@ -349,6 +419,10 @@ namespace SELLCT.Infrastructure.Services
             try
             {
                 var component = @event.Component;
+                
+                // 削除される前に位置情報を記録
+                RecordComponentPosition(component.Name, component.FilePath);
+                
                 _components.Remove(component.Name);
                 _componentPaths.Remove(component.Name);
                 
@@ -463,6 +537,45 @@ namespace SELLCT.Infrastructure.Services
         }
 
         /// <summary>
+        /// 空のコンポーネントファイルにデフォルト内容を追加
+        /// </summary>
+        private void HandleEmptyComponentCreation(GameComponent component)
+        {
+            try
+            {
+                // 位置制御対象のコンポーネントかチェック
+                string[] positionControlledComponents = { "Button", "YES", "Background", "Door", "Key" };
+                if (!positionControlledComponents.Any(name => 
+                    component.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
+                {
+                    return; // 位置制御対象外のコンポーネントはスキップ
+                }
+
+                // ファイルの内容を確認
+                if (File.Exists(component.FilePath))
+                {
+                    var currentContent = File.ReadAllText(component.FilePath);
+                    
+                    // 空、またはPositionが含まれていない場合、適切な内容を設定
+                    if (string.IsNullOrWhiteSpace(currentContent) || 
+                        !currentContent.Contains("Position", StringComparison.OrdinalIgnoreCase))
+                    {
+                        var contentToUse = GetComponentContent(component.Name);
+                        if (!string.IsNullOrEmpty(contentToUse))
+                        {
+                            File.WriteAllText(component.FilePath, contentToUse);
+                            System.Diagnostics.Debug.WriteLine($"Added Position content to {component.Name}: '{contentToUse}'");
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error handling empty component creation for {component.Name}: {ex.Message}");
+            }
+        }
+
+        /// <summary>
         /// 特別な構成要素作成処理
         /// </summary>
         private void HandleSpecialComponentCreation(GameComponent component)
@@ -564,6 +677,38 @@ namespace SELLCT.Infrastructure.Services
         public IEnumerable<GameComponent> GetComponentsByType(ComponentType type)
         {
             return _components.Values.Where(c => c.Type == type);
+        }
+
+        /// <summary>
+        /// コンポーネントを適切なデフォルト内容で再作成
+        /// </summary>
+        public void RecreateComponent(string componentName)
+        {
+            try
+            {
+                var relativePath = componentName + ".txt";
+                var contentToUse = GetComponentContent(componentName);
+                
+                System.Diagnostics.Debug.WriteLine($"Recreating component {componentName} with content: '{contentToUse}'");
+                CreateComponentFile(relativePath, contentToUse);
+                
+                // 作成したコンポーネントの情報を更新
+                var fullPath = Path.Combine(_componentsPath, relativePath);
+                if (File.Exists(fullPath))
+                {
+                    var component = ParseComponentFile(fullPath);
+                    if (component != null)
+                    {
+                        _components[component.Name] = component;
+                        _eventDispatcher.Dispatch(new ComponentCreatedEvent(component));
+                        System.Diagnostics.Debug.WriteLine($"Component {componentName} successfully recreated with Position");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error recreating component {componentName}: {ex.Message}");
+            }
         }
 
         /// <summary>
@@ -825,6 +970,22 @@ namespace SELLCT.Infrastructure.Services
 
 
         /// <summary>
+        /// ファイル変更時の位置情報記録処理
+        /// </summary>
+        public void OnFileContentChanged(string filePath)
+        {
+            try
+            {
+                var fileName = Path.GetFileNameWithoutExtension(filePath);
+                RecordComponentPosition(fileName, filePath);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error recording position on file change: {ex.Message}");
+            }
+        }
+
+        /// <summary>
         /// リソース解放
         /// </summary>
         public void Dispose()
@@ -837,7 +998,49 @@ namespace SELLCT.Infrastructure.Services
 
                 _components.Clear();
                 _componentPaths.Clear();
+                _lastKnownPositions.Clear();
                 System.Diagnostics.Debug.WriteLine("ComponentManager disposed");
+            }
+        }
+
+        /// <summary>
+        /// 画面中央座標を取得
+        /// </summary>
+        /// <returns>画面中央のPoint</returns>
+        private Point GetScreenCenterPosition()
+        {
+            try
+            {
+                var screenWidth = System.Windows.SystemParameters.PrimaryScreenWidth;
+                var screenHeight = System.Windows.SystemParameters.PrimaryScreenHeight;
+
+                // 標準的なウィンドウサイズを想定（実際のMainWindowサイズが分からない場合の推定値）
+                double estimatedWindowWidth = 800;
+                double estimatedWindowHeight = 600;
+
+                // MainWindowが利用可能な場合は実際のサイズを取得
+                var mainWindow = System.Windows.Application.Current?.MainWindow;
+                if (mainWindow != null)
+                {
+                    estimatedWindowWidth = mainWindow.ActualWidth > 0 ? mainWindow.ActualWidth : mainWindow.Width;
+                    estimatedWindowHeight = mainWindow.ActualHeight > 0 ? mainWindow.ActualHeight : mainWindow.Height;
+                }
+
+                // 画面中央座標を計算
+                var centerX = (screenWidth - estimatedWindowWidth) / 2;
+                var centerY = (screenHeight - estimatedWindowHeight) / 2;
+
+                var result = new Point(centerX, centerY);
+
+                System.Diagnostics.Debug.WriteLine($"Screen center calculated: ({result.X:F0}, {result.Y:F0})");
+                System.Diagnostics.Debug.WriteLine($"Screen: {screenWidth}x{screenHeight}, EstimatedWindow: {estimatedWindowWidth}x{estimatedWindowHeight}");
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error getting screen center: {ex.Message}");
+                return new Point(100, 100); // フォールバック
             }
         }
     }

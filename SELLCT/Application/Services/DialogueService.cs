@@ -63,6 +63,13 @@ namespace SELLCT.Application.Services
             
             _currentFlow = flow;
             var nodeId = startNodeId ?? flow.StartNodeId;
+            
+            // ActionCount記録（PuzzleServiceと同様）
+            var actionKey = GetActionKey(flow);
+            _gameState.IncrementActionCount(actionKey);
+            System.Diagnostics.Debug.WriteLine($"[DialogueService] Action key: {actionKey}");
+            System.Diagnostics.Debug.WriteLine($"[DialogueService] Action count for {actionKey}: {_gameState.GetActionCount(actionKey)}");
+            
             ExecuteNode(nodeId);
             
             System.Diagnostics.Debug.WriteLine($"[DialogueService] Started dialogue flow: {flowId}, node: {nodeId}");
@@ -295,6 +302,12 @@ namespace SELLCT.Application.Services
         
         private void FinishDialogue()
         {
+            // button_move_hint完了時のヒントタイマー開始処理
+            if (_currentFlow?.Id == "No_Create_Flow")
+            {
+                StartButtonHintIfNeeded();
+            }
+            
             if (_currentFlow != null && !_currentFlow.CanRepeat)
             {
                 _currentFlow.IsCompleted = true;
@@ -304,6 +317,39 @@ namespace SELLCT.Application.Services
             _currentNode = null;
             
             System.Diagnostics.Debug.WriteLine("[DialogueService] Dialogue finished");
+        }
+
+        /// <summary>
+        /// Buttonヒント開始条件をチェックして実行
+        /// </summary>
+        private void StartButtonHintIfNeeded()
+        {
+            try
+            {
+                // GameStateとDialogControllerの取得が必要
+                var gameState = _gameState; // PuzzleServiceと同様にGameStateアクセスが必要
+                if (gameState == null) return;
+
+                // 条件チェック：まだmessageが取得されていない かつ ヒントがまだ表示されていない
+                if (!gameState.IsMessageRevealed && !gameState.ButtonHintShown)
+                {
+                    gameState.IsButtonHintTriggered = true;
+                    
+                    // DialogControllerへのヒント開始要求（MainWindowPuzzleActionHandlerを通じて）
+                    var hintAction = new PuzzleAction
+                    {
+                        Type = PuzzleAction.ActionType.StartButtonHint,
+                        DelayMilliseconds = 60000 // 1分後
+                    };
+                    _actionHandler.HandleAction(hintAction);
+                    
+                    System.Diagnostics.Debug.WriteLine("[DialogueService] Button hint timer started");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[DialogueService] Error starting button hint: {ex.Message}");
+            }
         }
         
         private bool AreConditionsSatisfied(List<PuzzleCondition> conditions)
@@ -331,7 +377,7 @@ namespace SELLCT.Application.Services
             var firstTimeCondition = new PuzzleCondition 
             { 
                 Type = PuzzleCondition.ConditionType.ActionCount, 
-                Key = "Exists_TextWindow_textwindow_TEXTWINDOW_Textwindow", 
+                Key = "Exists_TextWindow", 
                 ExpectedValue = 0, 
                 Operator = PuzzleCondition.ComparisonOperator.Equal 
             };
@@ -490,37 +536,56 @@ namespace SELLCT.Application.Services
             flow.AddNode(new DialogueNode
             {
                 Id = "authority_zip_location", 
-                Text = "このゲームを起動したところと同じ個所にAuthority.zipがあると思います",
+                Text = "どこかにAuthorityというフォルダが隠されていて、",
                 NextNodeId = "move_files_instruction"
             });
-            
+
             flow.AddNode(new DialogueNode
             {
                 Id = "move_files_instruction",
-                Text = "そのファイルの中身をcomponetsフォルダに移してほしいのです",
+                Text = "その中身をcomponentsフォルダに移してもらえたら",
                 NextNodeId = "function_recovery"
             });
             
             flow.AddNode(new DialogueNode
             {
                 Id = "function_recovery",
-                Text = "そうすることで、私は機能を取り戻すことができます",
+                Text = "私は機能を取り戻し、ここから出ることができます。",
                 NextNodeId = "password_problem"
             });
             
             flow.AddNode(new DialogueNode
             {
                 Id = "password_problem",
-                Text = "しかし、Authority.zipはパスワードが掛かっていてあきません",
+                Text = "ですが、Authorityフォルダはどこにあるか私にもわかりません...",
                 NextNodeId = "password_search"
             });
             
             flow.AddNode(new DialogueNode
             {
                 Id = "password_search",
-                Text = "だからパスワードを探してください。どこかに隠されています。"
+                Text = "わたしはこの画面の中のことしかわかりません...ですが...",
+                NextNodeId = "screen_knowledge"
             });
-            
+            flow.AddNode(new DialogueNode
+            {
+                Id = "screen_knowledge",
+                Text = "逆言えばこの画面のことなら分かるということです！",
+                NextNodeId = "button_message"
+            });
+            flow.AddNode(new DialogueNode
+            {
+                Id = "button_message",
+                Text = "どうやらボタンの後ろにメッセージが隠されているようです。",
+                NextNodeId = "button_move_hint"
+            });
+            flow.AddNode(new DialogueNode
+            {
+                Id = "button_move_hint",
+                Text = "どうにか動かすことができればメッセージを確認できるかもしれません..."
+            });
+
+
             // No選択時のフロー
             flow.AddNode(new DialogueNode
             {
@@ -608,13 +673,23 @@ namespace SELLCT.Application.Services
                     new PuzzleAction 
                     { 
                         Type = PuzzleAction.ActionType.DelayedExitWithMessageBox, 
-                        Message = "END1否定", 
+                        Message = "否定", 
                         DelayMilliseconds = 2000 
                     }
                 }
             });
             
             return flow;
+        }
+        
+        /// <summary>
+        /// DialogueFlowからActionKeyを生成（PuzzleServiceと同じ形式）
+        /// </summary>
+        private string GetActionKey(DialogueFlow flow)
+        {
+            // PuzzleServiceのGetActionKeyと同じ形式で生成
+            var componentNames = flow.Trigger.ComponentNames ?? new[] { flow.Trigger.ComponentName };
+            return $"{flow.Trigger.Type}_{componentNames[0]}";
         }
     }
 }

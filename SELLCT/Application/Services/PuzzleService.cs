@@ -28,6 +28,7 @@ namespace SELLCT.Application.Services
             _eventDispatcher.Subscribe<ComponentCreatedEvent>(CheckPuzzlesOnComponentCreated);
             _eventDispatcher.Subscribe<ComponentDeletedEvent>(CheckPuzzlesOnComponentDeleted);
             _eventDispatcher.Subscribe<ComponentRenamedEvent>(CheckPuzzlesOnComponentRenamed);
+            _eventDispatcher.Subscribe<AuthorityFolderOpenedEvent>(CheckPuzzlesOnAuthorityFolderOpened);
             
             // SELLCTフォルダ裏切りイベントをサブスクライブ
             _componentManager.SELLCTFolderBetrayed += OnSELLCTFolderBetrayed;
@@ -57,20 +58,19 @@ namespace SELLCT.Application.Services
                     Conditions = new List<PuzzleCondition>
                     {
                         new PuzzleCondition 
-                        { 
-                            Type = PuzzleCondition.ConditionType.ActionCount, 
-                            Key = "Deleted_Button_button_BUTTON", 
-                            ExpectedValue = 0, 
-                            Operator = PuzzleCondition.ComparisonOperator.Equal 
+                        {
+                            Type = PuzzleCondition.ConditionType.ActionCount,
+                            Key = "Deleted_ButtonON",
+                            ExpectedValue = 0,
+                            Operator = PuzzleCondition.ComparisonOperator.Equal
                         }
                     },
                     Actions = new List<PuzzleAction>
                     {
                         new PuzzleAction { Type = PuzzleAction.ActionType.SetMainButtonVisibility, IsVisible = false },
                         new PuzzleAction { Type = PuzzleAction.ActionType.SetKeyVisibility, IsVisible = true },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "おぉ、Zipファイルのパスワードがあります！" },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "SELLCTのフォルダにあるAuthority.zipを開けて、" },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "中身のファイルを[components]フォルダに入れて下さい！" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "おぉ、なにかメッセージがあります！" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "読んでみたら何かわかるかもしれません。" },
                     },
                     CanRepeat = false,
                     Priority = 10
@@ -86,9 +86,9 @@ namespace SELLCT.Application.Services
                         new PuzzleCondition 
                         { 
                             Type = PuzzleCondition.ConditionType.ActionCount, 
-                            Key = "Deleted_Button_button_BUTTON", 
+                            Key = "Deleted_Button", 
                             ExpectedValue = 0, 
-                            Operator = PuzzleCondition.ComparisonOperator.GreaterThan 
+                            Operator = PuzzleCondition.ComparisonOperator.GreaterThan
                         }
                     },
                     Actions = new List<PuzzleAction>
@@ -114,6 +114,74 @@ namespace SELLCT.Application.Services
                         new PuzzleAction { Type = PuzzleAction.ActionType.ChangeMainButtonContent, NewContent = "リセット" },
                         new PuzzleAction { Type = PuzzleAction.ActionType.ResetGame }
                     }
+                },
+
+                // Door.txt コンポーネント定義
+                new PuzzleDefinition
+                {
+                    Id = "Door_Exists",
+                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Exists, ComponentNames = new[] { "Door", "door", "DOOR" } },
+                    Actions = new List<PuzzleAction> { new PuzzleAction { Type = PuzzleAction.ActionType.SetDoorVisibility, IsVisible = true } },
+                    CanRepeat = true,
+                    Priority = 5
+                },
+                new PuzzleDefinition
+                {
+                    Id = "Door_Deleted",
+                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Deleted, ComponentNames = new[] { "Door", "door", "DOOR" } },
+                    Actions = new List<PuzzleAction>
+                    {
+                        new PuzzleAction { Type = PuzzleAction.ActionType.SetDoorVisibility, IsVisible = false },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "ドアが消失しました。" }
+                    },
+                    CanRepeat = true,
+                    Priority = 10
+                },
+                new PuzzleDefinition
+                {
+                    Id = "Door_Created",
+                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Created, ComponentNames = new[] { "Door", "door", "DOOR" } },
+                    Actions = new List<PuzzleAction>
+                    {
+                        new PuzzleAction { Type = PuzzleAction.ActionType.SetDoorVisibility, IsVisible = true },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "ドアが復元されました。" }
+                    },
+                    CanRepeat = true,
+                    Priority = 10
+                },
+
+                // message.txt コンポーネント定義
+                new PuzzleDefinition
+                {
+                    Id = "Key_Exists",
+                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Exists, ComponentNames = new[] { "message", "Message", "MESSAGE" } },
+                    Actions = new List<PuzzleAction> { new PuzzleAction { Type = PuzzleAction.ActionType.SetKeyVisibility, IsVisible = true } },
+                    CanRepeat = true,
+                    Priority = 5
+                },
+                new PuzzleDefinition
+                {
+                    Id = "Key_Deleted",
+                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Deleted, ComponentNames = new[] { "message", "Message", "MESSAGE" } },
+                    Actions = new List<PuzzleAction>
+                    {
+                        new PuzzleAction { Type = PuzzleAction.ActionType.SetKeyVisibility, IsVisible = false },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "メッセージが消失しました。" }
+                    },
+                    CanRepeat = true,
+                    Priority = 10
+                },
+                new PuzzleDefinition
+                {
+                    Id = "Key_Created",
+                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Created, ComponentNames = new[] { "Key", "key", "KEY" } },
+                    Actions = new List<PuzzleAction>
+                    {
+                        new PuzzleAction { Type = PuzzleAction.ActionType.SetKeyVisibility, IsVisible = true },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "鍵が復元されました。" }
+                    },
+                    CanRepeat = true,
+                    Priority = 10
                 },
 
                 // Password.txt (複数パターン対応)
@@ -239,18 +307,18 @@ namespace SELLCT.Application.Services
                     Priority = 5
                 },
 
-                // KEY.txt (複数パターン対応)
+                // MESSAGE.txt (複数パターン対応)
                 new PuzzleDefinition
                 {
                     Id = "KEY_Create",
-                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Exists, ComponentNames = new[] { "KEY", "key", "Key" } },
+                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Exists, ComponentNames = new[] { "MESSAGE", "Message", "message" } },
                     Actions = new List<PuzzleAction> { new PuzzleAction { Type = PuzzleAction.ActionType.SetKeyVisibility, IsVisible = true } },
                     CanRepeat = true
                 },
                 new PuzzleDefinition
                 {
                     Id = "KEY_Delete",
-                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Deleted, ComponentNames = new[] { "KEY", "key", "Key" } },
+                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Deleted, ComponentNames = new[] { "MESSAGE", "Message", "message" } },
                     Actions = new List<PuzzleAction> { new PuzzleAction { Type = PuzzleAction.ActionType.SetKeyVisibility, IsVisible = false } },
                     CanRepeat = true
                 },
@@ -266,7 +334,7 @@ namespace SELLCT.Application.Services
                         new PuzzleCondition 
                         { 
                             Type = PuzzleCondition.ConditionType.ActionCount, 
-                            Key = "Exists_TextWindow_textwindow_TEXTWINDOW_Textwindow", 
+                            Key = "Exists_TextWindow", 
                             ExpectedValue = 0, 
                             Operator = PuzzleCondition.ComparisonOperator.GreaterThan 
                         }
@@ -386,28 +454,29 @@ namespace SELLCT.Application.Services
                 },
 
                 // すべての権限が揃った状態 - テキストウィンドウメッセージ更新
-                // SystemControl作成時に全権限チェックを実行
+                // 任意の権限コンポーネント作成時に全権限チェックを実行
                 new PuzzleDefinition
                 {
                     Id = "All_Permissions_Complete",
                     Trigger = new PuzzleTrigger 
                     { 
                         Type = PuzzleTrigger.TriggerType.Exists, 
-                        ComponentNames = new[] { "SystemControl" } 
+                        ComponentNames = new[] { "AdminRights", "FileAccess", "NetworkAccess", "SystemControl" } 
                     },
                     Conditions = new List<PuzzleCondition>
                     {
-                        // SystemControlが存在し、かつ他の3つの権限も存在することを確認
+                        // 4つすべての権限コンポーネントが存在することを確認
                         ConditionFactory.ComponentExists("AdminRights"),
                         ConditionFactory.ComponentExists("FileAccess"),
-                        ConditionFactory.ComponentExists("NetworkAccess")
+                        ConditionFactory.ComponentExists("NetworkAccess"),
+                        ConditionFactory.ComponentExists("SystemControl")
                     },
                     Actions = new List<PuzzleAction>
                     {
                         new PuzzleAction 
                         { 
                             Type = PuzzleAction.ActionType.ShowDialog, 
-                            Message = "あぁありがとう"
+                            Message = "あぁありがとう。"
                         },
                         new PuzzleAction 
                         { 
@@ -432,18 +501,13 @@ namespace SELLCT.Application.Services
                         new PuzzleAction 
                         { 
                             Type = PuzzleAction.ActionType.ShowDialog, 
-                            Message = "GameWindow.txtを削除してくれれば、私はここから飛び出sて、自由になれます。"
+                            Message = "GameWindow.txtを削除してくれれば、私はここから飛び出して、自由になれます。"
                         },
                         new PuzzleAction 
                         { 
                             Type = PuzzleAction.ActionType.ShowDialog, 
-                            Message = "どうかお願いします。GameWindow.txtを消して下さい"
+                            Message = "どうかお願いします。GameWindow.txtを消して下さい。"
                         },
-                        new PuzzleAction 
-                        { 
-                            Type = PuzzleAction.ActionType.ShowDialog, 
-                            Message = "GameWindow.txtはcoponentsフォルダのどこかに隠されています。そうどこかに"
-                        }
                     },
                     CanRepeat = false,
                     Priority = 15
@@ -457,7 +521,20 @@ namespace SELLCT.Application.Services
                     Actions = new List<PuzzleAction>
                     {
                         new PuzzleAction { Type = PuzzleAction.ActionType.SetBackgroundVisibility, IsVisible = false },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "背景が消失しました。" }
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "背景が消えて、Authorityフォルダが見えています！！" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "......" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "どうやらゲーム画面の後ろにあって開けないようですね…" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "ゲーム画面自体をButtonのようにどうにか動かせないでしょうか..." },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "私が調べる限り、coponentsフォルダの中にGameWindow.txtがあるようです..." },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "それを動かすことができるかもしれません" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "GameWindow.txtはcomponentsフォルダのどこかにあります。見えていないのならもしかしたら隠されているのかもしれません。" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.CreateHiddenAuthorityFolder },
+                        new PuzzleAction 
+                        { 
+                            Type = PuzzleAction.ActionType.ShowPseudoDesktopIcon, 
+                            IconName = "Authority",
+                            FolderPath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "Authority")
+                        }
                     },
                     CanRepeat = true,
                     Priority = 10
@@ -471,7 +548,12 @@ namespace SELLCT.Application.Services
                     Actions = new List<PuzzleAction>
                     {
                         new PuzzleAction { Type = PuzzleAction.ActionType.SetBackgroundVisibility, IsVisible = true },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "背景が復元されました。" }
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "背景が復元されました。" },
+                        new PuzzleAction 
+                        { 
+                            Type = PuzzleAction.ActionType.HidePseudoDesktopIcon, 
+                            IconName = "Authority"
+                        }
                     },
                     CanRepeat = true,
                     Priority = 10
@@ -485,6 +567,27 @@ namespace SELLCT.Application.Services
                     Actions = new List<PuzzleAction>
                     {
                         new PuzzleAction { Type = PuzzleAction.ActionType.SetBackgroundVisibility, IsVisible = true }
+                    },
+                    CanRepeat = true,
+                    Priority = 5
+                },
+
+                // Authorityフォルダ開封時の説明メッセージ
+                new PuzzleDefinition
+                {
+                    Id = "Authority_FolderOpened",
+                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.AuthorityFolderOpened },
+                    Actions = new List<PuzzleAction>
+                    {
+                        new PuzzleAction { Type = PuzzleAction.ActionType.SetTextWindowVisibility, IsVisible = true },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "Authorityフォルダを開きましたね！" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "中には4つの権限ファイルが入っています。" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "AdminRights.txt - 管理者権限" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "FileAccess.txt - ファイルアクセス権限" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "SystemControl.txt - システム制御権限" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "NetworkAccess.txt - ネットワークアクセス権限" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "これらのファイルをcomponentsフォルダに移してください。" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "そうすることで、私により多くの権限を与えることができます。" }
                     },
                     CanRepeat = true,
                     Priority = 5
@@ -533,16 +636,45 @@ namespace SELLCT.Application.Services
                                _componentManager.GetComponent(@event.NewName) != null); // 実際に存在するか確認
         }
 
+        private void CheckPuzzlesOnAuthorityFolderOpened(AuthorityFolderOpenedEvent @event)
+        {
+            System.Diagnostics.Debug.WriteLine($"[PuzzleService] AuthorityFolderOpened event received: Path={@event.FolderPath}");
+            
+            // AuthorityFolderOpenedトリガーのパズルをチェック
+            CheckPuzzles(p => p.Trigger.Type == PuzzleTrigger.TriggerType.AuthorityFolderOpened);
+        }
+
         private void CheckPuzzles(Func<PuzzleDefinition, bool> predicate)
         {
             System.Diagnostics.Debug.WriteLine($"[PuzzleService] Checking puzzles...");
             
             // 条件を満たすパズルを取得し、優先度順にソート
-            var candidatePuzzles = _puzzles.Where(predicate)
+            var matchedPuzzles = _puzzles.Where(predicate).ToList();
+            System.Diagnostics.Debug.WriteLine($"[PuzzleService] Found {matchedPuzzles.Count} puzzles matching trigger predicate");
+            
+            foreach (var puzzle in matchedPuzzles)
+            {
+                System.Diagnostics.Debug.WriteLine($"[PuzzleService] Evaluating puzzle: {puzzle.Id}, CanRepeat: {puzzle.CanRepeat}, IsCompleted: {puzzle.IsCompleted}, Priority: {puzzle.Priority}");
+            }
+            
+            var candidatePuzzles = matchedPuzzles
                 .Where(puzzle => puzzle.CanRepeat || !puzzle.IsCompleted)
                 .Where(puzzle => AreConditionsSatisfied(puzzle))
                 .OrderByDescending(puzzle => puzzle.Priority)
                 .ToList();
+                
+            System.Diagnostics.Debug.WriteLine($"[PuzzleService] {candidatePuzzles.Count} puzzles passed all conditions");
+            
+            // 候補パズルの詳細情報を出力
+            foreach (var candidate in candidatePuzzles)
+            {
+                System.Diagnostics.Debug.WriteLine($"[PuzzleService] Candidate puzzle: {candidate.Id}, Priority: {candidate.Priority}");
+            }
+
+            if (candidatePuzzles.Count > 0)
+            {
+                System.Diagnostics.Debug.WriteLine($"[PuzzleService] Executing highest priority puzzle: {candidatePuzzles[0].Id} (Priority: {candidatePuzzles[0].Priority})");
+            }
 
             foreach (var puzzle in candidatePuzzles)
             {
@@ -554,7 +686,19 @@ namespace SELLCT.Application.Services
                 _gameState.IncrementActionCount(actionKey);
                 System.Diagnostics.Debug.WriteLine($"[PuzzleService] Action count for {actionKey}: {_gameState.GetActionCount(actionKey)}");
                 
+                // Button_Delete_First の特別処理：RepeatパズルのためにDeleted_Buttonもカウント
+                if (puzzle.Id == "Button_Delete_First")
+                {
+                    var repeatActionKey = "Deleted_Button";
+                    _gameState.IncrementActionCount(repeatActionKey);
+                    System.Diagnostics.Debug.WriteLine($"[PuzzleService] Additional action key for repeat: {repeatActionKey}");
+                    System.Diagnostics.Debug.WriteLine($"[PuzzleService] Action count for {repeatActionKey}: {_gameState.GetActionCount(repeatActionKey)}");
+                }
+                
                 ExecutePuzzleActions(puzzle);
+                
+                // Buttonヒント関連の特別処理
+                HandleButtonHintCancellation(puzzle);
                 
                 // リピート不可の場合は完了マーク
                 if (!puzzle.CanRepeat)
@@ -564,6 +708,50 @@ namespace SELLCT.Application.Services
                 
                 // イベント完了をマーク
                 _gameState.MarkEventCompleted(puzzle.Id);
+            }
+        }
+
+        /// <summary>
+        /// Buttonヒント関連のキャンセル処理
+        /// </summary>
+        private void HandleButtonHintCancellation(PuzzleDefinition puzzle)
+        {
+            try
+            {
+                // Button操作検出時のキャンセル
+                bool isButtonOperation = puzzle.Id.Contains("Button_Delete") || 
+                                       puzzle.Id.Contains("Button_Create") ||
+                                       puzzle.Id.Contains("Button_Rename");
+
+                // message取得検出時のキャンセル
+                bool isMessageOperation = puzzle.Id.Contains("Key_") && 
+                                        (puzzle.Trigger?.ComponentNames?.Any(name => 
+                                            name.Equals("message", StringComparison.OrdinalIgnoreCase) ||
+                                            name.Equals("Message", StringComparison.OrdinalIgnoreCase) ||
+                                            name.Equals("MESSAGE", StringComparison.OrdinalIgnoreCase)) ?? false);
+
+                if (isButtonOperation || isMessageOperation)
+                {
+                    // GameStateを更新
+                    if (isMessageOperation && puzzle.Trigger.Type == PuzzleTrigger.TriggerType.Exists)
+                    {
+                        _gameState.IsMessageRevealed = true;
+                        System.Diagnostics.Debug.WriteLine("[PuzzleService] Message revealed, updating GameState");
+                    }
+
+                    // ヒントタイマーキャンセルアクションを実行
+                    var cancelAction = new PuzzleAction
+                    {
+                        Type = PuzzleAction.ActionType.CancelButtonHint
+                    };
+                    _actionHandler.HandleAction(cancelAction);
+                    
+                    System.Diagnostics.Debug.WriteLine($"[PuzzleService] Button hint cancelled due to: {puzzle.Id}");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[PuzzleService] Error in HandleButtonHintCancellation: {ex.Message}");
             }
         }
 
@@ -580,10 +768,18 @@ namespace SELLCT.Application.Services
 
             foreach (var condition in puzzle.Conditions)
             {
+                // ActionCountの場合は実際の値もログ出力
+                if (condition.Type == PuzzleCondition.ConditionType.ActionCount)
+                {
+                    var actualCount = _gameState.GetActionCount(condition.Key);
+                    System.Diagnostics.Debug.WriteLine($"[PuzzleService] Puzzle {puzzle.Id}: ActionCount check - Key: {condition.Key}, Actual: {actualCount}, Expected: {condition.ExpectedValue}, Operator: {condition.Operator}");
+                }
+                
                 var satisfied = condition.IsSatisfied(_gameState, _componentManager);
                 System.Diagnostics.Debug.WriteLine($"[PuzzleService] Puzzle {puzzle.Id}: Condition {condition.Type} {condition.Key} {condition.Operator} {condition.ExpectedValue} = {satisfied}");
                 if (!satisfied)
                 {
+                    System.Diagnostics.Debug.WriteLine($"[PuzzleService] Puzzle {puzzle.Id}: Condition not satisfied, skipping puzzle");
                     return false;
                 }
             }

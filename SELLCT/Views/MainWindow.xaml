@@ -2,16 +2,22 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:ui="http://schemas.modernwpf.com/2019"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
         Title="SELLCT" 
         Height="600" Width="800"
-        WindowStartupLocation="CenterScreen"
+        WindowStartupLocation="Manual"
         ResizeMode="NoResize"
         WindowStyle="None"
         Background="#01000000"
         AllowsTransparency="True"
         Visibility="Hidden"
         Closing="Window_Closing"
-        MouseDown="MainWindow_MouseDown">
+        MouseDown="MainWindow_MouseDown"
+        d:Background="LightGray"
+        d:Visibility="Visible"
+        d:WindowStyle="SingleBorderWindow">
 
     <Window.Resources>
         <!-- アニメーション用ストーリーボード -->
@@ -80,7 +86,34 @@
             <Setter Property="BorderThickness" Value="5"/>
             <Setter Property="CornerRadius" Value="0"/>
         </Style>
-        
+
+        <Style x:Key="TextWindowButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#2D2D30"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#3F3F46"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#3E3E42"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="#1E1E1E"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <!-- カスタムタイトルバー用スタイル -->
         <Style x:Key="CustomTitleBarButtonStyle" TargetType="Button">
             <Setter Property="Background" Value="#E0E0E0"/>
@@ -112,90 +145,102 @@
     <!-- メインウィンドウ境界線 -->
     <Border BorderBrush="#404040" BorderThickness="1" Background="Transparent">
         <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="3*"/>
-            <ColumnDefinition Width="427*"/>
-            <ColumnDefinition Width="370*"/>
-        </Grid.ColumnDefinitions>
-        
-        <Grid.RowDefinitions>
-            <RowDefinition Height="25"/> <!-- カスタムタイトルバー -->
-            <RowDefinition Height="*"/>  <!-- メインコンテンツ -->
-        </Grid.RowDefinitions>
-        
-        <!-- カスタムタイトルバー -->
-        <Border Grid.Row="0" Grid.ColumnSpan="3" Background="#F0F0F0" BorderBrush="#808080" BorderThickness="0,0,0,1">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-                
-                <!-- タイトル表示 -->
-                <TextBlock Grid.Column="0" Text="SELLCT" 
-                          FontSize="12" FontWeight="Bold"
-                          VerticalAlignment="Center" 
-                          Margin="8,0,0,0"/>
-                
-                <!-- 閉じるボタン -->
-                <Button Grid.Column="1" Name="CustomCloseButton" 
-                       Content="×" 
-                       Style="{StaticResource CustomTitleBarButtonStyle}"
-                       Click="CustomCloseButton_Click"
-                       Margin="0,2,2,2"/>
-            </Grid>
-        </Border>
-        <!-- 背景画像（常時表示） -->
-        <Image Name="BackgroundImage" 
-               Source="/Resources/Background.png" 
-               Stretch="Fill"
-               Panel.ZIndex="0" Grid.Row="1" Grid.ColumnSpan="3"/>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="3*"/>
+                <ColumnDefinition Width="427*"/>
+                <ColumnDefinition Width="370*"/>
+            </Grid.ColumnDefinitions>
 
-        <!-- メインゲーム領域 -->
-        <Canvas Name="GameCanvas" Panel.ZIndex="1" Grid.Row="1" Grid.ColumnSpan="3">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="25"/>
+                <!-- カスタムタイトルバー -->
+                <RowDefinition Height="*"/>
+                <!-- メインコンテンツ -->
+            </Grid.RowDefinitions>
 
-            <Button Name="MainButton" 
-                    Content="?" 
-                    Style="{StaticResource PixelButtonStyle}"
-                    Width="200" Height="69" Canvas.Top="489"
-                    Click="MainButton_Click"
-                    Visibility="Visible" HorizontalAlignment="Center" VerticalAlignment="Top" Canvas.Left="52"
-                    Panel.ZIndex="3"/>
-
-            <!--手紙画像 -->
-            <Image Name="LetterImage" 
-                   Source="/Resources/Letter.png"
-                   Width="60" Height="80"
-                   Canvas.Left="100" Canvas.Top="350"
-                   Visibility="Collapsed"
-                   MouseLeftButtonDown="Letter_Click"
-                   Cursor="Hand"
-                   Panel.ZIndex="2">
-                <Image.RenderTransform>
-                    <TransformGroup>
-                        <ScaleTransform/>
-                        <SkewTransform/>
-                        <RotateTransform/>
-                        <TranslateTransform/>
-                    </TransformGroup>
-                </Image.RenderTransform>
-            </Image>
-
-            <!--：テキストウィンドウ -->
-            <Border Name="TextWindow" 
-                    Style="{StaticResource TextWindowStyle}"
-                    Width="450" Height="90"
-                    Canvas.Left="350" Canvas.Top="488"
-                    Visibility="Collapsed"
-                    Panel.ZIndex="3" HorizontalAlignment="Left" VerticalAlignment="Top">
+            <!-- カスタムタイトルバー -->
+            <Border Grid.Row="0" Grid.ColumnSpan="3" Background="#F0F0F0" BorderBrush="#808080" BorderThickness="0,0,0,1">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
-                    <!-- メッセージテキスト -->
-                    <TextBlock Name="DialogText" 
+                    <!-- タイトル表示 -->
+                    <TextBlock Grid.Column="0" Text="SELLCT" 
+                          FontSize="12" FontWeight="Bold"
+                          VerticalAlignment="Center" 
+                          Margin="8,0,0,0"/>
+
+                    <!-- 閉じるボタン -->
+                    <Button Grid.Column="1" Name="CustomCloseButton" 
+                       Content="×" 
+                       Style="{StaticResource CustomTitleBarButtonStyle}"
+                       Click="CustomCloseButton_Click"
+                       Margin="0,2,2,2"/>
+                </Grid>
+            </Border>
+            <!-- 背景画像（常時表示） -->
+            <Image Name="BackgroundImage" 
+               Source="/Resources/Background.png" 
+               Stretch="Fill"
+               Panel.ZIndex="0" Grid.Row="1" Grid.ColumnSpan="3"
+               d:Source="pack://application:,,,/Resources/Background.png"/>
+
+            <!-- デザイン時用の背景（画像が見つからない場合のフォールバック） -->
+            <Rectangle Grid.Row="1" Grid.ColumnSpan="3" 
+                   Fill="DarkSlateBlue" 
+                   Panel.ZIndex="-1"
+                   d:Visibility="Visible"
+                   Visibility="Collapsed"/>
+
+            <!-- メインゲーム領域 -->
+            <Canvas Name="GameCanvas" Panel.ZIndex="1" Grid.Row="1" Grid.ColumnSpan="3">
+
+                <Button Name="MainButton" 
+                    Content="?" 
+                    Style="{StaticResource PixelButtonStyle}"
+                    Width="200" Height="69" Canvas.Top="478"
+                    Click="MainButton_Click"
+                    Visibility="Visible" HorizontalAlignment="Center" VerticalAlignment="Top" Canvas.Left="52"
+                    Panel.ZIndex="3"/>
+
+                <!--手紙画像 -->
+                <Image Name="LetterImage" 
+                   Source="/Resources/Letter.png"
+                   Width="60" Height="80"
+                   Canvas.Left="400" Canvas.Top="389"
+                   Visibility="Collapsed"
+                   MouseLeftButtonDown="Letter_Click"
+                   Cursor="Hand"
+                   Panel.ZIndex="2"
+                   d:Visibility="Visible"
+                   d:Source="pack://application:,,,/Resources/Letter.png">
+                    <Image.RenderTransform>
+                        <TransformGroup>
+                            <ScaleTransform/>
+                            <SkewTransform/>
+                            <RotateTransform/>
+                            <TranslateTransform/>
+                        </TransformGroup>
+                    </Image.RenderTransform>
+                </Image>
+
+                <!--：テキストウィンドウ -->
+                <Border Name="TextWindow" 
+                    Style="{StaticResource TextWindowStyle}"
+                    Width="450" Height="90"
+                    Canvas.Left="350" Canvas.Top="465"
+                    Visibility="Collapsed"
+                    Panel.ZIndex="3" HorizontalAlignment="Left" VerticalAlignment="Top">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- メッセージテキスト -->
+                        <TextBlock Name="DialogText" 
                                TextWrapping="Wrap"
                                FontSize="16"
                                LineHeight="16"
@@ -203,115 +248,111 @@
                                Foreground="White" 
                                Grid.Column="0"/>
 
-                    <!-- ログボタン -->
-                    <Button Name="LogButton" 
+                        <!-- ログボタン -->
+                        <Button Name="LogButton" 
                             Content="ログ" 
                             Width="40" Height="35"
                             FontSize="12"
                             Margin="0,5,10,0"
-                            Background="#2D2D30"
-                            Foreground="White"
-                            BorderBrush="#3F3F46"
-                            BorderThickness="1"
+                            Style="{StaticResource TextWindowButtonStyle}"
                             Click="LogButton_Click"
                             Grid.Column="1"
                             VerticalAlignment="Top"
                             HorizontalAlignment="Right"/>
-                </Grid>
-            </Border>
+                    </Grid>
+                </Border>
 
-            <!--：ログ表示パネル -->
-            <Border Name="LogPanel" 
+                <!--：ログ表示パネル -->
+                <Border Name="LogPanel" 
                     Style="{StaticResource TextWindowStyle}"
                     Width="500" Height="300"
                     Canvas.Left="300" Canvas.Top="180"
                     Visibility="Collapsed"
                     Panel.ZIndex="4" HorizontalAlignment="Left" VerticalAlignment="Top">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
 
-                    <!-- ログパネルヘッダー -->
-                    <TextBlock Text="メッセージ履歴" 
+                        <!-- ログパネルヘッダー -->
+                        <TextBlock Text="メッセージ履歴" 
                                FontSize="16" 
                                FontWeight="Bold"
                                Foreground="White"
                                Margin="15,10,15,5"
                                Grid.Row="0"/>
 
-                    <!-- ログコンテンツ -->
-                    <ScrollViewer Name="LogScrollViewer" 
+                        <!-- ログコンテンツ -->
+                        <ScrollViewer Name="LogScrollViewer" 
                                   Grid.Row="1"
                                   Margin="15,5,15,5"
                                   VerticalScrollBarVisibility="Auto"
                                   HorizontalScrollBarVisibility="Disabled">
-                        <TextBlock Name="LogText" 
+                            <TextBlock Name="LogText" 
                                    TextWrapping="Wrap"
                                    FontSize="14"
                                    LineHeight="18"
                                    Foreground="White"
                                    Background="Transparent"/>
-                    </ScrollViewer>
+                        </ScrollViewer>
 
-                    <!-- ログパネル閉じるボタン -->
-                    <Button Name="CloseLogButton" 
+                        <!-- ログパネル閉じるボタン -->
+                        <Button Name="CloseLogButton" 
                             Content="閉じる" 
                             Width="60" Height="25"
                             FontSize="10"
                             Margin="5,5,15,10"
-                            Background="#2D2D30"
-                            Foreground="White"
-                            BorderBrush="#3F3F46"
-                            BorderThickness="1"
+                            Style="{StaticResource TextWindowButtonStyle}"
                             Click="CloseLogButton_Click"
                             Grid.Row="2"
                             HorizontalAlignment="Right"/>
-                </Grid>
-            </Border>
-            <!-- Door画像（画面中央） -->
-            <Image Name="DoorImage" 
+                    </Grid>
+                </Border>
+                <!-- Door画像（画面中央） -->
+                <Image Name="DoorImage" 
                    Source="/Resources/Door.png"
                    Width="123" Height="186"
-                   Canvas.Left="367" Canvas.Top="242"
+                   Canvas.Left="367" Canvas.Top="221"
                    Visibility="Visible"
-                   Panel.ZIndex="2"/>
+                   Panel.ZIndex="2"
+                   d:Source="pack://application:,,,/Resources/Door.png" HorizontalAlignment="Center" VerticalAlignment="Top"/>
 
-            <!--：KEY画像 -->
-            <Image Name="KeyImage" 
-                   Source="/Resources/KEY.png"
+                <!--：KEY画像 -->
+                <Image Name="KeyImage" 
+                   Source="/Resources/Letter.png"
                    Width="50" Height="50"
-                   Canvas.Left="127" Canvas.Top="503"
+                   Canvas.Left="128" Canvas.Top="491"
                    Visibility="Visible"
                    MouseLeftButtonDown="Key_Click"
                    Cursor="Hand"
-                   Panel.ZIndex="2"/>
-            <!-- 選択肢ボタン -->
-            <StackPanel Name="ChoiceButtonsPanel"
+                   Panel.ZIndex="2"
+                   d:Source="pack://application:,,,/Resources/Letter.png"/>
+                <!-- 選択肢ボタン -->
+                <StackPanel Name="ChoiceButtonsPanel"
                         Orientation="Horizontal" 
                         HorizontalAlignment="Center"
-                        Canvas.Left="330" Canvas.Top="262"
+                        Canvas.Left="360" Canvas.Top="262"
                         Panel.ZIndex="4"
-                        Visibility="Collapsed" VerticalAlignment="Top">
-                <Button Name="YesButton" 
+                        Visibility="Collapsed" VerticalAlignment="Top"
+                        d:Visibility="Visible">
+                    <Button Name="YesButton" 
                         Content="はい" 
                         Style="{StaticResource PixelButtonStyle}"
                         Width="60" Height="30"
                         Margin="5,0"
                         Click="YesButton_Click"/>
-                <Button Name="NoButton" 
+                    <Button x:Name="NoButton" 
                                 Content="はい" 
                                 Style="{StaticResource PixelButtonStyle}"
                                 Width="60" Height="30"
-                                Margin="5,0"
                                 Click="NoButton_Click"/>
-            </StackPanel>
-        </Canvas>
+                </StackPanel>
+            </Canvas>
 
-        <!-- デバッグ情報パネル（開発時のみ表示） -->
-        <Border Background="Black" 
+            <!-- デバッグ情報パネル（開発時のみ表示） -->
+            <Border Background="Black" 
                 Opacity="0.8"
                 Width="250" Height="120"
                 HorizontalAlignment="Left"
@@ -320,65 +361,65 @@
                 Panel.ZIndex="10"
                 Visibility="Collapsed"
                 Name="DebugPanel" Grid.Row="1" Grid.Column="1">
-            <StackPanel Margin="10">
-                <TextBlock Text="SELLCT Debug Info" 
+                <StackPanel Margin="10">
+                    <TextBlock Text="SELLCT Debug Info" 
                            Foreground="Lime" 
                            FontWeight="Bold"
                            FontFamily="Consolas"
                            FontSize="12"/>
-                <TextBlock Name="DebugText" 
+                    <TextBlock Name="DebugText" 
                            Foreground="Lime" 
                            FontFamily="Consolas"
                            FontSize="10"
                            Text="State: #x0a;Components: 5&#x0a;Letters: 0/6&#x0a;Phase: 1"/>
-            </StackPanel>
-        </Border>
+                </StackPanel>
+            </Border>
 
-        <!-- 状態表示（右下） -->
-        <StackPanel HorizontalAlignment="Right" 
+            <!-- 状態表示（右下） -->
+            <StackPanel HorizontalAlignment="Right" 
                     VerticalAlignment="Bottom" 
                     Margin="0,0,10,10"
                     Visibility="Collapsed"
                     Panel.ZIndex="5" Grid.Row="1" Grid.Column="2">
-            <TextBlock Name="StatusText" 
+                <TextBlock Name="StatusText" 
                        Text="SELLCT 起動中..."
                        FontFamily="Consolas"
                        FontSize="10"
                        Foreground="DarkGray"
                        HorizontalAlignment="Right"/>
-            <TextBlock Name="ComponentCountText" 
+                <TextBlock Name="ComponentCountText" 
                        Text="構成要素: 5"
                        FontFamily="Consolas"
                        FontSize="10"
                        Foreground="DarkGray"
                        HorizontalAlignment="Right"/>
-        </StackPanel>
+            </StackPanel>
 
-        <!-- ローディングオーバーレイ -->
-        <Grid Name="LoadingOverlay" 
+            <!-- ローディングオーバーレイ -->
+            <Grid Name="LoadingOverlay" 
               Grid.Row="1" Grid.ColumnSpan="3"
               Background="Black" 
               Opacity="0.8"
               Panel.ZIndex="1000"
               Visibility="Collapsed">
-            <StackPanel HorizontalAlignment="Center" 
+                <StackPanel HorizontalAlignment="Center" 
                         VerticalAlignment="Center">
-                <TextBlock Text="SELLCT" 
+                    <TextBlock Text="SELLCT" 
                            Foreground="White"
                            FontSize="48"
                            FontWeight="Bold"
                            HorizontalAlignment="Center"
                            Margin="0,0,0,20"/>
-                <TextBlock Text="システム初期化中..." 
+                    <TextBlock Text="システム初期化中..." 
                            Foreground="White"
                            FontSize="16"
                            HorizontalAlignment="Center"/>
-                <ProgressBar Width="200" 
+                    <ProgressBar Width="200" 
                              Height="10"
                              Margin="0,20,0,0"
                              IsIndeterminate="True"/>
-            </StackPanel>
-        </Grid>
+                </StackPanel>
+            </Grid>
 
         </Grid>
     </Border>

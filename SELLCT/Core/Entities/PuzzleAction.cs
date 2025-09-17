@@ -18,6 +18,7 @@ namespace SELLCT.Core.Entities
             // 指示書からの新しいアクション
             SetMainButtonVisibility,
             SetKeyVisibility,
+            SetDoorVisibility,
             SetTextWindowVisibility,
             SetBackgroundVisibility,
             TerminateExplorer,
@@ -31,7 +32,25 @@ namespace SELLCT.Core.Entities
             ExitWithMessageBox,
             DelayedExitWithMessageBox,
             StartExplorer,
-            BetrayalEnding
+            BetrayalEnding,
+            ShowPseudoDesktopIcon,
+            HidePseudoDesktopIcon,
+            UpdatePseudoIconPosition,
+            CreateHiddenAuthorityFolder,
+
+            // 位置制御アクション
+            SetButtonPosition,
+            SetYESPosition,
+            SetKeyPosition,
+            SetDoorPosition,
+            SetBackgroundPosition,
+
+            // コンポーネント再作成アクション
+            RecreateComponentWithPosition,
+            
+            // Buttonヒント関連アクション
+            StartButtonHint,
+            CancelButtonHint
         }
 
         public ActionType Type { get; set; }
@@ -40,6 +59,10 @@ namespace SELLCT.Core.Entities
         public string TargetComponent { get; set; }
         public string HiddenItemFolder { get; set; }
         public string HiddenItemDisplayName { get; set; }
+        public string IconName { get; set; }
+        public string FolderPath { get; set; }
+        public double IconX { get; set; }
+        public double IconY { get; set; }
         public List<PuzzleAction> YesActions { get; set; }
         public List<PuzzleAction> NoActions { get; set; }
         public List<PuzzleAction> NetherChoiceActions { get; set; }

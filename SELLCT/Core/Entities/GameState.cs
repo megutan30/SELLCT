@@ -96,5 +96,26 @@ namespace SELLCT.Core.Entities
             }
             return defaultValue;
         }
+
+        /// <summary>
+        /// Buttonヒント関連の状態プロパティ
+        /// </summary>
+        public bool IsButtonHintTriggered
+        {
+            get => GetVariable("IsButtonHintTriggered", false);
+            set => SetVariable("IsButtonHintTriggered", value);
+        }
+
+        public bool IsMessageRevealed
+        {
+            get => GetVariable("IsMessageRevealed", false);
+            set => SetVariable("IsMessageRevealed", value);
+        }
+
+        public bool ButtonHintShown
+        {
+            get => GetVariable("ButtonHintShown", false);
+            set => SetVariable("ButtonHintShown", value);
+        }
     }
 }

@@ -78,7 +78,11 @@
       "Read(/C:\\Users\\megam\\source\\repos\\SELLCT\\SELLCT\\Infrastructure\\Services/**)",
       "Read(/C:\\Users\\megam\\source\\repos\\SELLCT\\SELLCT\\Infrastructure\\Services/**)",
       "Read(/C:\\Users\\megam\\source\\repos\\SELLCT\\SELLCT\\Infrastructure\\Services/**)",
-      "Read(/C:\\Users\\megam\\source\\repos\\SELLCT\\SELLCT\\Infrastructure\\Services/**)"
+      "Read(/C:\\Users\\megam\\source\\repos\\SELLCT\\SELLCT\\Infrastructure\\Services/**)",
+      "WebFetch(domain:docs.microsoft.com)",
+      "WebSearch",
+      "Bash(taskkill:*)",
+      "Bash(dotnet run:*)"
     ],
     "deny": []
   }

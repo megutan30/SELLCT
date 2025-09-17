@@ -121,12 +121,16 @@ namespace SELLCT.Core.Entities
                     if (Key.Contains("/") || Key.Contains("\\"))
                     {
                         exists = componentManager.ComponentExistsByPath(Key);
+                        System.Diagnostics.Debug.WriteLine($"[PuzzleCondition] ComponentExists check by path - Key: {Key}, Exists: {exists}");
                     }
                     else
                     {
                         exists = componentManager.GetComponent(Key) != null;
+                        System.Diagnostics.Debug.WriteLine($"[PuzzleCondition] ComponentExists check by name - Key: {Key}, Exists: {exists}");
                     }
-                    return CompareValues(exists, ExpectedValue, Operator);
+                    var result = CompareValues(exists, ExpectedValue, Operator);
+                    System.Diagnostics.Debug.WriteLine($"[PuzzleCondition] ComponentExists result - Key: {Key}, Exists: {exists}, Expected: {ExpectedValue}, Operator: {Operator}, Result: {result}");
+                    return result;
 
                 case ConditionType.Variable:
                     var variableValue = gameState.GetVariable<object>(Key);

@@ -30,11 +30,15 @@ namespace SELLCT.Views
         private LetterService _letterService;
         private KeyService _keyService;
         private MetaGameController _metaGameController;
+        private Infrastructure.Services.PseudoDesktopIconManager _pseudoDesktopIconManager;
+        private Infrastructure.Services.HiddenFileSettingService _hiddenFileSettingService;
         private bool _isPhase2 = false;
 
         // 統合されたコントローラー
         private LetterDisplayController _letterDisplayController;
         private DialogController _dialogController;
+        
+        public DialogController DialogController => _dialogController;
 
         public void SetPhase2(bool value)
         {
@@ -78,6 +82,16 @@ namespace SELLCT.Views
             this.Loaded += Window_Loaded; // Window_Loadedイベントハンドラを登録
             this.Activated += Window_Activated; // ウィンドウアクティベートイベント
             this.Deactivated += Window_Deactivated; // ウィンドウディアクティベートイベント
+            this.Closing += Window_Closing; // ウィンドウクロージングイベント
+
+            // 疑似デスクトップアイコンマネージャーを初期化
+            var eventDispatcher = (System.Windows.Application.Current as App)?.GetEventDispatcher();
+            _pseudoDesktopIconManager = new Infrastructure.Services.PseudoDesktopIconManager(eventDispatcher);
+            System.Diagnostics.Debug.WriteLine("PseudoDesktopIconManager initialized in MainWindow");
+
+            // 隠しファイル設定サービスを初期化
+            _hiddenFileSettingService = new Infrastructure.Services.HiddenFileSettingService();
+            System.Diagnostics.Debug.WriteLine("HiddenFileSettingService initialized in MainWindow");
 
             InitializeAsync();
         }
@@ -93,10 +107,24 @@ namespace SELLCT.Views
             // 左、上、右、下 の順
             GameCanvas.Margin = new Thickness(
                 -borderThickness.Left,
-                -(borderThickness.Top + captionHeight-5),
+                -(borderThickness.Top-12),
                 -borderThickness.Right,
                 -borderThickness.Bottom
             );
+
+            // ウィンドウを画面中央に配置
+            CenterWindowOnScreen();
+
+            // 隠しファイル表示を無効にする（ゲーム開始時の設定変更）
+            try
+            {
+                bool result = _hiddenFileSettingService.DisableHiddenFileDisplay();
+                System.Diagnostics.Debug.WriteLine($"[MainWindow] Hidden file display disabled: {result}");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[MainWindow] Error disabling hidden file display: {ex.Message}");
+            }
         }
 
         /// <summary>
@@ -117,6 +145,7 @@ namespace SELLCT.Views
             _wasWindowFocused = false;
             System.Diagnostics.Debug.WriteLine("[Window_Deactivated] Window deactivated, focus lost.");
         }
+
 
         /// <summary>
         /// 現在のウィンドウがフォアグラウンドかどうかを確認
@@ -178,36 +207,35 @@ namespace SELLCT.Views
                     System.Windows.Application.Current.Shutdown();
                     return;
                 }
-
-                // 実行が選択された場合、警告演出を開始
-                if (smartScreenResult == Infrastructure.Services.SmartScreenResult.RunAnyway)
-                {
-                    System.Diagnostics.Debug.WriteLine("Starting warning flood demonstration with noise transition...");
+                //// 実行が選択された場合、警告演出を開始
+                //if (smartScreenResult == Infrastructure.Services.SmartScreenResult.RunAnyway)
+                //{
+                //    System.Diagnostics.Debug.WriteLine("Starting warning flood demonstration with noise transition...");
                     
-                    var warningFloodService = new Infrastructure.Services.WarningFloodService();
+                //    var warningFloodService = new Infrastructure.Services.WarningFloodService();
                     
-                    // 警告演出を実行
-                    await warningFloodService.StartWarningFloodWithNoiseTransition(() =>
-                    {
-                        // メインウィンドウを表示
-                        System.Diagnostics.Debug.WriteLine("Showing main window after noise transition...");
-                        this.Show();
-                    });
+                //    // 警告演出を実行
+                //    await warningFloodService.StartWarningFloodWithNoiseTransition(() =>
+                //    {
+                //        // メインウィンドウを表示
+                //        System.Diagnostics.Debug.WriteLine("Showing main window after noise transition...");
+                //        this.Show();
+                //    });
                     
-                    System.Diagnostics.Debug.WriteLine("Warning flood with noise transition completed.");
+                //    System.Diagnostics.Debug.WriteLine("Warning flood with noise transition completed.");
                     
-                    // リソースクリーンアップ
-                    warningFloodService.Cleanup();
-                }
-                else
-                {
-                    // SmartScreen で実行しないが選択された場合以外は、通常のMainWindow表示
-                    System.Diagnostics.Debug.WriteLine("Showing main window directly...");
-                    this.Show();
-                }
-
+                //    // リソースクリーンアップ
+                //    warningFloodService.Cleanup();
+                //}
+                //else
+                //{
+                //    // SmartScreen で実行しないが選択された場合以外は、通常のMainWindow表示
+                //    System.Diagnostics.Debug.WriteLine("Showing main window directly...");
+                //    this.Show();
+                //}
+                this.Show();
                 // ローディング表示
-               // LoadingOverlay.Visibility = Visibility.Visible;
+                // LoadingOverlay.Visibility = Visibility.Visible;
                 //await Task.Delay(2000); // 初期化演出
 
                 // サービス初期化
@@ -271,9 +299,12 @@ namespace SELLCT.Views
             // MetaGameController初期化
             _metaGameController = new MetaGameController((System.Windows.Application.Current as App).GetEventDispatcher());
 
+            // GameStateを先に作成
+            var gameState = new GameState();
+            
             // Controller初期化
             _letterDisplayController = new LetterDisplayController(_letterService, eventDispatcher);
-            _dialogController = new DialogController(_componentManager);
+            _dialogController = new DialogController(_componentManager, gameState);
             
             // UI要素をControllerに注入
             _letterDisplayController.InjectUIElements(LetterImage, StatusText);
@@ -283,9 +314,6 @@ namespace SELLCT.Views
 
             // PuzzleService初期化
             _puzzleActionHandler = new MainWindowPuzzleActionHandler(this, _componentManager, _metaGameController);
-            
-            // GameStateを共有するために先に作成
-            var gameState = new GameState();
             _puzzleService = new PuzzleService(_componentManager, _puzzleActionHandler, eventDispatcher, gameState);
             
             // DialogueService初期化（GameStateを共有）
@@ -369,49 +397,152 @@ namespace SELLCT.Views
             });
         }
 
+
         /// <summary>
         /// componentsフォルダ変更イベントハンドラー（削除・名前変更時のみウィンドウを最前面に表示）
         /// </summary>
         private void OnComponentsFolderChanged(object sender, ComponentChangeEventArgs e)
         {
-            // 削除または名前変更の場合のみウィンドウを前面に表示
+            var fileName = System.IO.Path.GetFileName(e.FilePath);
+            
+            // GameWindow.txtの変更を特別に処理
+            if (fileName.Equals("GameWindow.txt", StringComparison.OrdinalIgnoreCase))
+            {
+                if (e.ChangeType == System.IO.WatcherChangeTypes.Changed)
+                {
+                    // GameWindow.txtの内容変更時にウィンドウ位置を更新
+                    Dispatcher.Invoke(() => HandleGameWindowPositionChange(e.FilePath));
+                }
+                return; // GameWindow.txtは前面表示処理をスキップ
+            }
+
+            // その他のコンポーネントファイルの位置制御処理
+            string[] positionControlledComponents = { "Button.txt", "YES.txt", "message.txt", "Door.txt", "Background.txt" };
+            if (positionControlledComponents.Any(name => fileName.Equals(name, StringComparison.OrdinalIgnoreCase)))
+            {
+                if (e.ChangeType == System.IO.WatcherChangeTypes.Changed)
+                {
+                    var componentName = System.IO.Path.GetFileNameWithoutExtension(fileName);
+                    
+                    // 位置情報を記録
+                    _componentManager.OnFileContentChanged(e.FilePath);
+                    
+                    // 位置制御を実行
+                    Dispatcher.Invoke(() => HandleComponentPositionChange(e.FilePath, componentName));
+                }
+                // 位置制御後も前面表示処理に進む（returnしない）
+            }
+
+
+            // 削除、名前変更、または内容変更の場合にウィンドウを前面に表示
             if (e.ChangeType == System.IO.WatcherChangeTypes.Deleted || 
-                e.ChangeType == System.IO.WatcherChangeTypes.Renamed)
+                e.ChangeType == System.IO.WatcherChangeTypes.Renamed ||
+                e.ChangeType == System.IO.WatcherChangeTypes.Changed)
             {
                 Dispatcher.Invoke(() =>
                 {
-                    try
-                    {
-                        System.Diagnostics.Debug.WriteLine($"Component {e.ChangeType.ToString().ToLower()}, bringing window to foreground");
-                        
-                        // ウィンドウハンドルを取得
-                        var windowHelper = new System.Windows.Interop.WindowInteropHelper(this);
-                        var hWnd = windowHelper.Handle;
-                        
-                        if (hWnd != IntPtr.Zero)
-                        {
-                            // ウィンドウが最小化されている場合は復元
-                            ShowWindow(hWnd, SW_RESTORE);
-                            
-                            // ウィンドウを最前面に表示
-                            SetForegroundWindow(hWnd);
-                            
-                            System.Diagnostics.Debug.WriteLine("Window brought to foreground successfully");
-                        }
-                        else
-                        {
-                            System.Diagnostics.Debug.WriteLine("Failed to get window handle");
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        System.Diagnostics.Debug.WriteLine($"Error bringing window to foreground: {ex.Message}");
-                    }
+                    System.Diagnostics.Debug.WriteLine($"Component {e.ChangeType.ToString().ToLower()}, bringing window to foreground with reliable method");
+                    BringToForegroundReliable();
                 });
             }
             else if (e.ChangeType == System.IO.WatcherChangeTypes.Created)
             {
                 System.Diagnostics.Debug.WriteLine($"Component created (file: {System.IO.Path.GetFileName(e.FilePath)}), window stays in background");
+            }
+        }
+
+        /// <summary>
+        /// コンポーネントファイルの変更を処理して位置を更新
+        /// </summary>
+        /// <param name="filePath">ファイルパス</param>
+        /// <param name="componentName">コンポーネント名</param>
+        private void HandleComponentPositionChange(string filePath, string componentName)
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine($"=== HandleComponentPositionChange ===");
+                System.Diagnostics.Debug.WriteLine($"Component {componentName} changed: {filePath}");
+
+                if (!System.IO.File.Exists(filePath))
+                {
+                    System.Diagnostics.Debug.WriteLine($"{componentName} does not exist, skipping position update");
+                    return;
+                }
+
+                // ファイルの内容を読み取り
+                string content = System.IO.File.ReadAllText(filePath);
+                System.Diagnostics.Debug.WriteLine($"File content: '{content}'");
+
+                // 位置を解析
+                var newPosition = ParseComponentPosition(content);
+                if (newPosition.HasValue)
+                {
+                    // コンポーネントタイプに応じて位置を更新
+                    switch (componentName.ToLower())
+                    {
+                        case "gamewindow":
+                            MoveWindowToPosition(newPosition.Value);
+                            break;
+                        case "button":
+                            SetButtonPosition(newPosition.Value.X, newPosition.Value.Y);
+                            break;
+                        case "yes":
+                            SetYESPosition(newPosition.Value.X, newPosition.Value.Y);
+                            break;
+                        case "message":
+                            SetKeyPosition(newPosition.Value.X, newPosition.Value.Y);
+                            break;
+                        case "door":
+                            SetDoorPosition(newPosition.Value.X, newPosition.Value.Y);
+                            break;
+                        case "background":
+                            SetBackgroundPosition(newPosition.Value.X, newPosition.Value.Y);
+                            break;
+                    }
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine($"Failed to parse position from {componentName}, keeping current position");
+                }
+
+                System.Diagnostics.Debug.WriteLine($"=== End HandleComponentPositionChange ===\n");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error handling {componentName} position change: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// GameWindow.txtの変更を処理してウィンドウ位置を更新
+        /// </summary>
+        /// <param name="filePath">GameWindow.txtのパス</param>
+        private void HandleGameWindowPositionChange(string filePath)
+        {
+            HandleComponentPositionChange(filePath, "GameWindow");
+            
+            // GameWindowPositionChangedイベントを発火
+            try
+            {
+                if (System.IO.File.Exists(filePath))
+                {
+                    string content = System.IO.File.ReadAllText(filePath);
+                    var newPosition = ParseComponentPosition(content);
+                    if (newPosition.HasValue)
+                    {
+                        var eventDispatcher = (System.Windows.Application.Current as App)?.GetEventDispatcher();
+                        if (eventDispatcher != null)
+                        {
+                            var positionChangedEvent = new Core.Events.GameWindowPositionChangedEvent(newPosition.Value);
+                            eventDispatcher.Dispatch(positionChangedEvent);
+                            System.Diagnostics.Debug.WriteLine($"GameWindowPositionChangedEvent dispatched: {positionChangedEvent}");
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error dispatching GameWindowPositionChangedEvent: {ex.Message}");
             }
         }
 
@@ -514,7 +645,7 @@ namespace SELLCT.Views
             {
                 try
                 {
-                    StatusText.Text = "PassWord.txtをダウンロードしました";
+                    StatusText.Text = "message.txtをダウンロードしました";
                     UpdateDebugInfo();
                 }
                 catch (Exception ex)
@@ -537,6 +668,14 @@ namespace SELLCT.Views
         public void ShowDialogMessage(params string[] messages)
         {
             _dialogController?.ShowDialogMessage(messages);
+        }
+
+        /// <summary>
+        /// 疑似デスクトップアイコンマネージャーを取得
+        /// </summary>
+        public Infrastructure.Services.PseudoDesktopIconManager GetPseudoDesktopIconManager()
+        {
+            return _pseudoDesktopIconManager;
         }
 
         /// <summary>
@@ -633,6 +772,135 @@ namespace SELLCT.Views
         }
 
         /// <summary>
+        /// ウィンドウを画面中央に配置
+        /// </summary>
+        private void CenterWindowOnScreen()
+        {
+            try
+            {
+                var screenWidth = SystemParameters.PrimaryScreenWidth;
+                var screenHeight = SystemParameters.PrimaryScreenHeight;
+                var windowWidth = this.ActualWidth > 0 ? this.ActualWidth : this.Width;
+                var windowHeight = this.ActualHeight > 0 ? this.ActualHeight : this.Height;
+
+                // 画面中央座標を計算
+                var centerX = (screenWidth - windowWidth) / 2;
+                var centerY = (screenHeight - windowHeight) / 2;
+
+                // ウィンドウ位置を設定
+                this.Left = centerX;
+                this.Top = centerY;
+
+                System.Diagnostics.Debug.WriteLine($"Window centered at: ({this.Left:F0}, {this.Top:F0})");
+                System.Diagnostics.Debug.WriteLine($"Screen: {screenWidth}x{screenHeight}, Window: {windowWidth}x{windowHeight}");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error centering window: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// 画面中央座標を取得
+        /// </summary>
+        /// <returns>画面中央のPoint</returns>
+        public Point GetScreenCenter()
+        {
+            try
+            {
+                var screenWidth = SystemParameters.PrimaryScreenWidth;
+                var screenHeight = SystemParameters.PrimaryScreenHeight;
+                var windowWidth = this.ActualWidth > 0 ? this.ActualWidth : this.Width;
+                var windowHeight = this.ActualHeight > 0 ? this.ActualHeight : this.Height;
+
+                var centerX = (screenWidth - windowWidth) / 2;
+                var centerY = (screenHeight - windowHeight) / 2;
+
+                return new Point(centerX, centerY);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error getting screen center: {ex.Message}");
+                return new Point(100, 100); // フォールバック
+            }
+        }
+
+        /// <summary>
+        /// コンポーネントファイルの内容からPositionを解析
+        /// </summary>
+        /// <param name="content">ファイルの内容</param>
+        /// <returns>解析された位置のPoint、失敗時はnull</returns>
+        private Point? ParseComponentPosition(string content)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(content))
+                {
+                    System.Diagnostics.Debug.WriteLine("Component content is empty");
+                    return null;
+                }
+
+                System.Diagnostics.Debug.WriteLine($"Parsing component content: '{content.Trim()}'");
+
+                // "Position = x,y" 形式を解析
+                var lines = content.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+                foreach (var line in lines)
+                {
+                    var trimmedLine = line.Trim();
+                    if (trimmedLine.StartsWith("Position", StringComparison.OrdinalIgnoreCase))
+                    {
+                        // "Position = x,y" から "x,y" 部分を抽出
+                        var equalIndex = trimmedLine.IndexOf('=');
+                        if (equalIndex > 0 && equalIndex < trimmedLine.Length - 1)
+                        {
+                            var positionPart = trimmedLine.Substring(equalIndex + 1).Trim();
+                            var coordinates = positionPart.Split(',');
+                            
+                            if (coordinates.Length == 2)
+                            {
+                                if (double.TryParse(coordinates[0].Trim(), out double x) && 
+                                    double.TryParse(coordinates[1].Trim(), out double y))
+                                {
+                                    System.Diagnostics.Debug.WriteLine($"Successfully parsed position: ({x:F0}, {y:F0})");
+                                    return new Point(x, y);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                System.Diagnostics.Debug.WriteLine("No valid Position line found in component file");
+                return null;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error parsing component position: {ex.Message}");
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// ウィンドウ位置を指定された座標に移動
+        /// </summary>
+        /// <param name="newPosition">新しい位置</param>
+        private void MoveWindowToPosition(Point newPosition)
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine($"Moving window to position: ({newPosition.X:F0}, {newPosition.Y:F0})");
+                
+                this.Left = newPosition.X;
+                this.Top = newPosition.Y;
+
+                System.Diagnostics.Debug.WriteLine($"Window moved successfully. New position: ({this.Left:F0}, {this.Top:F0})");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error moving window to position: {ex.Message}");
+            }
+        }
+
+        /// <summary>
         /// ウィンドウドラッグの無効化
         /// </summary>
         protected override void OnMouseDown(MouseButtonEventArgs e)
@@ -640,8 +908,8 @@ namespace SELLCT.Views
             // カスタムタイトルバー以外でのドラッグを無効化
             // base.OnMouseDown(e) を呼ばないことでドラッグを阻止
             
-            // 既存のMainWindow_MouseDownロジックを実行
-            MainWindow_MouseDown(this, e);
+            // MainWindow_MouseDownはXAMLのMouseDownイベントで既に呼ばれるため、ここでは呼ばない
+            // 重複呼び出しを防ぐ
         }
 
         /// <summary>
@@ -736,13 +1004,6 @@ namespace SELLCT.Views
             return Array.Exists(knownTexts, text => text.Equals(buttonText, StringComparison.OrdinalIgnoreCase));
         }
 
-
-
-
-
-
-
-
         /// <summary>
         /// 手紙クリック
         /// </summary>
@@ -769,10 +1030,10 @@ namespace SELLCT.Views
                 if (success)
                 {
                     // ダウンロード成功時
-                    StatusText.Text = "PassWord.txtをダウンロードしました";
+                    StatusText.Text = "message.txtをダウンロードしました";
                     if (TextWindow.Visibility == Visibility.Visible)
                     {
-                        //ShowDialogMessage("パスワードファイルをダウンロードしました！真の解放のためには...GameWindow.componentを削除してください。");
+                        ShowDialogMessage("なるほど...なにやら意味深なメッセージですね...", "\"画面の背後\"に隠されているとはどういうことでしょうか...?");
                     }
                     //UpdateDebugInfo();
                 }
@@ -780,7 +1041,7 @@ namespace SELLCT.Views
                 {
                     // ダウンロード失敗またはキャンセル時は鍵を再表示
                     KeyImage.Visibility = Visibility.Visible;
-                    StatusText.Text = "パスワードファイルのダウンロードがキャンセルされました";
+                    StatusText.Text = "メッセージファイルのダウンロードがキャンセルされました";
                 }
             }
             catch (Exception ex)
@@ -831,6 +1092,48 @@ namespace SELLCT.Views
         }
 
         /// <summary>
+        /// クリーンアップボタンクリック（デバッグ用）
+        /// </summary>
+        private void CleanupButton_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine("Manual cleanup initiated from debug panel");
+                
+                // 確認ダイアログを表示
+                var result = MessageBox.Show(
+                    "すべてのゲームファイル（components、Authority、手紙ファイル等）を削除します。\n続行しますか？",
+                    "SELLCT - クリーンアップ確認",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Warning,
+                    MessageBoxResult.No
+                );
+
+                if (result == MessageBoxResult.Yes)
+                {
+                    CleanupService.PerformManualCleanup();
+                    
+                    MessageBox.Show(
+                        "クリーンアップが完了しました。",
+                        "SELLCT - クリーンアップ完了",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information
+                    );
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error in CleanupButton_Click: {ex.Message}");
+                MessageBox.Show(
+                    $"クリーンアップ中にエラーが発生しました。\n\nエラー: {ex.Message}",
+                    "SELLCT - エラー",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error
+                );
+            }
+        }
+
+        /// <summary>
         /// ウィンドウクローズ処理
         /// </summary>
         private void Window_Closing(object sender, CancelEventArgs e)
@@ -859,9 +1162,22 @@ namespace SELLCT.Views
                     _componentManager.ComponentsFolderChanged -= OnComponentsFolderChanged;
                 }
 
+                // 隠しファイル表示設定を復元する（ゲーム終了時）
+                try
+                {
+                    bool result = _hiddenFileSettingService?.RestoreHiddenFileDisplay() ?? false;
+                    System.Diagnostics.Debug.WriteLine($"[MainWindow] Hidden file display settings restored: {result}");
+                }
+                catch (Exception hiddenFileEx)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[MainWindow] Error restoring hidden file display: {hiddenFileEx.Message}");
+                }
+
                 // リソース解放
                 _letterService?.Dispose();
                 _componentManager?.Dispose();
+                _pseudoDesktopIconManager?.Dispose();
+                System.Diagnostics.Debug.WriteLine("PseudoDesktopIconManager disposed in MainWindow");
             }
             catch (Exception ex)
             {
@@ -929,6 +1245,11 @@ namespace SELLCT.Views
             KeyImage.Visibility = isVisible ? Visibility.Visible : Visibility.Collapsed;
         }
 
+        public void SetDoorVisibility(bool isVisible)
+        {
+            DoorImage.Visibility = isVisible ? Visibility.Visible : Visibility.Collapsed;
+        }
+
         public void SetTextWindowVisibility(bool isVisible)
         {
             // TextWindowの表示/非表示を設定
@@ -949,6 +1270,94 @@ namespace SELLCT.Views
             else
             {
                 System.Diagnostics.Debug.WriteLine("背景画像が表示 - ウィンドウを不透明化");
+            }
+        }
+
+        // 位置制御メソッド
+        public void SetButtonPosition(double x, double y)
+        {
+            Canvas.SetLeft(MainButton, x);
+            Canvas.SetTop(MainButton, y);
+            System.Diagnostics.Debug.WriteLine($"Button position set to ({x}, {y})");
+        }
+
+        public void SetYESPosition(double x, double y)
+        {
+            Canvas.SetLeft(YesButton, x);
+            Canvas.SetTop(YesButton, y);
+            System.Diagnostics.Debug.WriteLine($"YES button position set to ({x}, {y})");
+        }
+
+        public void SetKeyPosition(double x, double y)
+        {
+            Canvas.SetLeft(KeyImage, x);
+            Canvas.SetTop(KeyImage, y);
+            System.Diagnostics.Debug.WriteLine($"Key position set to ({x}, {y})");
+        }
+
+        public void SetDoorPosition(double x, double y)
+        {
+            Canvas.SetLeft(DoorImage, x);
+            Canvas.SetTop(DoorImage, y);
+            System.Diagnostics.Debug.WriteLine($"Door position set to ({x}, {y})");
+        }
+
+        public void SetBackgroundPosition(double x, double y)
+        {
+            Canvas.SetLeft(BackgroundImage, x);
+            Canvas.SetTop(BackgroundImage, y);
+            System.Diagnostics.Debug.WriteLine($"Background position set to ({x}, {y})");
+        }
+
+        /// <summary>
+        /// 確実なウィンドウ前面表示（Windows 10/11対応）
+        /// </summary>
+        private void BringToForegroundReliable()
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine("BringToForegroundReliable: Starting reliable foreground process");
+                
+                // 1. ウィンドウが非表示の場合は表示
+                if (!this.IsVisible)
+                {
+                    System.Diagnostics.Debug.WriteLine("Window is not visible, showing window");
+                    this.Show();
+                }
+                
+                // 2. 最小化されている場合は通常状態に復元
+                if (this.WindowState == WindowState.Minimized)
+                {
+                    System.Diagnostics.Debug.WriteLine("Window is minimized, restoring to normal state");
+                    this.WindowState = WindowState.Normal;
+                }
+                
+                // 3. ウィンドウをアクティブ化
+                this.Activate();
+                
+                // 4. Topmostトリック（最も重要 - Windows 10/11で確実に動作）
+                System.Diagnostics.Debug.WriteLine("Applying Topmost trick for reliable foreground display");
+                this.Topmost = true;
+                this.Topmost = false;
+                
+                // 5. フォーカス設定
+                this.Focus();
+                
+                // 6. 従来のWin32 API（補完的）
+                var windowHelper = new System.Windows.Interop.WindowInteropHelper(this);
+                var hWnd = windowHelper.Handle;
+                if (hWnd != IntPtr.Zero)
+                {
+                    ShowWindow(hWnd, SW_RESTORE);
+                    SetForegroundWindow(hWnd);
+                    System.Diagnostics.Debug.WriteLine("Applied Win32 APIs as fallback");
+                }
+                
+                System.Diagnostics.Debug.WriteLine("BringToForegroundReliable: Window brought to foreground successfully");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error in BringToForegroundReliable: {ex.Message}");
             }
         }
 
