@@ -12,7 +12,11 @@ using SELLCT.Core.Events;
 namespace SELLCT.Infrastructure.Services
 {
     /// <summary>
-    /// 構成要素管理サービス
+    /// コンポーネント管理サービス実装クラス
+    /// ファイルシステム監視とゲームコンポーネントライフサイクル管理を担当
+    /// Clean ArchitectureのInfrastructure層に配置された中核サービス
+    /// FileSystemWatcherによる監視、イベント発行、コンポーネント状態管理を提供
+    /// 社会工学教育ゲームの基盤となるファイルシステム連携を実現
     /// </summary>
     public class ComponentManager : IDisposable
     {

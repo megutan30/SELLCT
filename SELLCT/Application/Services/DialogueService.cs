@@ -9,30 +9,98 @@ using SELLCT.Core.Builders;
 
 namespace SELLCT.Application.Services
 {
+    /// <summary>
+    /// 対話サービス実装クラス
+    /// 対話フロー管理システムの具体実装
+    /// Clean ArchitectureのApplication層に配置されたユースケース実装
+    /// IDialogueServiceインターフェースの実装として対話フロー実行を担当
+    /// ファイルシステムイベントに基づく自動対話開始と手動対話制御を提供
+    /// </summary>
     public class DialogueService : IDialogueService
     {
+        /// <summary>
+        /// コンポーネント管理サービス
+        /// ファイル存在確認や条件判定で使用
+        /// 対話トリガー条件の評価に必要
+        /// </summary>
         private readonly ComponentManager _componentManager;
+        
+        /// <summary>
+        /// パズルアクションハンドラー
+        /// 対話中のアクション実行で使用
+        /// UI操作やシステム制御を委譲
+        /// </summary>
         private readonly IPuzzleActionHandler _actionHandler;
+        
+        /// <summary>
+        /// イベントディスパッチャー
+        /// ドメインイベントの購読と発行で使用
+        /// 対話システムとゲーム全体の連携を実現
+        /// </summary>
         private readonly IEventDispatcher _eventDispatcher;
+        
+        /// <summary>
+        /// ゲーム状態管理オブジェクト
+        /// 対話フロー条件判定で使用
+        /// アクション回数や変数の確認に必要
+        /// </summary>
         private readonly GameState _gameState;
+        
+        /// <summary>
+        /// 対話フロー定義リスト
+        /// システムで利用可能な全対話フローを格納
+        /// 初期化時にBuilderパターンで構築される
+        /// </summary>
         private readonly List<DialogueFlow> _dialogueFlows;
         
+        /// <summary>
+        /// 現在実行中の対話フロー
+        /// 対話実行中のDialogueFlowインスタンス
+        /// 対話中でない場合はnull
+        /// </summary>
         private DialogueFlow _currentFlow;
+        
+        /// <summary>
+        /// 現在表示中の対話ノード
+        /// 対話実行中のDialogueNodeインスタンス
+        /// 対話中でない場合はnull
+        /// </summary>
         private DialogueNode _currentNode;
         
+        /// <summary>
+        /// 現在対話中かどうかを示すプロパティ
+        /// フローとノードの両方が存在する場合にtrueを返す
+        /// </summary>
         public bool IsInDialogue => _currentFlow != null && _currentNode != null;
+        
+        /// <summary>
+        /// 現在のノードを取得するプロパティ
+        /// 対話中でない場合はnullを返す
+        /// </summary>
         public DialogueNode CurrentNode => _currentNode;
         
+        /// <summary>
+        /// コンストラクタ
+        /// 対話サービスインスタンスを初期化し、必要な依存関係を設定
+        /// 対話フロー定義の読み込みとイベント購読を実行
+        /// </summary>
+        /// <param name="componentManager">コンポーネント管理サービス</param>
+        /// <param name="actionHandler">パズルアクションハンドラー</param>
+        /// <param name="eventDispatcher">イベントディスパッチャー</param>
+        /// <param name="gameState">ゲーム状態管理オブジェクト</param>
         public DialogueService(ComponentManager componentManager, IPuzzleActionHandler actionHandler, 
                               IEventDispatcher eventDispatcher, GameState gameState)
         {
+            // 依存関係を設定
             _componentManager = componentManager;
             _actionHandler = actionHandler;
             _eventDispatcher = eventDispatcher;
             _gameState = gameState;
+            
+            // 対話フロー定義を読み込み
             _dialogueFlows = LoadDialogueFlows();
             
-            // イベントサブスクリプション
+            // ファイルシステムイベントの購読を設定
             _eventDispatcher.Subscribe<ComponentCreatedEvent>(CheckDialogueTriggersOnComponentCreated);
             _eventDispatcher.Subscribe<ComponentDeletedEvent>(CheckDialogueTriggersOnComponentDeleted);
             _eventDispatcher.Subscribe<ComponentRenamedEvent>(CheckDialogueTriggersOnComponentRenamed);

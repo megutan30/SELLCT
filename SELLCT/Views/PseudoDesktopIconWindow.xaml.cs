@@ -12,8 +12,9 @@ using SELLCT.Core.Interfaces;
 namespace SELLCT.Views
 {
     /// <summary>
-    /// 疑似デスクトップアイコンウィンドウ
-    /// 本物のデスクトップアイコンのように見える独立したウィンドウ
+    /// 疑似デスクトップアイコンウィンドウ（Presentation層のビュー）
+    /// デスクトップ上に表示される偽のアイコンウィンドウ、システムアイコンの模倣
+    /// ユーザーの視覚的欺瞞演出とフォルダ開封イベントの発火を担当
     /// </summary>
     public partial class PseudoDesktopIconWindow : Window, IDisposable
     {

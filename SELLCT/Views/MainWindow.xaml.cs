@@ -22,7 +22,9 @@ using SELLCT.Presentation.Controllers;
 namespace SELLCT.Views
 {
     /// <summary>
-    /// MainWindow.xaml の相互作用ロジック
+    /// SELLCTゲームのメインウィンドウ（Presentation層の中核UI）
+    /// WPFアプリケーションのメインビューとして、ゲーム画面表示、ユーザー操作、
+    /// コントローラー統合、Clean Architectureの各層との連携を管理
     /// </summary>
     public partial class MainWindow : Window
     {

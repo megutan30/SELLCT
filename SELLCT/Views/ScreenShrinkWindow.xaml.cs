@@ -25,8 +25,9 @@ namespace SELLCT.Views
     }
 
     /// <summary>
-    /// 画面縮小演出用ウィンドウ
-    /// 教育目的で「PC画面自体が縮小する」不思議な体験を提供
+    /// 画面縮小演出用ウィンドウ（Presentation層のビュー）
+    /// フルスクリーンノイズ効果とExplorer終了の隠蔽演出を管理
+    /// 「画面が縮小・削除される」視覚的錯覚の教育的デモンストレーション
     /// </summary>
     public partial class ScreenShrinkWindow : Window
     {

@@ -7,9 +7,11 @@ using Newtonsoft.Json;
 namespace SELLCT.Infrastructure.Services
 {
     /// <summary>
-    /// ダウンロードファイル記録・削除管理サービス
-    /// プレイヤーがダウンロードした手紙やパスワードファイルのパスを記録し、
-    /// クリーンアップ時に確実に削除できるようにする
+    /// ダウンロードファイル追跡サービス静的クラス
+    /// ゲーム中にダウンロードされるファイルの完全な記録と削除を管理
+    /// Clean ArchitectureのInfrastructure層に配置されたファイル管理ユーティリティ
+    /// JSON形式での永続化とスレッドセーフな操作を提供
+    /// 社会工学教育ゲームで生成されるファイルの確実なクリーンアップを保証
     /// </summary>
     public static class DownloadTracker
     {

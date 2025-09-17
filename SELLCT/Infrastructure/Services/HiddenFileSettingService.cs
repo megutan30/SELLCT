@@ -5,7 +5,11 @@ using System.Diagnostics;
 namespace SELLCT.Infrastructure.Services
 {
     /// <summary>
-    /// Windows隠しファイル表示設定を管理するサービス
+    /// 隠しファイル設定管理サービスクラス
+    /// Windowsの隠しファイル表示設定の取得・変更・復元を管理
+    /// Clean ArchitectureのInfrastructure層に配置されたシステム設定管理サービス
+    /// レジストリ操作による設定変更と安全な復元機能を提供
+    /// 社会工学デモンストレーションでの隠しファイル表示制御に使用
     /// </summary>
     public class HiddenFileSettingService
     {

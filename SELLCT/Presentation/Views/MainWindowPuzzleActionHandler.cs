@@ -11,6 +11,11 @@ using System.Threading.Tasks;
 
 namespace SELLCT.Presentation.Views
 {
+    /// <summary>
+    /// MainWindow用のパズルアクション実行ハンドラー（Presentation層）
+    /// IPuzzleActionHandlerの実装として、UI操作、システム制御、フェーズ遷移を管理
+    /// パズルゲームのアクション実行とUIレスポンスの中核的な処理を担当
+    /// </summary>
     public class MainWindowPuzzleActionHandler : IPuzzleActionHandler
     {
         private readonly MainWindow _mainWindow;

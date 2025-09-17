@@ -8,8 +8,11 @@ using Microsoft.Win32;
 namespace SELLCT.Infrastructure.Services
 {
     /// <summary>
-    /// ゲーム終了時・起動時のクリーンアップサービス
-    /// ダウンロードした手紙、componentsフォルダ、Authorityフォルダなどを削除
+    /// クリーンアップサービスクラス
+    /// ゲーム実行前後のシステム状態復旧を担当する静的ユーティリティクラス
+    /// Clean ArchitectureのInfrastructure層に配置されたシステム管理サービス
+    /// ファイル削除、フォルダ削除、レジストリクリーンアップを包括的に実行
+    /// 社会工学教育ゲームで作成された痕跡の完全除去を保証
     /// </summary>
     public class CleanupService
     {

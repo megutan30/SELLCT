@@ -9,14 +9,28 @@ using SELLCT.Core.Events;
 namespace SELLCT.Infrastructure.Services
 {
     /// <summary>
-    /// コンポーネント変更イベント用のEventArgsクラス
+    /// コンポーネント変更イベント引数クラス
+    /// ファイルシステム変更通知のためのイベントデータを格納
+    /// ファイル作成、削除、名前変更等の詳細情報を提供
     /// </summary>
     public class ComponentChangeEventArgs : EventArgs
     {
+        /// <summary>変更の種類（作成、削除、名前変更等）</summary>
         public WatcherChangeTypes ChangeType { get; set; }
-        public string FilePath { get; set; }
-        public string OldPath { get; set; } // Renamed用
         
+        /// <summary>変更されたファイルのパス</summary>
+        public string FilePath { get; set; }
+        
+        /// <summary>名前変更時の旧ファイルパス</summary>
+        public string OldPath { get; set; }
+        
+        /// <summary>
+        /// コンストラクタ
+        /// ファイルシステム変更イベントの詳細情報を設定
+        /// </summary>
+        /// <param name="changeType">変更の種類</param>
+        /// <param name="filePath">変更されたファイルパス</param>
+        /// <param name="oldPath">名前変更時の旧パス（省略可能）</param>
         public ComponentChangeEventArgs(WatcherChangeTypes changeType, string filePath, string oldPath = null)
         {
             ChangeType = changeType;
@@ -24,6 +38,14 @@ namespace SELLCT.Infrastructure.Services
             OldPath = oldPath;
         }
     }
+    
+    /// <summary>
+    /// ファイルシステム監視管理クラス
+    /// FileSystemWatcherのラッパーとして高度なファイル監視機能を提供
+    /// Clean ArchitectureのInfrastructure層に配置されたファイルシステム抽象化
+    /// デバウンス処理、イベント重複排除、スレッドセーフな操作を実現
+    /// ゲームコンポーネントのファイルシステム変更を確実に検出・通知
+    /// </summary>
     public class FileSystemWatcherManager : IDisposable
     {
         private readonly string _watchPath;

@@ -10,6 +10,11 @@ using SELLCT.Core.Entities;
 
 namespace SELLCT.Presentation.Controllers
 {
+    /// <summary>
+    /// ダイアログ表示・制御を担当するPresentation層のコントローラー
+    /// タイピング効果、選択肢表示、ヒントシステム、メッセージ履歴管理を統合
+    /// ゲーム内コミュニケーションの中核的なUIコントローラー
+    /// </summary>
     public class DialogController : IDisposable
     {
         private enum DialogItemType

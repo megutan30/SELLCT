@@ -9,46 +9,102 @@ using SELLCT.Core.Factories;
 
 namespace SELLCT.Application.Services
 {
+    /// <summary>
+    /// パズルサービス実装クラス
+    /// ゲームの中核となるパズルシステムの実装
+    /// Clean ArchitectureのApplication層に配置されたドメインサービス
+    /// ファイルシステムイベントに基づく自動パズル解決システムを提供
+    /// 社会工学教育ゲームのメインゲームロジックを実行
+    /// </summary>
     public class PuzzleService
     {
+        /// <summary>
+        /// コンポーネント管理サービス
+        /// ファイルシステム監視とコンポーネントライフサイクル管理を担当
+        /// パズル条件判定でファイル存在確認等に使用
+        /// </summary>
         private readonly ComponentManager _componentManager;
+        
+        /// <summary>
+        /// パズル定義リスト
+        /// ゲームで使用される全パズルの定義を格納
+        /// Factoryパターンで初期化時に構築される
+        /// </summary>
         private readonly List<PuzzleDefinition> _puzzles;
+        
+        /// <summary>
+        /// パズルアクションハンドラー
+        /// パズル解決時のアクション実行を担当
+        /// Clean Architectureの依存性逆転原則に従った抽象化
+        /// </summary>
         private readonly IPuzzleActionHandler _actionHandler;
+        
+        /// <summary>
+        /// イベントディスパッチャー
+        /// ドメインイベントの購読と発行を管理
+        /// パズルシステムとゲーム全体の連携を実現
+        /// </summary>
         private readonly IEventDispatcher _eventDispatcher;
+        
+        /// <summary>
+        /// ゲーム状態管理オブジェクト
+        /// アクション履歴、変数、イベント完了状態等を管理
+        /// パズル条件判定の基盤となる状態ストア
+        /// </summary>
         private readonly GameState _gameState;
 
+        /// <summary>
+        /// コンストラクタ
+        /// パズルサービスを初期化し、必要なイベントハンドラーを登録
+        /// ゲーム開始と同時にファイルシステムの監視を開始し、パズル定義を読み込む
+        /// </summary>
+        /// <param name="componentManager">コンポーネント管理サービス</param>
+        /// <param name="actionHandler">パズルアクション実行ハンドラー</param>
+        /// <param name="eventDispatcher">イベント配信システム</param>
+        /// <param name="gameState">ゲーム状態（nullの場合は新規作成）</param>
         public PuzzleService(ComponentManager componentManager, IPuzzleActionHandler actionHandler, IEventDispatcher eventDispatcher, GameState gameState = null)
         {
+            // 依存関係を設定
             _componentManager = componentManager;
             _actionHandler = actionHandler;
             _eventDispatcher = eventDispatcher;
-            _gameState = gameState ?? new GameState();
+            _gameState = gameState ?? new GameState();  // gameStateがnullの場合は新規作成
+            
+            // パズル定義を読み込み
             _puzzles = LoadPuzzles();
 
-            _eventDispatcher.Subscribe<ComponentCreatedEvent>(CheckPuzzlesOnComponentCreated);
-            _eventDispatcher.Subscribe<ComponentDeletedEvent>(CheckPuzzlesOnComponentDeleted);
-            _eventDispatcher.Subscribe<ComponentRenamedEvent>(CheckPuzzlesOnComponentRenamed);
-            _eventDispatcher.Subscribe<AuthorityFolderOpenedEvent>(CheckPuzzlesOnAuthorityFolderOpened);
+            // ファイルシステムイベントに対するパズルチェック処理を登録
+            _eventDispatcher.Subscribe<ComponentCreatedEvent>(CheckPuzzlesOnComponentCreated);     // ファイル作成時
+            _eventDispatcher.Subscribe<ComponentDeletedEvent>(CheckPuzzlesOnComponentDeleted);     // ファイル削除時
+            _eventDispatcher.Subscribe<ComponentRenamedEvent>(CheckPuzzlesOnComponentRenamed);     // ファイル名変更時
+            _eventDispatcher.Subscribe<AuthorityFolderOpenedEvent>(CheckPuzzlesOnAuthorityFolderOpened); // Authorityフォルダ開封時
             
-            // SELLCTフォルダ裏切りイベントをサブスクライブ
+            // 特別なイベント：SELLCTフォルダの裏切り行為（プレイヤーがファイルを削除した場合）
             _componentManager.SELLCTFolderBetrayed += OnSELLCTFolderBetrayed;
         }
 
+        /// <summary>
+        /// パズル定義を読み込む
+        /// ゲーム内で使用される全てのパズルとその条件、アクションを定義
+        /// ファイルシステムのイベントに対応するゲームロジックを設定
+        /// 将来的にはJSONファイル等の外部設定から読み込み可能
+        /// </summary>
+        /// <returns>定義済みパズルのリスト</returns>
         private List<PuzzleDefinition> LoadPuzzles()
         {
-            // ここで謎解きを定義します。
-            // 実際にはJSONファイルなどから読み込むこともできますが、
-            // コードで定義します。
+            // 全パズル定義をリストで返す
+            // 各パズルは特定のトリガー（ファイル操作）に対してアクション（ゲーム効果）を実行
             return new List<PuzzleDefinition>
             {
-                // Button.txt (複数パターン対応)
+                // 【Buttonコンポーネント存在時パズル】
+                // Buttonファイルが存在する間、メインボタンを表示状態に保つ
                 new PuzzleDefinition
                 {
-                    Id = "Button_Exists",
-                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Exists, ComponentNames = new[] { "Button", "button", "BUTTON" } },
-                    Actions = new List<PuzzleAction> { new PuzzleAction { Type = PuzzleAction.ActionType.SetMainButtonVisibility, IsVisible = true } },
-                    CanRepeat = true,
-                    Priority = 5
+                    Id = "Button_Exists",                                                                                 // パズル識別子
+                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Exists, ComponentNames = new[] { "Button", "button", "BUTTON" } }, // トリガー：Button関連ファイルの存在
+                    Actions = new List<PuzzleAction> { new PuzzleAction { Type = PuzzleAction.ActionType.SetMainButtonVisibility, IsVisible = true } }, // アクション：メインボタン表示
+                    CanRepeat = true,                                                                                     // 繰り返し実行可能
+                    Priority = 5                                                                                          // 優先度（低）
                 },
                 // Button削除 - 1回目
                 new PuzzleDefinition
