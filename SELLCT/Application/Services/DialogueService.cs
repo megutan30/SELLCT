@@ -650,7 +650,7 @@ namespace SELLCT.Application.Services
             flow.AddNode(new DialogueNode
             {
                 Id = "button_move_hint",
-                Text = "どうにか動かすことができればメッセージを確認できるかもしれません..."
+                Text = "どうにかボタンを動かすことができればメッセージを確認できるかもしれません..."
             });
 
 

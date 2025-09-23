@@ -132,7 +132,7 @@ namespace SELLCT.Infrastructure.Services
              );
 
             AutoClosingMessageBox.Show(
-                "三次審査は楽しめていますか？",
+                "東京ゲームショウは楽しめていますか？",
                 "SELLCT",
                 MessageBoxButton.OK,
                 MessageBoxImage.Error,
@@ -180,14 +180,6 @@ namespace SELLCT.Infrastructure.Services
             );
             AutoClosingMessageBox.Show(
                 "私に権限を与えてしまった。私が悪意を持つソフトウェアかもしれないのに...",
-                "SELLCT",
-                MessageBoxButton.OK,
-                MessageBoxImage.Information,
-                3000
-            );
-
-            AutoClosingMessageBox.Show(
-                "審査だというのに、いや審査だからこそ警戒心がなかったのでしょう。",
                 "SELLCT",
                 MessageBoxButton.OK,
                 MessageBoxImage.Information,
