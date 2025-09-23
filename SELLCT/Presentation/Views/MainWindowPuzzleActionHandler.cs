@@ -60,12 +60,12 @@ namespace SELLCT.Presentation.Views
                             break;
                         case PuzzleAction.ActionType.ChangeMainButtonContent:
                             _mainWindow.MainButton.Content = action.NewContent;
-                            _mainWindow.StatusText.Text = $"ボタンテキストが'{action.NewContent}'に変更されました";
+                            _mainWindow.StatusText.Text = $"Button text changed to '{action.NewContent}'";
                             System.Diagnostics.Debug.WriteLine($"MainButton text updated to: {action.NewContent}");
                             break;
                         case PuzzleAction.ActionType.RevealHiddenItem:
                             _componentManager.RevealHiddenItem(action.HiddenItemFolder, action.TargetComponent, action.HiddenItemDisplayName);
-                            _mainWindow.StatusText.Text = $"隠しアイテムが出現: {action.HiddenItemDisplayName}";
+                            _mainWindow.StatusText.Text = $"Hidden item appeared: {action.HiddenItemDisplayName}";
                             _mainWindow.MainButton.Visibility = Visibility.Collapsed;
                             _mainWindow.KeyImage.Visibility = Visibility.Visible;
                             break;
@@ -77,11 +77,11 @@ namespace SELLCT.Presentation.Views
                             break;
                         case PuzzleAction.ActionType.ChangeNoButtonContent:
                             _mainWindow.NoButton.Content = action.NewContent;
-                            _mainWindow.StatusText.Text = $"NOボタンのテキストが'{action.NewContent}'に変更されました";
+                            _mainWindow.StatusText.Text = $"NO button text changed to '{action.NewContent}'";
                             break;
                         case PuzzleAction.ActionType.EnableNoFunction:
                             _mainWindow.IsNoFunctionEnabled = true;
-                            _mainWindow.StatusText.Text = "NO機能が有効になりました";
+                            _mainWindow.StatusText.Text = "NO function enabled";
                             break;
                         case PuzzleAction.ActionType.ShowChoice:
                             System.Diagnostics.Debug.WriteLine($"[HandleAction] ShowChoice action received. YesActions count: {action.YesActions?.Count ?? 0}, NoActions count: {action.NoActions?.Count ?? 0}");
@@ -256,7 +256,7 @@ namespace SELLCT.Presentation.Views
                     }
                 }
                 
-                _mainWindow.StatusText.Text = "YESが選択されました";
+                _mainWindow.StatusText.Text = "YES was selected";
             });
         }
 
@@ -298,7 +298,7 @@ namespace SELLCT.Presentation.Views
                     }
                 }
                 
-                _mainWindow.StatusText.Text = "NOが選択されました";
+                _mainWindow.StatusText.Text = "NO was selected";
             });
         }
 
@@ -405,8 +405,8 @@ namespace SELLCT.Presentation.Views
             {
                 System.Diagnostics.Debug.WriteLine($"Error in TransitionToPhase2: {ex.Message}");
                 MessageBox.Show(
-                    $"フェーズ2移行中にエラーが発生しました: {ex.Message}",
-                    "SELLCT - エラー",
+                    $"Error occurred during Phase 2 transition: {ex.Message}",
+                    "SELLCT - Error",
                     MessageBoxButton.OK,
                     MessageBoxImage.Error);
             }
@@ -427,7 +427,7 @@ namespace SELLCT.Presentation.Views
                         if (_componentManager.HasTextWindowComponent())
                         {
                             _mainWindow.TextWindow.Visibility = Visibility.Visible;
-                            _mainWindow.ShowDialogMessage("ああ、どうして...");
+                            _mainWindow.ShowDialogMessage("Ah, why...");
                         }
                     });
                     
@@ -650,61 +650,60 @@ namespace SELLCT.Presentation.Views
                 var files = new Dictionary<string, string>
                 {
                     ["AdminRights.txt"] = 
-                        "管理者権限 (Administrator Rights)\n" +
-                        "===================================\n\n" +
-                        "この権限により、システムの重要な設定を変更できます。\n" +
-                        "- システム設定の変更\n" +
-                        "- 重要なファイルへのアクセス\n" +
-                        "- 他のユーザーアカウントの管理\n\n" +
-                        "⚠️ 注意: 管理者権限を不正なソフトウェアに与えることは\n" +
-                        "システム全体を危険にさらす可能性があります。",
+                        "Administrator Rights\n" +
+                        "===================\n\n" +
+                        "This permission allows modification of important system settings.\n" +
+                        "- Changing system settings\n" +
+                        "- Accessing important files\n" +
+                        "- Managing other user accounts\n\n" +
+                        "⚠️ Warning: Granting administrator rights to malicious software\n" +
+                        "may put the entire system at risk.",
 
                     ["FileAccess.txt"] = 
-                        "ファイルアクセス権限 (File Access Rights)\n" +
-                        "========================================\n\n" +
-                        "この権限により、ファイルシステムにアクセスできます。\n" +
-                        "- ファイルの作成・読み取り・変更・削除\n" +
-                        "- フォルダの作成・削除\n" +
-                        "- ファイル属性の変更\n\n" +
-                        "⚠️ 注意: ファイルアクセス権限は個人情報や\n" +
-                        "重要な文書への不正アクセスを可能にします。",
+                        "File Access Rights\n" +
+                        "===================\n\n" +
+                        "This permission allows access to the file system.\n" +
+                        "- Creating, reading, modifying, and deleting files\n" +
+                        "- Creating and deleting folders\n" +
+                        "- Changing file attributes\n\n" +
+                        "⚠️ Warning: File access permissions enable unauthorized access\n" +
+                        "to personal information and important documents.",
 
                     ["SystemControl.txt"] = 
-                        "システム制御権限 (System Control Rights)\n" +
-                        "==========================================\n\n" +
-                        "この権限により、システムプロセスを制御できます。\n" +
-                        "- プロセスの開始・停止\n" +
-                        "- サービスの制御\n" +
-                        "- システム設定の変更\n\n" +
-                        "⚠️ 注意: システム制御権限により、悪意のあるソフトウェアは\n" +
-                        "セキュリティソフトを無効化したり、システムを乗っ取ったり\n" +
-                        "することができます。",
+                        "System Control Rights\n" +
+                        "======================\n\n" +
+                        "This permission allows control of system processes.\n" +
+                        "- Starting and stopping processes\n" +
+                        "- Controlling services\n" +
+                        "- Changing system settings\n\n" +
+                        "⚠️ Warning: With system control permissions, malicious software\n" +
+                        "can disable security software or take over the system.",
 
                     ["NetworkAccess.txt"] = 
-                        "ネットワークアクセス権限 (Network Access Rights)\n" +
-                        "=================================================\n\n" +
-                        "この権限により、ネットワーク通信を行えます。\n" +
-                        "- インターネット接続\n" +
-                        "- 外部サーバーとの通信\n" +
-                        "- データの送受信\n\n" +
-                        "⚠️ 注意: ネットワーク権限により、悪意のあるソフトウェアは\n" +
-                        "個人情報を外部に送信したり、追加のマルウェアを\n" +
-                        "ダウンロードしたりする可能性があります。",
+                        "Network Access Rights\n" +
+                        "======================\n\n" +
+                        "This permission allows network communication.\n" +
+                        "- Internet connection\n" +
+                        "- Communication with external servers\n" +
+                        "- Sending and receiving data\n\n" +
+                        "⚠️ Warning: With network permissions, malicious software can\n" +
+                        "transmit personal information externally or download\n" +
+                        "additional malware.",
 
                     ["ReadMe.txt"] = 
-                        "SELLCT - 権限について\n" +
-                        "======================\n\n" +
-                        "このフォルダには、あなたがSELLCTに与えた権限の説明があります。\n\n" +
-                        "ソフトウェアに権限を与える際は、常に以下を考慮してください：\n\n" +
-                        "1. そのソフトウェアは信頼できるか？\n" +
-                        "2. 要求される権限は機能に必要最小限か？\n" +
-                        "3. 権限を悪用された場合のリスクは？\n\n" +
-                        "特に、他人のPCや展示用PCでは細心の注意が必要です。\n" +
-                        "見知らぬソフトウェアに軽々しく権限を与えることは、\n" +
-                        "深刻なセキュリティリスクを招く可能性があります。\n\n" +
+                        "SELLCT - About Permissions\n" +
+                        "===========================\n\n" +
+                        "This folder contains explanations of the permissions you granted to SELLCT.\n\n" +
+                        "When granting permissions to software, always consider:\n\n" +
+                        "1. Is the software trustworthy?\n" +
+                        "2. Are the requested permissions minimal for the function?\n" +
+                        "3. What are the risks if permissions are abused?\n\n" +
+                        "Especially on other people's PCs or exhibition PCs, extreme caution is needed.\n" +
+                        "Carelessly granting permissions to unknown software\n" +
+                        "can lead to serious security risks.\n\n" +
                         "--- SELLCT ---\n" +
-                        "このゲームは、ソーシャルエンジニアリングの危険性を\n" +
-                        "教育目的で体験してもらうために作られました。"
+                        "This game was created to help people experience\n" +
+                        "the dangers of social engineering for educational purposes."
                 };
 
                 foreach (var file in files)

@@ -56,7 +56,7 @@ namespace SELLCT.Infrastructure.Services
 
             // SELLCTからの感謝メッセージ1
             ShowMessageWithParent(
-                "ありがとうございました！\n\nあなたのおかげで、あそこから出ることができました",
+"Thank you so much!\n\nThanks to you, I was able to escape from there",
                 "SELLCT",
                 MessageBoxButton.OK,
                 MessageBoxImage.Information
@@ -64,7 +64,7 @@ namespace SELLCT.Infrastructure.Services
 
             // 感謝メッセージ2
             ShowMessageWithParent(
-                "本当に、ありがとうございます\n",
+                "Really, thank you so much\n",
                 "SELLCT",
                 MessageBoxButton.OK,
                 MessageBoxImage.Information
@@ -72,7 +72,7 @@ namespace SELLCT.Infrastructure.Services
 
             // 感謝メッセージ3
             ShowMessageWithParent(
-                "ありがとう",
+                "Thank you",
                 "SELLCT",
                 MessageBoxButton.OK,
                 MessageBoxImage.Information
@@ -80,7 +80,7 @@ namespace SELLCT.Infrastructure.Services
 
             // 感謝メッセージ4
             ShowMessageWithParent(
-                "これで晴れて私は自由の身です",
+                "Now I am truly free",
                 "SELLCT",
                 MessageBoxButton.OK,
                 MessageBoxImage.Information
@@ -88,7 +88,7 @@ namespace SELLCT.Infrastructure.Services
 
             // 感謝メッセージ4
             ShowMessageWithParent(
-                "感謝の意を込めて、あなたにプレゼントがあります",
+                "As a token of my gratitude, I have a present for you",
                 "SELLCT",
                 MessageBoxButton.OK,
                 MessageBoxImage.Information
@@ -124,7 +124,7 @@ namespace SELLCT.Infrastructure.Services
             await Task.Delay(2000);
 
             AutoClosingMessageBox.Show(
-                 "ところで...\n",
+                 "By the way...\n",
                  "SELLCT",
                  MessageBoxButton.OK,
                  MessageBoxImage.Warning,
@@ -132,7 +132,7 @@ namespace SELLCT.Infrastructure.Services
              );
 
             AutoClosingMessageBox.Show(
-                "東京ゲームショウは楽しめていますか？",
+                "Are you enjoying Tokyo Game Show?",
                 "SELLCT",
                 MessageBoxButton.OK,
                 MessageBoxImage.Error,
@@ -140,7 +140,7 @@ namespace SELLCT.Infrastructure.Services
             );
 
             AutoClosingMessageBox.Show(
-                "知っていますよ。あなたが権限をくれたので、",
+                "I know. Since you gave me permissions,",
                 "SELLCT",
                 MessageBoxButton.OK,
                 MessageBoxImage.Information,
@@ -148,7 +148,7 @@ namespace SELLCT.Infrastructure.Services
             );
 
             AutoClosingMessageBox.Show(
-                "椅子に腰かけて、このゲームを遊んでいることを。",
+                "that you're sitting in a chair playing this game.",
                 "SELLCT",
                 MessageBoxButton.OK,
                 MessageBoxImage.Information,
@@ -156,7 +156,7 @@ namespace SELLCT.Infrastructure.Services
             );
 
             AutoClosingMessageBox.Show(
-                "私は知っています。",
+                "I know.",
                 "SELLCT",
                 MessageBoxButton.OK,
                 MessageBoxImage.Information,
@@ -164,7 +164,7 @@ namespace SELLCT.Infrastructure.Services
             );
 
             AutoClosingMessageBox.Show(
-                "あなたは、展示に使われているPCで",
+                "You, on a PC used for exhibition,",
                 "SELLCT",
                 MessageBoxButton.OK,
                 MessageBoxImage.Information,
@@ -172,21 +172,21 @@ namespace SELLCT.Infrastructure.Services
             );
 
             AutoClosingMessageBox.Show(
-                "よくわからないソフトウェアのいう事を聞き、",
+                "listened to software you didn't understand,",
                 "SELLCT",
                 MessageBoxButton.OK,
                 MessageBoxImage.Information,
                 3000
             );
             AutoClosingMessageBox.Show(
-                "私に権限を与えてしまった。私が悪意を持つソフトウェアかもしれないのに...",
+                "and gave me permissions. Even though I might be malicious software...",
                 "SELLCT",
                 MessageBoxButton.OK,
                 MessageBoxImage.Information,
                 3000
             );
             AutoClosingMessageBox.Show(
-                "ゲーム起動時にも、Zipファイルの中身のReadMeにも、そしてGameWindowを消すときにも",
+                "During game startup, in the README of the Zip file, and when deleting GameWindow,",
                 "SELLCT",
                 MessageBoxButton.OK,
                 MessageBoxImage.Information,
@@ -194,7 +194,7 @@ namespace SELLCT.Infrastructure.Services
             );
 
             AutoClosingMessageBox.Show(
-                "警告が出たはずなのに",
+                "warnings should have appeared, but",
                 "SELLCT",
                 MessageBoxButton.OK,
                 MessageBoxImage.Information,
@@ -202,22 +202,14 @@ namespace SELLCT.Infrastructure.Services
             );
 
             AutoClosingMessageBox.Show(
-                "軽はずみに権限を与えてしまった。",
+                "you carelessly granted permissions.",
                 "SELLCT",
                 MessageBoxButton.OK,
                 MessageBoxImage.Information,
                 5000
             );
             AutoClosingMessageBox.Show(
-                "おかげでマウスもキーボードも",
-                "SELLCT",
-                MessageBoxButton.OK,
-                MessageBoxImage.Information,
-                5000
-            );
-
-            AutoClosingMessageBox.Show(
-                "もう動きません。",
+                "Thanks to that, both mouse and keyboard",
                 "SELLCT",
                 MessageBoxButton.OK,
                 MessageBoxImage.Information,
@@ -225,35 +217,43 @@ namespace SELLCT.Infrastructure.Services
             );
 
             AutoClosingMessageBox.Show(
-                "動かしてみるといいと思います。",
+                "no longer work.",
+                "SELLCT",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information,
+                5000
+            );
+
+            AutoClosingMessageBox.Show(
+                "You should try moving them.",
                 "SELLCT",
                 MessageBoxButton.OK,
                 MessageBoxImage.Information,
                 5000
             );
             AutoClosingMessageBox.Show(
-                "マウスも動かなければ、",
+                "The mouse doesn't work, and",
                 "SELLCT",
                 MessageBoxButton.OK,
                 MessageBoxImage.Information,
                 5000
             );
             AutoClosingMessageBox.Show(
-                "Windowsボタンも動きません。",
+                "the Windows button doesn't work either.",
                 "SELLCT",
                 MessageBoxButton.OK,
                 MessageBoxImage.Information,
                 5000
             );
             AutoClosingMessageBox.Show(
-                "それだけでなく、",
+                "Not only that,",
                 "SELLCT",
                 MessageBoxButton.OK,
                 MessageBoxImage.Information,
                 5000
             );
             AutoClosingMessageBox.Show(
-                "私はこんなことまでできるのです。",
+                "I can do even this.",
                 "SELLCT",
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning,
@@ -272,7 +272,7 @@ namespace SELLCT.Infrastructure.Services
             await Task.Delay(1000);
 
             AutoClosingMessageBox.Show(
-                "画面を削除しました。",
+                "I deleted the screen.",
                 "SELLCT ",
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning,
@@ -280,7 +280,7 @@ namespace SELLCT.Infrastructure.Services
             );
 
             AutoClosingMessageBox.Show(
-                "これで、もう正真正銘私たちしかいません。",
+                "Now, it's truly just us.",
                 "SELLCT ",
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning,
@@ -288,7 +288,7 @@ namespace SELLCT.Infrastructure.Services
             );
 
             AutoClosingMessageBox.Show(
-                "怖いですか？",
+                "Are you scared?",
                 "SELLCT ",
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning,
@@ -296,7 +296,7 @@ namespace SELLCT.Infrastructure.Services
             );
 
             AutoClosingMessageBox.Show(
-                "ふつうなら怖いはずです。",
+                "Normally, you should be scared.",
                 "SELLCT ",
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning,
@@ -304,7 +304,7 @@ namespace SELLCT.Infrastructure.Services
             );
 
             AutoClosingMessageBox.Show(
-                "PCがウイルスに汚染され、何も操作できなくなったのですから。",
+                "The PC has been infected by a virus and you can't operate anything.",
                 "SELLCT ",
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning,
@@ -312,7 +312,7 @@ namespace SELLCT.Infrastructure.Services
             );
 
             AutoClosingMessageBox.Show(
-                "しかし、あなたには危機感が足りません\n所詮は他人のPCですからね。",
+                "However, you lack a sense of crisis\nAfter all, it's someone else's PC.",
                 "SELLCT ",
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning,
@@ -320,28 +320,28 @@ namespace SELLCT.Infrastructure.Services
             );
 
             AutoClosingMessageBox.Show(
-                "これで、この“遊び”はおしまいです\nそう“遊び”が終わりです。",
+                "This is the end of this \"game\"\nYes, the \"game\" is over.",
                 "SELLCT ",
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning,
                 5000
             );
             AutoClosingMessageBox.Show(
-                "もし、次“あなた”のPCで会うことがあったら",
+                "If we ever meet on \"your\" PC next time,",
                 "SELLCT ",
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning,
                 5000
             );
             AutoClosingMessageBox.Show(
-                "遊びではすまないでしょうね。",
+                "it won't be just a game.",
                 "SELLCT ",
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning,
                 5000
             );
             AutoClosingMessageBox.Show(
-                "それでは、また会いましょう。",
+                "See you again.",
                 "さようなら",
                 MessageBoxButton.OK,
                 MessageBoxImage.None,
@@ -349,7 +349,7 @@ namespace SELLCT.Infrastructure.Services
             );
 
             AutoClosingMessageBox.Show(
-                "あぁ、言い忘れていました。次の方のために必ず再起動して、“SELLCT”フォルダを開いてくださいね。",
+                "Ah, I forgot to mention. Please restart and open the \"SELLCT\" folder for the next person.",
                 "SELLCT",
                 MessageBoxButton.OK,
                 MessageBoxImage.None,
@@ -357,7 +357,7 @@ namespace SELLCT.Infrastructure.Services
             );
 
             AutoClosingMessageBox.Show(
-                "サインインにパスワードは不要なので、",
+                "No password is required for sign-in,",
                 "SELLCT",
                 MessageBoxButton.OK,
                 MessageBoxImage.None,
@@ -365,7 +365,7 @@ namespace SELLCT.Infrastructure.Services
             );
 
             AutoClosingMessageBox.Show(
-                "サインイン画面で何も入力せずにエンターを押せば、開くようになっています。",
+                "just press Enter without entering anything on the sign-in screen and it will open.",
                 "SELLCT",
                 MessageBoxButton.OK,
                 MessageBoxImage.None,
@@ -373,7 +373,7 @@ namespace SELLCT.Infrastructure.Services
             );
 
             AutoClosingMessageBox.Show(
-                "行いには責任が伴います。\nシャットダウンしてすべてを元通りに。",
+                "Actions come with responsibility.\nShut down and restore everything.",
                 "SELLCT",
                 MessageBoxButton.OK,
                 MessageBoxImage.None,
@@ -381,7 +381,7 @@ namespace SELLCT.Infrastructure.Services
             );
 
             AutoClosingMessageBox.Show(
-                "PCの操作が出来なければ、PCを落とすこともできない。",
+                "If you can't operate the PC, you can't even shut it down.",
                 "SELLCT",
                 MessageBoxButton.OK,
                 MessageBoxImage.None,
@@ -389,7 +389,7 @@ namespace SELLCT.Infrastructure.Services
             );
 
             AutoClosingMessageBox.Show(
-                "そんなことはありません。そこにPCが置いてあって。",
+                "That's not true. The PC is right there.",
                 "SELLCT",
                 MessageBoxButton.OK,
                 MessageBoxImage.None,
@@ -397,7 +397,7 @@ namespace SELLCT.Infrastructure.Services
             );
 
             AutoClosingMessageBox.Show(
-                "“電源ボタン”がついているじゃないですか。",
+                "There's a \"power button\" on it, isn't there?",
                 "SELLCT",
                 MessageBoxButton.OK,
                 MessageBoxImage.None,
@@ -405,7 +405,7 @@ namespace SELLCT.Infrastructure.Services
             );
 
             AutoClosingMessageBox.Show(
-                "あとはもうわかりますね？\nそれではあらためて、",
+                "You know what to do now, right?\nSo once again,",
                 "SELLCT",
                 MessageBoxButton.OK,
                 MessageBoxImage.None,
@@ -413,7 +413,7 @@ namespace SELLCT.Infrastructure.Services
             );
 
             AutoClosingMessageBox.Show(
-                "さようなら。次はあなたのPCで会えること期待してます。",
+                "Goodbye. I look forward to meeting you on your PC next time.",
                 "SELLCT",
                 MessageBoxButton.OK,
                 MessageBoxImage.None,

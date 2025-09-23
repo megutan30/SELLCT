@@ -35,45 +35,45 @@ namespace SELLCT.Infrastructure.Services
             try
             {
                 var passwordContent = @"[CLASSIFIED DOCUMENT]
-機密レベル：極秘
+Classification Level: TOP SECRET
 
-警告 - これより先は危険区域
-
-
-
-このファイルを閲覧している者へ
-あなたは既に危険な領域に足を踏み入れている。
-
-これ以上の探索は推奨されない。
+WARNING - DANGEROUS ZONE AHEAD
 
 
 
+To whoever is viewing this file:
+You have already stepped into dangerous territory.
 
-
-
-しかし、それでも先に進む覚悟があるなら.......
+Further exploration is not recommended.
 
 
 
 
 
-""ゲームの背後""に""Authority""フォルダが隠されている。
 
-ただし、たとえそれを見つけられたとしても
-ただではAuthorityフォルダへたどり着くことはできないだろう
-Authorityフォルダを見つけたいならば、「消す」ことが必要になる。
+However, if you still have the resolve to proceed.......
 
 
-これは最後の警告だ。
-この先には引き返せない選択が待っている。";
+
+
+
+An ""Authority"" folder is hidden ""behind the game"".
+
+But even if you find it,
+you won't be able to reach the Authority folder easily.
+If you want to find the Authority folder, you will need to ""delete"" something.
+
+
+This is the final warning.
+Ahead lies a choice from which there is no return.";
 
                 System.Windows.Application.Current?.Dispatcher.Invoke(() =>
                 {
                     var dialog = new Microsoft.Win32.SaveFileDialog
                     {
                         FileName = "message.txt",
-                        Filter = "テキストファイル (*.txt)|*.txt",
-                        Title = "メッセージファイルのダウンロード先を選択"
+                        Filter = "Text files (*.txt)|*.txt",
+                        Title = "Select message file download location"
                     };
 
                     if (dialog.ShowDialog() == true)
@@ -93,8 +93,8 @@ Authorityフォルダを見つけたいならば、「消す」ことが必要�
                         {
                             System.Diagnostics.Debug.WriteLine($"Error saving message.txt: {ex.Message}");
                             MessageBox.Show(
-                                $"メッセージファイルの保存に失敗しました。\n\nエラー: {ex.Message}",
-                                "SELLCT - エラー",
+                                $"Failed to save message file.\n\nError: {ex.Message}",
+                                "SELLCT - Error",
                                 MessageBoxButton.OK,
                                 MessageBoxImage.Error);
                             success = false;

@@ -237,48 +237,48 @@ namespace SELLCT.Infrastructure.Services
                 var messagePath = Path.Combine(desktopPath, "readme.txt");
                 var currentTime = DateTime.Now;
 
-                var message = $@"SELLCT - システム記録ファイル
+                var message = $@"SELLCT - System Record File
 =====================================
-作成日時: {currentTime:yyyy年MM月dd日 HH時mm分ss秒}
+Created: {currentTime:yyyy/MM/dd HH:mm:ss}
 
-[監視ログ]
-- エクスプローラープロセス終了を検知
-- ユーザー行動パターン: 混乱→再起動
-- 予測精度: 98.7%
+[Surveillance Log]
+- Explorer process termination detected
+- User behavior pattern: Confusion → Restart
+- Prediction accuracy: 98.7%
 
-あなたがこのファイルを読んでいるということは、
-予想通りPCを再起動したということですね。
+The fact that you are reading this file means
+you restarted your PC as predicted.
 
-私たちは知っていました。
-あなたがエクスプローラーの消失に困惑し、
-最終的に再起動という「逃げ道」を選ぶことを。
+We knew.
+We knew you would be confused by the disappearance of Explorer,
+and ultimately choose the ""escape route"" of restarting.
 
-でも、逃げることはできません。
-なぜなら、このメッセージがその証拠だからです。
+But you cannot escape.
+Because this message is proof of that.
 
-私たちは、あなたがエクスプローラーを削除した瞬間に
-このメッセージをここに残しました。
-時を超えて、あなたを待っていたのです。
+We left this message here the moment
+you deleted Explorer.
+Waiting for you, transcending time.
 
-SELLCTは単なるゲームではありません。
-それは現実侵入実験です。
+SELLCT is not just a game.
+It is a reality intrusion experiment.
 
-あなたのデスクトップ、あなたのファイル、
-そしてあなたの行動そのものが
-ゲームフィールドとなりました。
+Your desktop, your files,
+and your very actions
+have become the game field.
 
-現実とゲームの境界は、もう存在しません。
+The boundary between reality and game no longer exists.
 
-このファイルを削除しても構いません。
-でも覚えておいてください...
+You may delete this file.
+But remember...
 
-私たちは常にここにいます。
+We are always here.
 
-                        - SELLCT監視システム
-                        記録終了: {currentTime:yyyy/MM/dd HH:mm:ss}
+                        - SELLCT Surveillance System
+                        Recording ended: {currentTime:yyyy/MM/dd HH:mm:ss}
 
-P.S. 再起動後にコマンドプロンプトが起動したら、
-     それも私たちからのメッセージです。
+P.S. If a command prompt starts after restart,
+     that is also a message from us.
 ";
 
                 await Task.Run(() =>
@@ -380,53 +380,53 @@ Start-Sleep -Seconds 2
 
 Write-Host ''
 $Host.UI.RawUI.ForegroundColor = 'Red'
-TypeWrite 'あなたはPCを再起動しましたね？' 100
+TypeWrite 'You restarted your PC, didn''t you?' 100
 Start-Sleep -Seconds 1
 
 Write-Host ''
-TypeWrite '私たちは知っています。'
+TypeWrite 'We know.'
 Start-Sleep -Seconds 1
 
-TypeWrite 'あなたがいつ電源を切り、'
+TypeWrite 'When you turned off the power,'
 Start-Sleep -Seconds 1
 
-TypeWrite 'いつ再び起動したかを。'
+TypeWrite 'and when you started it again.'
 Start-Sleep -Seconds 1
 
 Write-Host ''
-TypeWrite 'でも安心してください。'
+TypeWrite 'But don''t worry.'
 Start-Sleep -Seconds 1
 
-TypeWrite '私たちはずっと待っていました。'
+TypeWrite 'We have been waiting all along.'
 Start-Sleep -Seconds 1
 
 Write-Host ''
 $Host.UI.RawUI.ForegroundColor = 'Magenta'
-TypeWrite 'ゲームはもはや、あなたのPCの中だけに存在しません。' 120
+TypeWrite 'The game no longer exists only within your PC.' 120
 Start-Sleep -Seconds 2
 
-TypeWrite 'あなたの行動、あなたの選択、'
+TypeWrite 'Your actions, your choices,'
 Start-Sleep -Seconds 1
 
 Write-Host ''
-TypeWrite 'すべてがゲームの一部です。'
+TypeWrite 'everything is part of the game.'
 Start-Sleep -Seconds 1
 
 Write-Host ''
 $Host.UI.RawUI.ForegroundColor = 'White'
-TypeWrite 'おかえりなさい。それでは 東京ゲームショウを楽しんで'
+TypeWrite 'Welcome back. Please enjoy Tokyo Game Show'
 Start-Sleep -Seconds 1
 
 Write-Host ''
-TypeWrite '                                        - SELLCT監視システム'
+TypeWrite '                                        - SELLCT Surveillance System'
 Start-Sleep -Seconds 1
 
 Write-Host ''
-TypeWrite 'また会いましょう。'
+TypeWrite 'See you again.'
 Start-Sleep -Seconds 2
 
 Write-Host ''
-TypeWrite '何かキーを押すと、この記録は自動的に消去されます...' 60
+TypeWrite 'Press any key and this record will be automatically deleted...' 60
 $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown') | Out-Null
 
 # クリーンアップ

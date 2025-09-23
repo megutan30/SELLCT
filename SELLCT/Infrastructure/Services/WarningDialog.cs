@@ -44,13 +44,13 @@ namespace SELLCT.Infrastructure.Services
             // 最終警告の場合はタイトルとTopmost設定を変更
             if (_isFinalWarning)
             {
-                Title = "重要な警告 - SELLCT";
+                Title = "Important Warning - SELLCT";
                 Topmost = true;
                 WindowStartupLocation = WindowStartupLocation.CenterScreen;
             }
             else
             {
-                Title = "セキュリティ警告";
+                Title = "Security Warning";
                 Topmost = false;
             }
             
@@ -109,7 +109,7 @@ namespace SELLCT.Infrastructure.Services
                 // 最終警告の場合は「はい」ボタンのみ
                 var yesButton = new Button
                 {
-                    Content = "はい",
+                    Content = "Yes",
                     Width = 75,
                     Height = 40,
                     IsDefault = true
@@ -123,7 +123,7 @@ namespace SELLCT.Infrastructure.Services
                 // 通常の警告の場合はOKボタン（無効化）
                 var okButton = new Button
                 {
-                    Content = "待機中...",
+                    Content = "Waiting...",
                     Width = 75,
                     Height = 40,
                     IsEnabled = false
@@ -181,26 +181,26 @@ namespace SELLCT.Infrastructure.Services
         {
             if (_isFinalWarning)
             {
-                return "システムの整合性を確認するため、最後の認証が必要です。\n\n" +
-                       "この操作により、SELLCTプログラムが開始されます。\n\n" +
-                       "続行してもよろしいですか？";
+                return "Final authentication is required to verify system integrity.\n\n" +
+                       "This operation will start the SELLCT program.\n\n" +
+                       "Do you want to continue?";
             }
             else
             {
                 var messages = new[]
                 {
-                    "システムファイルの異常を検出しました。",
-                    "不正なプロセスが実行されています。",
-                    "ウイルススキャンが必要です。",
-                    "セキュリティポリシー違反が発生しました。",
-                    "システムの整合性チェックに失敗しました。",
-                    "認証されていないソフトウェアが検出されました。",
-                    "レジストリの不整合が発見されました。",
-                    "不審なネットワーク活動を監視中です。"
+                    "System file anomaly detected.",
+                    "Unauthorized process is running.",
+                    "Virus scan required.",
+                    "Security policy violation occurred.",
+                    "System integrity check failed.",
+                    "Unauthenticated software detected.",
+                    "Registry inconsistency found.",
+                    "Monitoring suspicious network activity."
                 };
                 
                 var random = new Random();
-                return messages[random.Next(messages.Length)] + "\n\n対処が必要です。";
+                return messages[random.Next(messages.Length)] + "\n\nAction required.";
             }
         }
         

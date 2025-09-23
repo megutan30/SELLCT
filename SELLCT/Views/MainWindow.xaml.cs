@@ -66,11 +66,11 @@ namespace SELLCT.Views
                 // 必要に応じてUIを更新
                 if (_isNoFunctionEnabled)
                 {
-                    NoButton.Content = "いいえ";
+                    NoButton.Content = "No";
                 }
                 else
                 {
-                    NoButton.Content = "はい";
+                    NoButton.Content = "Yes";
                 }
             }
         }
@@ -607,7 +607,7 @@ namespace SELLCT.Views
                         StartLetterAnimation();
                     }
 
-                    StatusText.Text = $"SELLCTからの手紙 {@event.LetterIndex} が到着しました";
+                    StatusText.Text = $"Letter {@event.LetterIndex} from SELLCT has arrived";
                     UpdateDebugInfo();
                 }
                 catch (Exception ex)
@@ -626,7 +626,7 @@ namespace SELLCT.Views
             {
                 try
                 {
-                    StatusText.Text = $"手紙 {@event.LetterIndex} をダウンロードしました";
+                    StatusText.Text = $"Downloaded letter {@event.LetterIndex}";
                     UpdateDebugInfo();
                     
                     // 手紙ダウンロード時に次の手紙のタイマーをリセット（コントローラーで処理）
@@ -647,7 +647,7 @@ namespace SELLCT.Views
             {
                 try
                 {
-                    StatusText.Text = "message.txtをダウンロードしました";
+                    StatusText.Text = "Downloaded message.txt";
                     UpdateDebugInfo();
                 }
                 catch (Exception ex)
@@ -1032,10 +1032,10 @@ namespace SELLCT.Views
                 if (success)
                 {
                     // ダウンロード成功時
-                    StatusText.Text = "message.txtをダウンロードしました";
+                    StatusText.Text = "Downloaded message.txt";
                     if (TextWindow.Visibility == Visibility.Visible)
                     {
-                        ShowDialogMessage("なるほど...なにやら意味深なメッセージですね...", "\"画面の背後\"に隠されているとはどういうことでしょうか...?");
+                        ShowDialogMessage("I see... This seems to be a meaningful message...", "What does it mean to be hidden \"behind the screen\"...?");
                     }
                     //UpdateDebugInfo();
                 }

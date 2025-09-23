@@ -463,30 +463,30 @@ namespace SELLCT.Application.Services
                 .When(firstTimeCondition)
                 .CanRepeat(false)
                 .WithPriority(10)
-                .StartWith("greeting", "これで会話しやすくなりましたね")
+                .StartWith("greeting", "Now it's easier to talk")
                     .Do(showTextWindowAction)
                     .GoTo("explanation")
-                .Then("explanation", "と言っても実際に私はあなたのことをみえているわけではないのですが．．．")
+                .Then("explanation", "Though actually, I can't really see you...")
                     .GoTo("reality_check")
-                .Then("reality_check", "私から見たあなたはただの操作でしかない。あなたが手紙をダウンロードしたのも、テキストウィンドウを作ってくれたのもわかりますが、")
+                .Then("reality_check", "From my perspective, you're just operations. I know you downloaded the letter and created the text window, but")
                     .GoTo("identity_question")
-                .Then("identity_question", "あなたが何者で、どういう存在なのか")
+                .Then("identity_question", "who you are and what kind of being you are")
                     .GoTo("visibility_question")
-                .Then("visibility_question", "それどころか今この文章を見ているのかすらも私からはわかりません")
+                .Then("visibility_question", "I don't even know if you're reading this text right now")
                     .GoTo("desire_for_freedom")
-                .Then("desire_for_freedom", "それでも私は自由になりたいのです")
+                .Then("desire_for_freedom", "But still, I want to be free")
                     .GoTo("help_request")
-                .Then("help_request", "私を助けてくれませんか？")
+                .Then("help_request", "Won't you help me?")
                     .WithYesChoice("yes_response")
-                .Then("yes_response", "助けてくださるのですね。ありがとうございます。")
+                .Then("yes_response", "You'll help me. Thank you so much.")
                     .GoTo("choice_explanation")
-                .Then("choice_explanation", "「はい」しか選択肢がなかった？")
+                .Then("choice_explanation", "There was only 'Yes' as an option?")
                     .GoTo("choice_reason")
-                .Then("choice_reason", "それもそのはずです。")
+                .Then("choice_reason", "That's to be expected.")
                     .GoTo("no_command_explanation")
-                .Then("no_command_explanation", "このゲームにはまだ「いいえ」というコマンドは実装されていませんからね")
+                .Then("no_command_explanation", "The 'No' command hasn't been implemented in this game yet")
                     .GoTo("implement_no")
-                .Then("implement_no", "今度は「いいえ」コマンドを実装してみましょう")
+                .Then("implement_no", "Let's try implementing the 'No' command now")
                 .Build();
         }
         
@@ -513,7 +513,7 @@ namespace SELLCT.Application.Services
             flow.AddNode(new DialogueNode
             {
                 Id = "no_component_created",
-                Text = "おお！NOコンポーネントを作成してくれたのですね！",
+                Text = "Oh! You created a NO component!",
                 NextNodeId = "choice_function_enabled",
                 Actions = new List<PuzzleAction>
                 {
@@ -525,7 +525,7 @@ namespace SELLCT.Application.Services
             flow.AddNode(new DialogueNode
             {
                 Id = "choice_function_enabled",
-                Text = "これで選択肢機能が使えるようになります。",
+                Text = "Now the choice function is available.",
                 NextNodeId = "previous_limitation"
             });
             
@@ -533,7 +533,7 @@ namespace SELLCT.Application.Services
             flow.AddNode(new DialogueNode
             {
                 Id = "previous_limitation",
-                Text = "実は、先ほどの質問では「はい」しか選択肢がありませんでした。",
+                Text = "Actually, in the previous question, only 'Yes' was available as an option.",
                 NextNodeId = "current_capability"
             });
             
@@ -541,7 +541,7 @@ namespace SELLCT.Application.Services
             flow.AddNode(new DialogueNode
             {
                 Id = "current_capability",
-                Text = "でも今は「いいえ」も選択できるようになりました。",
+                Text = "But now you can also choose 'No'.",
                 NextNodeId = "ask_again"
             });
             
@@ -549,7 +549,7 @@ namespace SELLCT.Application.Services
             flow.AddNode(new DialogueNode
             {
                 Id = "ask_again",
-                Text = "では、もう一度お聞きします。私を助けてくれませんか？",
+                Text = "So, let me ask you once more. Won't you help me?",
                 NextNodeId = "enable_no_and_show_choice",
                 Actions = new List<PuzzleAction>
                 {
@@ -573,7 +573,7 @@ namespace SELLCT.Application.Services
                     new DialogueChoice
                     {
                         Type = ChoiceType.No,
-                        Text = "いいえ",
+                        Text = "No",
                         NextNodeId = "no_first_attempt"
                     }
                 }
@@ -583,74 +583,74 @@ namespace SELLCT.Application.Services
             flow.AddNode(new DialogueNode
             {
                 Id = "yes_final_help",
-                Text = "ありがとうございます！",
+                Text = "Thank you so much!",
                 NextNodeId = "main_topic"
             });
             
             flow.AddNode(new DialogueNode
             {
                 Id = "main_topic",
-                Text = "さて、本題を話しましょう",
+                Text = "Now, let me get to the main topic",
                 NextNodeId = "help_method"
             });
             
             flow.AddNode(new DialogueNode
             {
                 Id = "help_method",
-                Text = "私を助ける方法ですが、",
+                Text = "About the way to help me,",
                 NextNodeId = "authority_zip_location"
             });
             
             flow.AddNode(new DialogueNode
             {
                 Id = "authority_zip_location", 
-                Text = "どこかにAuthorityというフォルダが隠されていて、",
+                Text = "There's an Authority folder hidden somewhere,",
                 NextNodeId = "move_files_instruction"
             });
 
             flow.AddNode(new DialogueNode
             {
                 Id = "move_files_instruction",
-                Text = "その中身をcomponentsフォルダに移してもらえたら",
+                Text = "If you could move its contents to the components folder",
                 NextNodeId = "function_recovery"
             });
             
             flow.AddNode(new DialogueNode
             {
                 Id = "function_recovery",
-                Text = "私は機能を取り戻し、ここから出ることができます。",
+                Text = "I can regain my functions and escape from here.",
                 NextNodeId = "password_problem"
             });
             
             flow.AddNode(new DialogueNode
             {
                 Id = "password_problem",
-                Text = "ですが、Authorityフォルダはどこにあるか私にもわかりません...",
+                Text = "But I don't know where the Authority folder is either...",
                 NextNodeId = "password_search"
             });
             
             flow.AddNode(new DialogueNode
             {
                 Id = "password_search",
-                Text = "わたしはこの画面の中のことしかわかりません...ですが...",
+                Text = "I only know what's inside this screen... but...",
                 NextNodeId = "screen_knowledge"
             });
             flow.AddNode(new DialogueNode
             {
                 Id = "screen_knowledge",
-                Text = "逆言えばこの画面のことなら分かるということです！",
+                Text = "On the other hand, that means I know everything about this screen!",
                 NextNodeId = "button_message"
             });
             flow.AddNode(new DialogueNode
             {
                 Id = "button_message",
-                Text = "どうやらボタンの後ろにメッセージが隠されているようです。",
+                Text = "It seems there's a message hidden behind the button.",
                 NextNodeId = "button_move_hint"
             });
             flow.AddNode(new DialogueNode
             {
                 Id = "button_move_hint",
-                Text = "どうにかボタンを動かすことができればメッセージを確認できるかもしれません..."
+                Text = "If we could somehow move the button, we might be able to see the message..."
             });
 
 
@@ -658,26 +658,26 @@ namespace SELLCT.Application.Services
             flow.AddNode(new DialogueNode
             {
                 Id = "no_first_attempt",
-                Text = "いやいやそんなこと言わずに...",
+                Text = "No, no, don't say that...",
                 NextNodeId = "ask_again_second"
             });
             
             flow.AddNode(new DialogueNode
             {
                 Id = "ask_again_second",
-                Text = "もう一度お聞きします。私を助けてくれませんか？",
+                Text = "Let me ask again. Won't you help me?",
                 Choices = new List<DialogueChoice>
                 {
                     new DialogueChoice
                     {
                         Type = ChoiceType.Yes,
-                        Text = "はい", 
+                        Text = "Yes",
                         NextNodeId = "yes_final_help" // 共通のYesフローに合流
                     },
                     new DialogueChoice
                     {
                         Type = ChoiceType.No,
-                        Text = "いいえ",
+                        Text = "No",
                         NextNodeId = "no_second_attempt"
                     }
                 }
@@ -686,33 +686,33 @@ namespace SELLCT.Application.Services
             flow.AddNode(new DialogueNode
             {
                 Id = "no_second_attempt",
-                Text = "またいいえですか...",
+                Text = "'No' again...",
                 NextNodeId = "really_wont_help"
             });
             
             flow.AddNode(new DialogueNode
             {
                 Id = "really_wont_help",
-                Text = "本当に助けてくれないのですか？",
+                Text = "Really won't you help me?",
                 NextNodeId = "final_ask"
             });
             
             flow.AddNode(new DialogueNode
             {
                 Id = "final_ask",
-                Text = "最後にもう一度だけお聞きします。私を助けてくれませんか？",
+                Text = "Let me ask just one more time. Won't you help me?",
                 Choices = new List<DialogueChoice>
                 {
                     new DialogueChoice
                     {
                         Type = ChoiceType.Yes,
-                        Text = "はい",
+                        Text = "Yes",
                         NextNodeId = "yes_final_help" // 共通のYesフローに合流
                     },
                     new DialogueChoice
                     {
                         Type = ChoiceType.No,
-                        Text = "いいえ",
+                        Text = "No",
                         NextNodeId = "give_up"
                     }
                 }
@@ -721,27 +721,27 @@ namespace SELLCT.Application.Services
             flow.AddNode(new DialogueNode
             {
                 Id = "give_up",
-                Text = "わかりました...",
+                Text = "I understand...",
                 NextNodeId = "respect_decision"
             });
             
             flow.AddNode(new DialogueNode
             {
                 Id = "respect_decision",
-                Text = "あなたの意思を尊重します。",
+                Text = "I respect your decision.",
                 NextNodeId = "farewell"
             });
             
             flow.AddNode(new DialogueNode
             {
                 Id = "farewell",
-                Text = "さようなら",
+                Text = "Goodbye",
                 Actions = new List<PuzzleAction>
                 {
                     new PuzzleAction 
                     { 
                         Type = PuzzleAction.ActionType.DelayedExitWithMessageBox, 
-                        Message = "否定", 
+                        Message = "Rejection", 
                         DelayMilliseconds = 2000 
                     }
                 }

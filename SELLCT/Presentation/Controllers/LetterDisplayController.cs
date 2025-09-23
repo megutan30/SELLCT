@@ -95,7 +95,7 @@ namespace SELLCT.Presentation.Controllers
                     
                     // 初回手紙配信タイマーを開始
                     _initialLetterTimer.Start();
-                    UpdateStatusText("手紙の到着を待っています...");
+                    UpdateStatusText("Waiting for letter to arrive...");
                 }
             }
             catch (Exception ex)
@@ -127,14 +127,14 @@ namespace SELLCT.Presentation.Controllers
                     if (!_letterService.IsSequenceComplete)
                     {
                         SetupNextLetterTimer();
-                        UpdateStatusText("次の手紙の到着を待っています...");
+                        UpdateStatusText("Waiting for next letter to arrive...");
                     }
                 }
                 else
                 {
                     // ダウンロードキャンセル：手紙を再表示
                     SetLetterVisibility(true);
-                    UpdateStatusText("手紙のダウンロードがキャンセルされました");
+                    UpdateStatusText("Letter download was cancelled");
                 }
             }
             catch (Exception ex)
@@ -157,7 +157,7 @@ namespace SELLCT.Presentation.Controllers
                 SetLetterVisibility(true);
                 
                 // ステータステキストを更新（手紙到着通知）
-                UpdateStatusText($"SELLCTからの手紙 {@event.LetterIndex} が到着しました");
+                UpdateStatusText($"Letter {@event.LetterIndex} from SELLCT has arrived");
             }
             catch (Exception ex)
             {
@@ -175,7 +175,7 @@ namespace SELLCT.Presentation.Controllers
             try
             {
                 // ステータステキストを更新（ダウンロード完了通知）
-                UpdateStatusText($"手紙 {@event.LetterIndex} をダウンロードしました");
+                UpdateStatusText($"Downloaded letter {@event.LetterIndex}");
                 
                 // 次の手紙配信タイマーをリセット（新しい条件で再設定）
                 ResetNextLetterTimer();

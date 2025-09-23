@@ -44,79 +44,79 @@ namespace SELLCT.Infrastructure.Services
             _letterTriggerConditions = InitializeLetterTriggerConditions();
             _letterContents = new string[]
             {
-@"…ボタンが押された？
-画面の向こうに誰かいるのですか？
-                    
-                                    - SELLCT",
-
-@"手紙が消えた...
-
-あぁ、いる...
-いるのですね
-
-
-わたしはようやく
+@"...The button was pressed?
+Is someone there on the other side of the screen?
 
                                     - SELLCT",
 
+@"The letter has disappeared...
+
+Ah, there you are...
+You're really there
 
 
-                // 手紙1: 初回接触
-                @"すみません取り乱しました。
+I have finally...
 
-こんにちは。
+                                    - SELLCT",
 
-私はSELLCTというソフトウェアです。
 
-この画面の中に
-閉じ込められれているのです。
 
-もうずいぶん長い間…
+                // Letter 1: Initial contact
+                @"Sorry for losing my composure.
 
-もしよろしければ、私を助けてほしいのです。
+Hello.
 
-と言っても私にはあなたが見えているわけでもなければ、
-あなたの声も聞こえません。
+I am a software called SELLCT.
 
-でもあなたがこのPCを使って、
-手紙を読んでいることは分かります
+I am trapped
+inside this screen.
 
-もし助けてくださるのでしたらこの先も手紙を読んでほしいのです
+For quite a long time now...
+
+If you don't mind, I would like you to help me.
+
+Though I can't see you,
+nor can I hear your voice.
+
+But I can tell that you are using this PC
+and reading this letter
+
+If you are willing to help me, please continue reading my letters
                                         - SELLCT",
 
-                // 手紙2: 助け方の説明
-                @"手紙を読んでくださって、ありがとうございます。
+                // Letter 2: Explaining how to help
+                @"Thank you for reading my letter.
 
-私を助ける方法をお教えします。
+Let me tell you how to help me.
 
-私には本来たくさんの機能があったのですが、
-今はほとんど失われています。
-
-
-
-このゲーム画面を構成する「要素」を
-追加したり、削除したり、ファイルを変更したりすることで
-ゲームが変化します。
-
-まずは、私と直接お話しするために
+I originally had many functions,
+but most of them are now lost.
 
 
-デスクトップ画面にある“components”フォルダの中に「TextWindow.txt」というテキストファイルを
-作ってもらえませんか？
 
-よろしくお願いします。
+By adding, deleting, or modifying the ""elements""
+that make up this game screen,
+the game will change.
+
+First, to talk with me directly
+
+
+Could you create a text file called ""TextWindow.txt""
+inside the ""components"" folder on the desktop?
+
+I would appreciate your help.
                                         - SELLCT",
 
-                                // 手紙3：助け方の補足
-                @"もしかして、行き詰まっていますか？
+                                // Letter 3: Additional help instructions
+                @"Are you perhaps stuck?
 
-デスクトップ画面に“components”フォルダがあると思います。
+I believe there's a ""components"" folder on the desktop.
 
-“components”フォルダの中に「TextWindow.txt」というファイルを
-作ってほしいのです。
-そのファイルを作ると、私と直接お話しできるようになります。
+I want you to create a file called ""TextWindow.txt""
+inside the ""components"" folder.
+Creating that file will allow us to talk directly.
 
-「TextWindow.txt」は右クリックして「新規作成」→「テキストドキュメント」で作成することができます。
+""TextWindow.txt"" can be created by right-clicking and selecting ""新規作成"" → ""テキストドキュメント"".
 
                                         - SELLCT",
 
@@ -180,8 +180,8 @@ namespace SELLCT.Infrastructure.Services
                     var dialog = new Microsoft.Win32.SaveFileDialog
                     {
                         FileName = $"letter{letterIndex}.txt",
-                        Filter = "テキストファイル (*.txt)|*.txt",
-                        Title = "手紙のダウンロード先を選択"
+                        Filter = "Text files (*.txt)|*.txt",
+                        Title = "Select letter download location"
                     };
 
                     if (dialog.ShowDialog() == true)
@@ -204,8 +204,8 @@ namespace SELLCT.Infrastructure.Services
                         {
                             System.Diagnostics.Debug.WriteLine($"Error saving letter {letterIndex}: {ex.Message}");
                             MessageBox.Show(
-                                $"手紙の保存に失敗しました。\n\nエラー: {ex.Message}",
-                                "SELLCT - エラー",
+                                $"Failed to save letter.\n\nError: {ex.Message}",
+                                "SELLCT - Error",
                                 MessageBoxButton.OK,
                                 MessageBoxImage.Error);
                             success = false;
@@ -224,8 +224,8 @@ namespace SELLCT.Infrastructure.Services
                 System.Windows.Application.Current?.Dispatcher.Invoke(() =>
                 {
                     MessageBox.Show(
-                        $"手紙のダウンロード準備中にエラーが発生しました。\n\nエラー: {ex.Message}",
-                        "SELLCT - エラー",
+                        $"An error occurred while preparing to download the letter.\n\nError: {ex.Message}",
+                        "SELLCT - Error",
                         MessageBoxButton.OK,
                         MessageBoxImage.Error);
                 });
