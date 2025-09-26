@@ -19,7 +19,7 @@ namespace SELLCT.Infrastructure.Services
         /// <param name="fileName">ファイル名</param>
         /// <param name="publisher">発行者</param>
         /// <returns>ユーザーの選択結果</returns>
-        public static SmartScreenResult ShowSmartScreenWarning(string fileName = "SELLCT.exe", string publisher = "Unknown Publisher")
+        public static SmartScreenResult ShowSmartScreenWarning(string fileName = "SELLCT.exe", string publisher = "不明な発行者")
         {
             var dialog = new SmartScreenDialog(fileName, publisher);
             dialog.ShowDialog();
@@ -52,7 +52,7 @@ namespace SELLCT.Infrastructure.Services
 
         private void InitializeDialog(string fileName, string publisher)
         {
-            Title = "Windows protected your PC";
+            Title = "Windows によってPCが保護されました";
             Width = 480;
             Height = 320;
             WindowStartupLocation = WindowStartupLocation.CenterScreen;
@@ -76,7 +76,7 @@ namespace SELLCT.Infrastructure.Services
             
             var titleText = new TextBlock
             {
-                Text = "Windows protected your PC",
+                Text = "Windows によってPCが保護されました",
                 FontSize = 16,
                 FontWeight = FontWeights.SemiBold,
                 Margin = new Thickness(15, 5, 0, 0),
@@ -92,7 +92,7 @@ namespace SELLCT.Infrastructure.Services
             
             var warningText = new TextBlock
             {
-                Text = "Not recognized by Windows Defender SmartScreen",
+                Text = "Windows Defender SmartScreen によって認識されない",
                 FontSize = 13,
                 Margin = new Thickness(0, 0, 0, 5),
                 TextWrapping = TextWrapping.Wrap
@@ -101,7 +101,7 @@ namespace SELLCT.Infrastructure.Services
             
             var appNameText = new TextBlock
             {
-                Text = $"App launch was blocked. Running this app may put your PC at risk.",
+                Text = $"アプリの起動が妨げられました。このアプリを実行すると、PC が危険にさらされる可能性があります。",
                 FontSize = 13,
                 Margin = new Thickness(0, 0, 0, 15),
                 TextWrapping = TextWrapping.Wrap
@@ -111,9 +111,9 @@ namespace SELLCT.Infrastructure.Services
             // アプリ情報
             var appInfoPanel = new StackPanel { Margin = new Thickness(0, 0, 0, 15) };
             
-            var appLabel = new TextBlock { Text = "App:", FontWeight = FontWeights.SemiBold, FontSize = 12 };
+            var appLabel = new TextBlock { Text = "アプリ:", FontWeight = FontWeights.SemiBold, FontSize = 12 };
             var appValue = new TextBlock { Text = fileName, FontSize = 12, Margin = new Thickness(0, 2, 0, 5) };
-            var publisherLabel = new TextBlock { Text = "Publisher:", FontWeight = FontWeights.SemiBold, FontSize = 12 };
+            var publisherLabel = new TextBlock { Text = "発行者:", FontWeight = FontWeights.SemiBold, FontSize = 12 };
             var publisherValue = new TextBlock { Text = publisher, FontSize = 12, Margin = new Thickness(0, 2, 0, 0) };
             
             appInfoPanel.Children.Add(appLabel);
@@ -136,7 +136,7 @@ namespace SELLCT.Infrastructure.Services
 
             var moreInfoButton = new Button
             {
-                Content = "More info",
+                Content = "詳細情報",
                 Width = 100,
                 Height = 30,
                 Margin = new Thickness(0, 0, 10, 0),
@@ -147,7 +147,7 @@ namespace SELLCT.Infrastructure.Services
             
             var runAnywayButton = new Button
             {
-                Content = "Run anyway",
+                Content = "実行",
                 Width = 100,
                 Height = 30,
                 Background = new SolidColorBrush(Color.FromRgb(0, 120, 215)),
@@ -159,7 +159,7 @@ namespace SELLCT.Infrastructure.Services
 
             var dontRunButton = new Button
             {
-                Content = "Don't run",
+                Content = "実行しない",
                 Width = 100,
                 Height = 30,
                 Background = new SolidColorBrush(Color.FromRgb(0, 120, 215)),
@@ -238,7 +238,7 @@ namespace SELLCT.Infrastructure.Services
                 {
                     var additionalInfo = new TextBlock
                     {
-                        Text = "\nThis app is from an unknown publisher and is not recognized by Microsoft Defender SmartScreen. Unknown apps may harm your PC.",
+                        Text = "\nこのアプリは発行者が不明で、Microsoft Defender SmartScreen で認識されません。不明なアプリは PC に害を及ぼす可能性があります。",
                         FontSize = 12,
                         Margin = new Thickness(0, 10, 0, 0),
                         TextWrapping = TextWrapping.Wrap,

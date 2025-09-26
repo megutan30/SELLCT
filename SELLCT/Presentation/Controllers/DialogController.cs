@@ -174,7 +174,7 @@ namespace SELLCT.Presentation.Controllers
                 _isButtonProcessing = true;
                 SetTextWindowVisibility(true);
                 
-                string message1 = $"It seems there's a message behind this button\n";
+                string message1 = $"このボタンの後ろに、メッセージがあるようです\n";
                 
                 EnqueueUniqueMessage(message1);
 
@@ -313,7 +313,7 @@ namespace SELLCT.Presentation.Controllers
             {
                 if (_messageHistory.Count == 0)
                 {
-                    _logText.Text = "No messages yet.";
+                    _logText.Text = "まだメッセージはありません。";
                     return;
                 }
 
@@ -332,7 +332,7 @@ namespace SELLCT.Presentation.Controllers
             }
             catch (Exception ex)
             {
-                _logText.Text = "An error occurred while displaying the log.";
+                _logText.Text = "ログの表示中にエラーが発生しました。";
             }
         }
 
@@ -395,8 +395,8 @@ namespace SELLCT.Presentation.Controllers
             {
                 string[] hintMessages = new[]
                 {
-                    "Are you having trouble...?",
-                    "Try opening the Button file and you might understand something."
+                    "お困りですか...？",
+                    "Buttonファイルを開いてみると何かわかるかもしれません。"
                 };
 
                 foreach (var message in hintMessages)
@@ -461,8 +461,8 @@ namespace SELLCT.Presentation.Controllers
                         {
                             hintMessages = new[]
                             {
-                                "Explorer seems to have a setting to toggle hidden file display",
-                                "If you turn that ON, you might find \"GameWindow\".",
+                                "エクスプローラーには隠しファイルの表示を切り替える設定があるようです",
+                                "それをONにすれば\"GameWindow\"が見つかるかもしれません。"
                             };
                             _gameState.AuthorityHint1Shown = true;
                             _authorityHintEnabled = false; // 単発ヒントなので終了

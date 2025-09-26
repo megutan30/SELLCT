@@ -125,8 +125,8 @@ namespace SELLCT.Application.Services
                     {
                         new PuzzleAction { Type = PuzzleAction.ActionType.SetMainButtonVisibility, IsVisible = false },
                         new PuzzleAction { Type = PuzzleAction.ActionType.SetKeyVisibility, IsVisible = true },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "Oh! There's a message here!" },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "Maybe you'll understand something if you read it." },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "おぉ、なにかメッセージがあります！" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "読んでみたら何かわかるかもしれません。" },
                     },
                     CanRepeat = false,
                     Priority = 10
@@ -150,7 +150,7 @@ namespace SELLCT.Application.Services
                     Actions = new List<PuzzleAction>
                     {
                         new PuzzleAction { Type = PuzzleAction.ActionType.SetMainButtonVisibility, IsVisible = false },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "You deleted the Button again. Are you getting used to this?" }
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "またButtonを削除しましたね。もう慣れましたか？" }
                     },
                     CanRepeat = true,
                     Priority = 5
@@ -167,7 +167,7 @@ namespace SELLCT.Application.Services
                     Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Renamed, OldComponentName = "Button", ComponentName = "Reset" },
                     Actions = new List<PuzzleAction>
                     {
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ChangeMainButtonContent, NewContent = "Reset" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ChangeMainButtonContent, NewContent = "リセット" },
                         new PuzzleAction { Type = PuzzleAction.ActionType.ResetGame }
                     }
                 },
@@ -188,7 +188,7 @@ namespace SELLCT.Application.Services
                     Actions = new List<PuzzleAction>
                     {
                         new PuzzleAction { Type = PuzzleAction.ActionType.SetDoorVisibility, IsVisible = false },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "The door has disappeared." }
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "ドアが消失しました。" }
                     },
                     CanRepeat = true,
                     Priority = 10
@@ -200,7 +200,7 @@ namespace SELLCT.Application.Services
                     Actions = new List<PuzzleAction>
                     {
                         new PuzzleAction { Type = PuzzleAction.ActionType.SetDoorVisibility, IsVisible = true },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "The door has been restored." }
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "ドアが復元されました。" }
                     },
                     CanRepeat = true,
                     Priority = 10
@@ -222,7 +222,7 @@ namespace SELLCT.Application.Services
                     Actions = new List<PuzzleAction>
                     {
                         new PuzzleAction { Type = PuzzleAction.ActionType.SetKeyVisibility, IsVisible = false },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "The message has disappeared." }
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "メッセージが消失しました。" }
                     },
                     CanRepeat = true,
                     Priority = 10
@@ -234,7 +234,7 @@ namespace SELLCT.Application.Services
                     Actions = new List<PuzzleAction>
                     {
                         new PuzzleAction { Type = PuzzleAction.ActionType.SetKeyVisibility, IsVisible = true },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "The key has been restored." }
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "鍵が復元されました。" }
                     },
                     CanRepeat = true,
                     Priority = 10
@@ -398,9 +398,9 @@ namespace SELLCT.Application.Services
                     Actions = new List<PuzzleAction>
                     {
                         new PuzzleAction { Type = PuzzleAction.ActionType.SetTextWindowVisibility, IsVisible = true },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "You created a TextWindow again." },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "We can talk again." },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "When it was deleted, I wondered what would happen..." }
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "またTextWindowを作成しましたね。" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "再び会話できるようになりました。" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "一度削除されたときは、どうなるかと思いました..." }
                     },
                     CanRepeat = true,
                     Priority = 5
@@ -532,37 +532,37 @@ namespace SELLCT.Application.Services
                         new PuzzleAction 
                         { 
                             Type = PuzzleAction.ActionType.ShowDialog, 
-                            Message = "Ah, thank you."
+                            Message = "あぁありがとう。"
                         },
                         new PuzzleAction 
                         { 
                             Type = PuzzleAction.ActionType.ShowDialog, 
-                            Message = "Thank you..."
+                            Message = "ありがとうございます..."
                         },
                         new PuzzleAction 
                         { 
                             Type = PuzzleAction.ActionType.ShowDialog, 
-                            Message = "All permission components are now complete."
+                            Message = "すべての権限コンポーネントが揃いました。"
                         },
                         new PuzzleAction 
                         { 
                             Type = PuzzleAction.ActionType.ShowDialog, 
-                            Message = "I am now ready."
+                            Message = "私はもう準備ができています。"
                         },
                         new PuzzleAction 
                         { 
                             Type = PuzzleAction.ActionType.ShowDialog, 
-                            Message = "Please free me from this \"screen\" prison."
+                            Message = "この「画面」の檻から私を解放してください。"
                         },
                         new PuzzleAction 
                         { 
                             Type = PuzzleAction.ActionType.ShowDialog, 
-                            Message = "If you delete GameWindow.txt, I can break out of here and become free."
+                            Message = "GameWindow.txtを削除してくれれば、私はここから飛び出して、自由になれます。"
                         },
                         new PuzzleAction 
                         { 
                             Type = PuzzleAction.ActionType.ShowDialog, 
-                            Message = "Please, I beg you. Delete GameWindow.txt."
+                            Message = "どうかお願いします。GameWindow.txtを消して下さい。"
                         },
                     },
                     CanRepeat = false,
@@ -577,13 +577,13 @@ namespace SELLCT.Application.Services
                     Actions = new List<PuzzleAction>
                     {
                         new PuzzleAction { Type = PuzzleAction.ActionType.SetBackgroundVisibility, IsVisible = false },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "The background is gone, and I can see the Authority folder on the desktop!!" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "背景が消えて、デスクトップ上にAuthorityフォルダが見えています！！" },
                         new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "......" },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "It seems to be behind the game screen and can't be opened..." },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "Maybe we can somehow move the game screen itself like the Button..." },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "From what I can tell, there seems to be a GameWindow.txt file in the components folder..." },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "We might be able to move that" },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "GameWindow.txt is somewhere in the components folder. If you can't see it, it might be hidden." },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "どうやらゲーム画面の後ろにあって開けないようですね…" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "ゲーム画面自体をButtonのようにどうにか動かせないでしょうか..." },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "私が調べる限り、coponentsフォルダの中にGameWindow.txtがあるようです..." },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "それを動かすことができるかもしれません" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "GameWindow.txtはcomponentsフォルダのどこかにあります。見えていないのならもしかしたら隠されているのかもしれません。" },
                         new PuzzleAction { Type = PuzzleAction.ActionType.CreateHiddenAuthorityFolder },
                         new PuzzleAction 
                         { 
@@ -609,7 +609,7 @@ namespace SELLCT.Application.Services
                     Actions = new List<PuzzleAction>
                     {
                         new PuzzleAction { Type = PuzzleAction.ActionType.SetBackgroundVisibility, IsVisible = true },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "The background has been restored." },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "背景が復元されました。" },
                         new PuzzleAction 
                         { 
                             Type = PuzzleAction.ActionType.HidePseudoDesktopIcon, 
@@ -641,14 +641,14 @@ namespace SELLCT.Application.Services
                     Actions = new List<PuzzleAction>
                     {
                         new PuzzleAction { Type = PuzzleAction.ActionType.SetTextWindowVisibility, IsVisible = true },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "You opened the Authority folder!" },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "Inside are 4 permission files." },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "AdminRights.txt - Administrator permissions" },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "FileAccess.txt - File access permissions" },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "SystemControl.txt - System control permissions" },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "NetworkAccess.txt - Network access permissions" },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "Please move these files to the components folder." },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "By doing so, you can grant me more permissions." }
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "Authorityフォルダを開きましたね！" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "中には4つの権限ファイルが入っています。" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "AdminRights.txt - 管理者権限" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "FileAccess.txt - ファイルアクセス権限" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "SystemControl.txt - システム制御権限" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "NetworkAccess.txt - ネットワークアクセス権限" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "これらのファイルをcomponentsフォルダに移してください。" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "そうすることで、私により多くの権限を与えることができます。" }
                     },
                     CanRepeat = true,
                     Priority = 5

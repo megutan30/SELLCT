@@ -46,11 +46,11 @@ namespace SELLCT
             Exception ex = e.ExceptionObject as Exception;
             if (ex != null)
             {
-                MessageBox.Show($"An unexpected error occurred: {ex.Message}\n\n{ex.StackTrace}", "SELLCT - Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"予期せぬエラーが発生しました: {ex.Message}\n\n{ex.StackTrace}", "SELLCT - エラー", MessageBoxButton.OK, MessageBoxImage.Error);
             }
             else
             {
-                MessageBox.Show("An unexpected error occurred.", "SELLCT - Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show("予期せぬエラーが発生しました。", "SELLCT - エラー", MessageBoxButton.OK, MessageBoxImage.Error);
             }
             // アプリケーションをシャットダウン
             this.Shutdown();
@@ -64,7 +64,7 @@ namespace SELLCT
         /// <param name="e">Dispatcher未処理例外イベント引数</param>
         private void OnDispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
         {
-            MessageBox.Show($"An unexpected error occurred in the UI thread: {e.Exception.Message}\n\n{e.Exception.StackTrace}", "SELLCT - Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show($"UIスレッドで予期せぬエラーが発生しました: {e.Exception.Message}\n\n{e.Exception.StackTrace}", "SELLCT - エラー", MessageBoxButton.OK, MessageBoxImage.Error);
             // 例外を処理済みとしてマークし、アプリケーションがクラッシュしないようにする
             e.Handled = true;
         }
