@@ -577,7 +577,7 @@ namespace SELLCT.Application.Services
                     Actions = new List<PuzzleAction>
                     {
                         new PuzzleAction { Type = PuzzleAction.ActionType.SetBackgroundVisibility, IsVisible = false },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "背景が消えて、デスクトップ上にAuthorityフォルダが見えています！！" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message ="背景が消えて、デスクトップ上にAuthorityフォルダが見えています！！" },
                         new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "......" },
                         new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "どうやらゲーム画面の後ろにあって開けないようですね…" },
                         new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "ゲーム画面自体をButtonのようにどうにか動かせないでしょうか..." },
@@ -585,12 +585,6 @@ namespace SELLCT.Application.Services
                         new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "それを動かすことができるかもしれません" },
                         new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "GameWindow.txtはcomponentsフォルダのどこかにあります。見えていないのならもしかしたら隠されているのかもしれません。" },
                         new PuzzleAction { Type = PuzzleAction.ActionType.CreateHiddenAuthorityFolder },
-                        new PuzzleAction 
-                        { 
-                            Type = PuzzleAction.ActionType.ShowPseudoDesktopIcon, 
-                            IconName = "Authority",
-                            FolderPath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "Authority")
-                        },
                         new PuzzleAction
                         {
                             Type = PuzzleAction.ActionType.StartAuthorityHints,
@@ -609,12 +603,7 @@ namespace SELLCT.Application.Services
                     Actions = new List<PuzzleAction>
                     {
                         new PuzzleAction { Type = PuzzleAction.ActionType.SetBackgroundVisibility, IsVisible = true },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "背景が復元されました。" },
-                        new PuzzleAction 
-                        { 
-                            Type = PuzzleAction.ActionType.HidePseudoDesktopIcon, 
-                            IconName = "Authority"
-                        }
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "背景が復元されました。" }
                     },
                     CanRepeat = true,
                     Priority = 10

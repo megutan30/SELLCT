@@ -328,7 +328,45 @@ namespace SELLCT.Views
             // 手紙シーケンス開始
             _letterService.StartLetterSequence();
 
+            // 疑似Authorityフォルダを事前生成（非表示状態）
+            InitializePseudoAuthorityFolder();
+
             System.Diagnostics.Debug.WriteLine("Services initialized");
+        }
+
+        /// <summary>
+        /// 疑似Authorityフォルダを事前生成（非表示状態）
+        /// </summary>
+        private void InitializePseudoAuthorityFolder()
+        {
+            try
+            {
+                // Authorityフォルダを実際に作成
+                var authorityPath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "Authority");
+                if (!System.IO.Directory.Exists(authorityPath))
+                {
+                    System.IO.Directory.CreateDirectory(authorityPath);
+                    System.Diagnostics.Debug.WriteLine($"Authority folder created at: {authorityPath}");
+                }
+
+                // 疑似デスクトップアイコンを非表示状態で生成
+                var iconManager = GetPseudoDesktopIconManager();
+                if (iconManager != null)
+                {
+                    var windowPosition = new System.Windows.Point(this.Left, this.Top);
+                    var windowSize = new System.Windows.Size(this.Width, this.Height);
+                    var iconPosition = iconManager.CalculateIconPosition(windowPosition, windowSize,
+                        new System.Windows.Point(-100, -100));
+
+                    // 非表示状態で作成
+                    iconManager.CreatePseudoIcon("Authority", iconPosition, authorityPath, false);
+                    System.Diagnostics.Debug.WriteLine($"Pseudo Authority icon pre-created at ({iconPosition.X:F0},{iconPosition.Y:F0}) - Hidden");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error in InitializePseudoAuthorityFolder: {ex.Message}");
+            }
         }
 
         /// <summary>
@@ -1309,6 +1347,42 @@ namespace SELLCT.Views
             Canvas.SetLeft(BackgroundImage, x);
             Canvas.SetTop(BackgroundImage, y);
             System.Diagnostics.Debug.WriteLine($"Background position set to ({x}, {y})");
+
+            // 背景が初期位置から動いた場合、Authorityフォルダを表示
+            if (Math.Abs(x) > 10 || Math.Abs(y) > 10) // 10ピクセル以上動いた場合
+            {
+                ShowAuthorityFolder();
+            }
+            else
+            {
+                HideAuthorityFolder();
+            }
+        }
+
+        /// <summary>
+        /// Authorityフォルダを表示
+        /// </summary>
+        private void ShowAuthorityFolder()
+        {
+            var iconManager = GetPseudoDesktopIconManager();
+            if (iconManager != null)
+            {
+                iconManager.ShowPseudoIcon("Authority");
+                System.Diagnostics.Debug.WriteLine("Authority folder shown due to background position change");
+            }
+        }
+
+        /// <summary>
+        /// Authorityフォルダを非表示
+        /// </summary>
+        private void HideAuthorityFolder()
+        {
+            var iconManager = GetPseudoDesktopIconManager();
+            if (iconManager != null)
+            {
+                iconManager.HidePseudoIcon("Authority");
+                System.Diagnostics.Debug.WriteLine("Authority folder hidden due to background returning to initial position");
+            }
         }
 
         /// <summary>

@@ -33,8 +33,9 @@ namespace SELLCT.Infrastructure.Services
         /// <param name="iconName">アイコンの名前</param>
         /// <param name="position">アイコンの位置</param>
         /// <param name="folderPath">関連付けるフォルダパス（オプション）</param>
+        /// <param name="visible">初期表示状態（デフォルト: true）</param>
         /// <returns>作成に成功した場合true</returns>
-        public bool CreatePseudoIcon(string iconName, Point position, string folderPath = null)
+        public bool CreatePseudoIcon(string iconName, Point position, string folderPath = null, bool visible = true)
         {
             try
             {
@@ -60,14 +61,23 @@ namespace SELLCT.Infrastructure.Services
                 System.Windows.Application.Current.Dispatcher.Invoke(() =>
                 {
                     iconWindow = new PseudoDesktopIconWindow(_eventDispatcher);
-                    
+
                     // アイコンの設定
                     iconWindow.SetIcon(iconImage, iconSize);
                     iconWindow.SetName(iconName);
                     iconWindow.SetPosition(position);
-                    
-                    // Z-orderを設定してメインウィンドウの後ろに配置
-                    iconWindow.EnsureBehindMainWindow();
+
+                    // 表示状態を設定
+                    if (visible)
+                    {
+                        // Z-orderを設定してメインウィンドウの後ろに配置
+                        iconWindow.EnsureBehindMainWindow();
+                    }
+                    else
+                    {
+                        // 非表示で作成
+                        iconWindow.Hide();
+                    }
                 });
                 
                 // フォルダパスが指定されている場合は関連付け
@@ -168,6 +178,26 @@ namespace SELLCT.Infrastructure.Services
                 System.Diagnostics.Debug.WriteLine($"❌ Error changing icon visibility '{iconName}': {ex.Message}");
                 return false;
             }
+        }
+
+        /// <summary>
+        /// 疑似デスクトップアイコンを表示
+        /// </summary>
+        /// <param name="iconName">アイコンの名前</param>
+        /// <returns>表示に成功した場合true</returns>
+        public bool ShowPseudoIcon(string iconName)
+        {
+            return SetIconVisibility(iconName, true);
+        }
+
+        /// <summary>
+        /// 疑似デスクトップアイコンを非表示
+        /// </summary>
+        /// <param name="iconName">アイコンの名前</param>
+        /// <returns>非表示に成功した場合true</returns>
+        public bool HidePseudoIcon(string iconName)
+        {
+            return SetIconVisibility(iconName, false);
         }
 
         /// <summary>
