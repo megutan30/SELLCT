@@ -180,22 +180,23 @@
                        Margin="0,2,2,2"/>
                 </Grid>
             </Border>
-            <!-- 背景画像（常時表示） -->
-            <Image Name="BackgroundImage" 
-               Source="/Resources/Background.png" 
-               Stretch="Fill"
-               Panel.ZIndex="0" Grid.Row="1" Grid.ColumnSpan="3"
-               d:Source="pack://application:,,,/Resources/Background.png"/>
-
             <!-- デザイン時用の背景（画像が見つからない場合のフォールバック） -->
-            <Rectangle Grid.Row="1" Grid.ColumnSpan="3" 
-                   Fill="DarkSlateBlue" 
+            <Rectangle Grid.Row="1" Grid.ColumnSpan="3"
+                   Fill="DarkSlateBlue"
                    Panel.ZIndex="-1"
                    d:Visibility="Visible"
                    Visibility="Collapsed"/>
 
             <!-- メインゲーム領域 -->
             <Canvas Name="GameCanvas" Panel.ZIndex="1" Grid.Row="1" Grid.ColumnSpan="3">
+
+                <!-- 背景画像（Canvas内で位置指定可能） -->
+                <Image Name="BackgroundImage"
+                   Source="/Resources/Background.png"
+                   Stretch="Fill"
+                   Width="800" Height="574" Canvas.Top="-13"
+                   Panel.ZIndex="0"
+                   d:Source="pack://application:,,,/Resources/Background.png" HorizontalAlignment="Center" VerticalAlignment="Top"/>
 
                 <Button Name="MainButton" 
                     Content="?" 
