@@ -12,11 +12,11 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
 using SELLCT.Core.Entities;
+using SELLCT.Core.Events;
 using SELLCT.Infrastructure.Services;
 using SELLCT.Presentation.Views;
 using SELLCT.Core.Interfaces;
 using SELLCT.Application.Services;
-using SELLCT.Core.Events;
 using SELLCT.Presentation.Controllers;
 
 namespace SELLCT.Views
@@ -341,15 +341,10 @@ namespace SELLCT.Views
         {
             try
             {
-                // Authorityフォルダを実際に作成
+                // 疑似デスクトップアイコンを非表示状態で事前準備
+                // 実際のフォルダはHandleCreateHiddenAuthorityFolderでのみ作成
                 var authorityPath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "Authority");
-                if (!System.IO.Directory.Exists(authorityPath))
-                {
-                    System.IO.Directory.CreateDirectory(authorityPath);
-                    System.Diagnostics.Debug.WriteLine($"Authority folder created at: {authorityPath}");
-                }
 
-                // 疑似デスクトップアイコンを非表示状態で生成
                 var iconManager = GetPseudoDesktopIconManager();
                 if (iconManager != null)
                 {
@@ -358,9 +353,9 @@ namespace SELLCT.Views
                     var iconPosition = iconManager.CalculateIconPosition(windowPosition, windowSize,
                         new System.Windows.Point(-100, -100));
 
-                    // 非表示状態で作成
+                    // 非表示状態で疑似アイコンのみ準備（フォルダは作成しない）
                     iconManager.CreatePseudoIcon("Authority", iconPosition, authorityPath, false);
-                    System.Diagnostics.Debug.WriteLine($"Pseudo Authority icon pre-created at ({iconPosition.X:F0},{iconPosition.Y:F0}) - Hidden");
+                    System.Diagnostics.Debug.WriteLine($"Pseudo Authority icon pre-created at ({iconPosition.X:F0},{iconPosition.Y:F0}) - Hidden (no actual folder)");
                 }
             }
             catch (Exception ex)
@@ -1347,6 +1342,10 @@ namespace SELLCT.Views
             Canvas.SetLeft(BackgroundImage, x);
             Canvas.SetTop(BackgroundImage, y);
             System.Diagnostics.Debug.WriteLine($"Background position set to ({x}, {y})");
+
+            // 背景位置変更イベントを発行
+            var eventDispatcher = (System.Windows.Application.Current as App)?.GetEventDispatcher();
+            eventDispatcher?.Dispatch(new BackgroundPositionChangedEvent(new System.Windows.Point(x, y), "Background"));
 
             // 背景が初期位置から動いた場合、Authorityフォルダを表示
             if (Math.Abs(x) > 10 || Math.Abs(y) > 10) // 10ピクセル以上動いた場合

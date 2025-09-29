@@ -84,12 +84,16 @@ namespace SELLCT.Infrastructure.Services
                 if (!string.IsNullOrEmpty(folderPath))
                 {
                     iconWindow.SetAssociatedFolder(folderPath);
-                    
-                    // フォルダが存在しない場合は作成
-                    if (!Directory.Exists(folderPath))
+
+                    // 表示状態の場合のみフォルダを作成
+                    if (visible && !Directory.Exists(folderPath))
                     {
                         Directory.CreateDirectory(folderPath);
                         System.Diagnostics.Debug.WriteLine($"Created folder: {folderPath}");
+                    }
+                    else if (!visible)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Hidden icon - folder not created: {folderPath}");
                     }
                 }
 

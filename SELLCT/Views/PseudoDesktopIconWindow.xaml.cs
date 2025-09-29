@@ -226,45 +226,75 @@ namespace SELLCT.Views
         {
             try
             {
-                if (!string.IsNullOrEmpty(_associatedFolderPath) && Directory.Exists(_associatedFolderPath))
+                if (!string.IsNullOrEmpty(_associatedFolderPath))
                 {
-                    System.Diagnostics.Debug.WriteLine($"Opening folder: {_associatedFolderPath}");
-                    
-                    // エクスプローラーでフォルダを開く
-                    Process.Start(new ProcessStartInfo
+                    // Authorityフォルダの場合は特別処理
+                    if (_associatedFolderPath.Contains("Authority"))
                     {
-                        FileName = "explorer.exe",
-                        Arguments = _associatedFolderPath,
-                        UseShellExecute = true
-                    });
-                    
-                    System.Diagnostics.Debug.WriteLine("✅ Folder opened successfully");
-                    
-                    // Authorityフォルダが開封された場合はイベントを発火
-                    if (_associatedFolderPath.Contains("Authority") && _eventDispatcher != null)
-                    {
-                        System.Diagnostics.Debug.WriteLine("Authority folder opened - firing event");
-                        var authorityEvent = new AuthorityFolderOpenedEvent(_associatedFolderPath);
-                        _eventDispatcher.Dispatch(authorityEvent);
+                        System.Diagnostics.Debug.WriteLine("Authority folder access requested - firing event first");
+
+                        // 常にAuthorityフォルダ開封イベントを発火（存在しない場合は作成される）
+                        if (_eventDispatcher != null)
+                        {
+                            var authorityEvent = new AuthorityFolderOpenedEvent(_associatedFolderPath);
+                            _eventDispatcher.Dispatch(authorityEvent);
+                        }
+
+                        // イベント処理後、フォルダが作成されているかチェックして開く
+                        System.Threading.Thread.Sleep(100); // イベント処理の完了を待機
+
+                        if (Directory.Exists(_associatedFolderPath))
+                        {
+                            System.Diagnostics.Debug.WriteLine($"Opening Authority folder: {_associatedFolderPath}");
+
+                            // エクスプローラーでフォルダを開く
+                            Process.Start(new ProcessStartInfo
+                            {
+                                FileName = "explorer.exe",
+                                Arguments = _associatedFolderPath,
+                                UseShellExecute = true
+                            });
+
+                            System.Diagnostics.Debug.WriteLine("✅ Authority folder opened successfully");
+                        }
+                        else
+                        {
+                            System.Diagnostics.Debug.WriteLine("⚠️ Authority folder still doesn't exist after event dispatch");
+                        }
                     }
-                }
-                else
-                {
-                    System.Diagnostics.Debug.WriteLine($"⚠️ Cannot open folder: path='{_associatedFolderPath}', exists={Directory.Exists(_associatedFolderPath ?? "")}");
-                    
-                    // フォルダが存在しない場合は作成する
-                    if (!string.IsNullOrEmpty(_associatedFolderPath))
+                    else if (Directory.Exists(_associatedFolderPath))
                     {
-                        Directory.CreateDirectory(_associatedFolderPath);
-                        System.Diagnostics.Debug.WriteLine($"✅ Created folder: {_associatedFolderPath}");
-                        OpenAssociatedFolder(); // 再帰的に呼び出し
+                        // 通常のフォルダの場合
+                        System.Diagnostics.Debug.WriteLine($"Opening folder: {_associatedFolderPath}");
+
+                        // エクスプローラーでフォルダを開く
+                        Process.Start(new ProcessStartInfo
+                        {
+                            FileName = "explorer.exe",
+                            Arguments = _associatedFolderPath,
+                            UseShellExecute = true
+                        });
+
+                        System.Diagnostics.Debug.WriteLine("✅ Folder opened successfully");
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine($"⚠️ Cannot open folder: path='{_associatedFolderPath}', exists={Directory.Exists(_associatedFolderPath ?? "")}");
+
+                        // Authorityフォルダ以外で存在しない場合のみ作成
+                        if (!_associatedFolderPath.Contains("Authority"))
+                        {
+                            Directory.CreateDirectory(_associatedFolderPath);
+                            System.Diagnostics.Debug.WriteLine($"✅ Created folder: {_associatedFolderPath}");
+                            OpenAssociatedFolder(); // 再帰的に呼び出し
+                        }
                     }
                 }
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"❌ Error opening associated folder: {ex.Message}");
-                
+
                 // フォールバック: デスクトップを開く
                 try
                 {

@@ -51,7 +51,15 @@ namespace SELLCT.Core.Entities
             /// 隠されたAuthorityフォルダが発見・開封された時の特別イベント
             /// ゲーム進行の重要な節目で使用
             /// </summary>
-            AuthorityFolderOpened
+            AuthorityFolderOpened,
+
+            /// <summary>
+            /// コンポーネント位置変更イベント
+            /// UIコンポーネント（Background等）の位置が変更された時
+            /// Canvas座標での位置変更を検出してパズル条件を評価
+            /// MinX、MaxX、MinY、MaxYプロパティと組み合わせて条件判定
+            /// </summary>
+            PositionChanged
         }
 
         /// <summary>
@@ -86,6 +94,38 @@ namespace SELLCT.Core.Entities
         public string OldComponentName { get; set; }
 
         /// <summary>
+        /// X座標の最小値（PositionChangedタイプ専用）
+        /// コンポーネントのX座標がこの値以上の場合にトリガー発動
+        /// nullの場合は下限なし
+        /// Type=PositionChangedの場合に使用
+        /// </summary>
+        public double? MinX { get; set; }
+
+        /// <summary>
+        /// X座標の最大値（PositionChangedタイプ専用）
+        /// コンポーネントのX座標がこの値以下の場合にトリガー発動
+        /// nullの場合は上限なし
+        /// Type=PositionChangedの場合に使用
+        /// </summary>
+        public double? MaxX { get; set; }
+
+        /// <summary>
+        /// Y座標の最小値（PositionChangedタイプ専用）
+        /// コンポーネントのY座標がこの値以上の場合にトリガー発動
+        /// nullの場合は下限なし
+        /// Type=PositionChangedの場合に使用
+        /// </summary>
+        public double? MinY { get; set; }
+
+        /// <summary>
+        /// Y座標の最大値（PositionChangedタイプ専用）
+        /// コンポーネントのY座標がこの値以下の場合にトリガー発動
+        /// nullの場合は上限なし
+        /// Type=PositionChangedの場合に使用
+        /// </summary>
+        public double? MaxY { get; set; }
+
+        /// <summary>
         /// 指定された名前がこのトリガーの対象かチェック
         /// ComponentNamesとComponentNameの両方を考慮して判定
         /// 大文字・小文字を無視した比較を実行
@@ -103,6 +143,36 @@ namespace SELLCT.Core.Entities
             
             // 単一名前パターンの場合の比較（大文字・小文字無視）
             return ComponentName != null && ComponentName.Equals(name, StringComparison.OrdinalIgnoreCase);
+        }
+
+        /// <summary>
+        /// 指定された位置がこのトリガーの位置条件を満たすかチェック
+        /// PositionChangedタイプのトリガーでのみ使用
+        /// MinX、MaxX、MinY、MaxYの各条件を評価して総合判定
+        /// </summary>
+        /// <param name="x">チェック対象のX座標</param>
+        /// <param name="y">チェック対象のY座標</param>
+        /// <returns>true: 位置条件を満たす, false: 位置条件を満たさない</returns>
+        public bool MatchesPositionCondition(double x, double y)
+        {
+            // X座標の最小値チェック
+            if (MinX.HasValue && x < MinX.Value)
+                return false;
+
+            // X座標の最大値チェック
+            if (MaxX.HasValue && x > MaxX.Value)
+                return false;
+
+            // Y座標の最小値チェック
+            if (MinY.HasValue && y < MinY.Value)
+                return false;
+
+            // Y座標の最大値チェック
+            if (MaxY.HasValue && y > MaxY.Value)
+                return false;
+
+            // すべての条件を満たす場合はtrue
+            return true;
         }
     }
 }

@@ -78,6 +78,7 @@ namespace SELLCT.Application.Services
             _eventDispatcher.Subscribe<ComponentDeletedEvent>(CheckPuzzlesOnComponentDeleted);     // ファイル削除時
             _eventDispatcher.Subscribe<ComponentRenamedEvent>(CheckPuzzlesOnComponentRenamed);     // ファイル名変更時
             _eventDispatcher.Subscribe<AuthorityFolderOpenedEvent>(CheckPuzzlesOnAuthorityFolderOpened); // Authorityフォルダ開封時
+            _eventDispatcher.Subscribe<BackgroundPositionChangedEvent>(CheckPuzzlesOnBackgroundPositionChanged); // 背景位置変更時
             
             // 特別なイベント：SELLCTフォルダの裏切り行為（プレイヤーがファイルを削除した場合）
             _componentManager.SELLCTFolderBetrayed += OnSELLCTFolderBetrayed;
@@ -603,10 +604,57 @@ namespace SELLCT.Application.Services
                     Actions = new List<PuzzleAction>
                     {
                         new PuzzleAction { Type = PuzzleAction.ActionType.SetBackgroundVisibility, IsVisible = true },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "背景が復元されました。" }
                     },
                     CanRepeat = true,
                     Priority = 10
+                },
+
+                // Background位置変更でAuthority表示（X >= 290）
+                new PuzzleDefinition
+                {
+                    Id = "Background_Position_Right_Authority",
+                    Trigger = new PuzzleTrigger
+                    {
+                        Type = PuzzleTrigger.TriggerType.PositionChanged,
+                        ComponentNames = new[] { "Background", "background", "BACKGROUND" },
+                        MinX = 290
+                    },
+                    Actions = new List<PuzzleAction>
+                    {
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "背景が消えて、デスクトップ上にAuthorityフォルダが見えています！！" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "......" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "どうやらゲーム画面の後ろにあって開けないようですね…" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "ゲーム画面自体をButtonのようにどうにか動かせないでしょうか..." },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "私が調べる限り、coponentsフォルダの中にGameWindow.txtがあるようです..." },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "それを動かすことができるかもしれません" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "GameWindow.txtはcomponentsフォルダのどこかにあります。見えていないのならもしかしたら隠されているのかもしれません。" }
+                    },
+                    CanRepeat = false, // 一度だけ実行
+                    Priority = 15
+                },
+
+                // Background位置変更でAuthority表示（X <= -490）
+                new PuzzleDefinition
+                {
+                    Id = "Background_Position_Left_Authority",
+                    Trigger = new PuzzleTrigger
+                    {
+                        Type = PuzzleTrigger.TriggerType.PositionChanged,
+                        ComponentNames = new[] { "Background", "background", "BACKGROUND" },
+                        MaxX = -490
+                    },
+                    Actions = new List<PuzzleAction>
+                    {
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "背景が消えて、デスクトップ上にAuthorityフォルダが見えています！！" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "......" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "どうやらゲーム画面の後ろにあって開けないようですね…" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "ゲーム画面自体をButtonのようにどうにか動かせないでしょうか..." },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "私が調べる限り、coponentsフォルダの中にGameWindow.txtがあるようです..." },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "それを動かすことができるかもしれません" },
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "GameWindow.txtはcomponentsフォルダのどこかにあります。見えていないのならもしかしたら隠されているのかもしれません。" }
+                    },
+                    CanRepeat = false, // 一度だけ実行
+                    Priority = 15
                 },
 
                 // BackGround.txt が存在するとき（初期状態）
@@ -689,9 +737,39 @@ namespace SELLCT.Application.Services
         private void CheckPuzzlesOnAuthorityFolderOpened(AuthorityFolderOpenedEvent @event)
         {
             System.Diagnostics.Debug.WriteLine($"[PuzzleService] AuthorityFolderOpened event received: Path={@event.FolderPath}");
-            
+
+            // Authorityフォルダが存在しない場合は、まず作成アクションを実行
+            if (!System.IO.Directory.Exists(@event.FolderPath))
+            {
+                System.Diagnostics.Debug.WriteLine("[PuzzleService] Authority folder doesn't exist, creating hidden folder first");
+
+                // CreateHiddenAuthorityFolderアクションを実行
+                var createAction = new PuzzleAction
+                {
+                    Type = PuzzleAction.ActionType.CreateHiddenAuthorityFolder
+                };
+
+                _actionHandler?.HandleAction(createAction);
+            }
+
             // AuthorityFolderOpenedトリガーのパズルをチェック
             CheckPuzzles(p => p.Trigger.Type == PuzzleTrigger.TriggerType.AuthorityFolderOpened);
+        }
+
+        /// <summary>
+        /// 背景位置変更イベント時のパズルチェック
+        /// BackgroundPositionChangedEventを受け取って関連パズルを実行
+        /// 位置条件を満たすPositionChangedタイプのパズルを評価
+        /// </summary>
+        /// <param name="event">背景位置変更イベントデータ</param>
+        private void CheckPuzzlesOnBackgroundPositionChanged(BackgroundPositionChangedEvent @event)
+        {
+            System.Diagnostics.Debug.WriteLine($"[PuzzleService] BackgroundPositionChanged event received: Component={@event.ComponentName}, Position=({@event.Position.X:F0}, {@event.Position.Y:F0})");
+
+            // PositionChangedトリガーで対象コンポーネントが一致し、位置条件を満たすパズルをチェック
+            CheckPuzzles(p => p.Trigger.Type == PuzzleTrigger.TriggerType.PositionChanged &&
+                             p.Trigger.MatchesComponentName(@event.ComponentName) &&
+                             p.Trigger.MatchesPositionCondition(@event.Position.X, @event.Position.Y));
         }
 
         private void CheckPuzzles(Func<PuzzleDefinition, bool> predicate)
