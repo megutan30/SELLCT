@@ -75,6 +75,7 @@ namespace SELLCT.Application.Services
 
             // ファイルシステムイベントに対するパズルチェック処理を登録
             _eventDispatcher.Subscribe<ComponentCreatedEvent>(CheckPuzzlesOnComponentCreated);     // ファイル作成時
+            _eventDispatcher.Subscribe<ComponentContentChangedEvent>(CheckPuzzlesOnComponentContentChanged); // ファイル内容変更時
             _eventDispatcher.Subscribe<ComponentDeletedEvent>(CheckPuzzlesOnComponentDeleted);     // ファイル削除時
             _eventDispatcher.Subscribe<ComponentRenamedEvent>(CheckPuzzlesOnComponentRenamed);     // ファイル名変更時
             _eventDispatcher.Subscribe<AuthorityFolderOpenedEvent>(CheckPuzzlesOnAuthorityFolderOpened); // Authorityフォルダ開封時
@@ -710,6 +711,15 @@ namespace SELLCT.Application.Services
         private void CheckPuzzlesOnComponentDeleted(ComponentDeletedEvent @event)
         {
             CheckPuzzles(p => p.Trigger.Type == PuzzleTrigger.TriggerType.Deleted &&
+                               p.Trigger.MatchesComponentName(@event.Component.Name));
+        }
+
+        private void CheckPuzzlesOnComponentContentChanged(ComponentContentChangedEvent @event)
+        {
+            System.Diagnostics.Debug.WriteLine($"[PuzzleService] ComponentContentChanged event received: Name={@event.Component.Name}, Type={@event.Component.Type}");
+
+            // ContentChangedトリガーのパズルをチェック
+            CheckPuzzles(p => p.Trigger.Type == PuzzleTrigger.TriggerType.ContentChanged &&
                                p.Trigger.MatchesComponentName(@event.Component.Name));
         }
 

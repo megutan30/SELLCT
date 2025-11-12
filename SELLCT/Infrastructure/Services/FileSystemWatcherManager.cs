@@ -243,7 +243,7 @@ namespace SELLCT.Infrastructure.Services
                         ProcessFileDeleted(filePath);
                         break;
                     case WatcherChangeTypes.Changed:
-                        ProcessFileCreated(filePath);
+                        ProcessFileChanged(filePath);
                         break;
                 }
             }
@@ -272,6 +272,17 @@ namespace SELLCT.Infrastructure.Services
                 var component = GameComponent.Create(componentName, ComponentType.UI, "");
                 component.FilePath = filePath;
                 _eventDispatcher.Dispatch(new ComponentDeletedEvent(component));
+            }
+        }
+
+        private void ProcessFileChanged(string filePath)
+        {
+            if (!File.Exists(filePath)) return;
+
+            var component = ParseComponentFile(filePath);
+            if (component != null)
+            {
+                _eventDispatcher.Dispatch(new ComponentContentChangedEvent(component));
             }
         }
 

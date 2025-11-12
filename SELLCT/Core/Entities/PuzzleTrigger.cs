@@ -24,7 +24,15 @@ namespace SELLCT.Core.Entities
             /// 例: Button.txt、TextWindow.txt等の新規作成
             /// </summary>
             Created,
-            
+
+            /// <summary>
+            /// ファイル内容変更イベント
+            /// 既存ファイルの内容が変更された時
+            /// 作成イベントとは区別され、更新のみを検出
+            /// 例: Door.txtやKey.txtの内容更新
+            /// </summary>
+            ContentChanged,
+
             /// <summary>
             /// ファイル削除イベント
             /// ユーザーがファイルをcomponentsフォルダから削除した時
