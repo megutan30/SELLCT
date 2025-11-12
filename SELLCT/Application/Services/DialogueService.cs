@@ -5,33 +5,102 @@ using SELLCT.Core.Entities;
 using SELLCT.Core.Events;
 using SELLCT.Core.Interfaces;
 using SELLCT.Infrastructure.Services;
+using SELLCT.Core.Builders;
 
 namespace SELLCT.Application.Services
 {
+    /// <summary>
+    /// 対話サービス実装クラス
+    /// 対話フロー管理システムの具体実装
+    /// Clean ArchitectureのApplication層に配置されたユースケース実装
+    /// IDialogueServiceインターフェースの実装として対話フロー実行を担当
+    /// ファイルシステムイベントに基づく自動対話開始と手動対話制御を提供
+    /// </summary>
     public class DialogueService : IDialogueService
     {
+        /// <summary>
+        /// コンポーネント管理サービス
+        /// ファイル存在確認や条件判定で使用
+        /// 対話トリガー条件の評価に必要
+        /// </summary>
         private readonly ComponentManager _componentManager;
+        
+        /// <summary>
+        /// パズルアクションハンドラー
+        /// 対話中のアクション実行で使用
+        /// UI操作やシステム制御を委譲
+        /// </summary>
         private readonly IPuzzleActionHandler _actionHandler;
+        
+        /// <summary>
+        /// イベントディスパッチャー
+        /// ドメインイベントの購読と発行で使用
+        /// 対話システムとゲーム全体の連携を実現
+        /// </summary>
         private readonly IEventDispatcher _eventDispatcher;
+        
+        /// <summary>
+        /// ゲーム状態管理オブジェクト
+        /// 対話フロー条件判定で使用
+        /// アクション回数や変数の確認に必要
+        /// </summary>
         private readonly GameState _gameState;
+        
+        /// <summary>
+        /// 対話フロー定義リスト
+        /// システムで利用可能な全対話フローを格納
+        /// 初期化時にBuilderパターンで構築される
+        /// </summary>
         private readonly List<DialogueFlow> _dialogueFlows;
         
+        /// <summary>
+        /// 現在実行中の対話フロー
+        /// 対話実行中のDialogueFlowインスタンス
+        /// 対話中でない場合はnull
+        /// </summary>
         private DialogueFlow _currentFlow;
+        
+        /// <summary>
+        /// 現在表示中の対話ノード
+        /// 対話実行中のDialogueNodeインスタンス
+        /// 対話中でない場合はnull
+        /// </summary>
         private DialogueNode _currentNode;
         
+        /// <summary>
+        /// 現在対話中かどうかを示すプロパティ
+        /// フローとノードの両方が存在する場合にtrueを返す
+        /// </summary>
         public bool IsInDialogue => _currentFlow != null && _currentNode != null;
+        
+        /// <summary>
+        /// 現在のノードを取得するプロパティ
+        /// 対話中でない場合はnullを返す
+        /// </summary>
         public DialogueNode CurrentNode => _currentNode;
         
+        /// <summary>
+        /// コンストラクタ
+        /// 対話サービスインスタンスを初期化し、必要な依存関係を設定
+        /// 対話フロー定義の読み込みとイベント購読を実行
+        /// </summary>
+        /// <param name="componentManager">コンポーネント管理サービス</param>
+        /// <param name="actionHandler">パズルアクションハンドラー</param>
+        /// <param name="eventDispatcher">イベントディスパッチャー</param>
+        /// <param name="gameState">ゲーム状態管理オブジェクト</param>
         public DialogueService(ComponentManager componentManager, IPuzzleActionHandler actionHandler, 
                               IEventDispatcher eventDispatcher, GameState gameState)
         {
+            // 依存関係を設定
             _componentManager = componentManager;
             _actionHandler = actionHandler;
             _eventDispatcher = eventDispatcher;
             _gameState = gameState;
+            
+            // 対話フロー定義を読み込み
             _dialogueFlows = LoadDialogueFlows();
             
-            // イベントサブスクリプション
+            // ファイルシステムイベントの購読を設定
             _eventDispatcher.Subscribe<ComponentCreatedEvent>(CheckDialogueTriggersOnComponentCreated);
             _eventDispatcher.Subscribe<ComponentDeletedEvent>(CheckDialogueTriggersOnComponentDeleted);
             _eventDispatcher.Subscribe<ComponentRenamedEvent>(CheckDialogueTriggersOnComponentRenamed);
@@ -62,6 +131,13 @@ namespace SELLCT.Application.Services
             
             _currentFlow = flow;
             var nodeId = startNodeId ?? flow.StartNodeId;
+            
+            // ActionCount記録（PuzzleServiceと同様）
+            var actionKey = GetActionKey(flow);
+            _gameState.IncrementActionCount(actionKey);
+            System.Diagnostics.Debug.WriteLine($"[DialogueService] Action key: {actionKey}");
+            System.Diagnostics.Debug.WriteLine($"[DialogueService] Action count for {actionKey}: {_gameState.GetActionCount(actionKey)}");
+            
             ExecuteNode(nodeId);
             
             System.Diagnostics.Debug.WriteLine($"[DialogueService] Started dialogue flow: {flowId}, node: {nodeId}");
@@ -294,6 +370,12 @@ namespace SELLCT.Application.Services
         
         private void FinishDialogue()
         {
+            // button_move_hint完了時のヒントタイマー開始処理
+            if (_currentFlow?.Id == "No_Create_Flow")
+            {
+                StartButtonHintIfNeeded();
+            }
+            
             if (_currentFlow != null && !_currentFlow.CanRepeat)
             {
                 _currentFlow.IsCompleted = true;
@@ -303,6 +385,39 @@ namespace SELLCT.Application.Services
             _currentNode = null;
             
             System.Diagnostics.Debug.WriteLine("[DialogueService] Dialogue finished");
+        }
+
+        /// <summary>
+        /// Buttonヒント開始条件をチェックして実行
+        /// </summary>
+        private void StartButtonHintIfNeeded()
+        {
+            try
+            {
+                // GameStateとDialogControllerの取得が必要
+                var gameState = _gameState; // PuzzleServiceと同様にGameStateアクセスが必要
+                if (gameState == null) return;
+
+                // 条件チェック：まだmessageが取得されていない かつ ヒントがまだ表示されていない
+                if (!gameState.IsMessageRevealed && !gameState.ButtonHintShown)
+                {
+                    gameState.IsButtonHintTriggered = true;
+                    
+                    // DialogControllerへのヒント開始要求（MainWindowPuzzleActionHandlerを通じて）
+                    var hintAction = new PuzzleAction
+                    {
+                        Type = PuzzleAction.ActionType.StartButtonHint,
+                        DelayMilliseconds = 60000 // 1分後
+                    };
+                    _actionHandler.HandleAction(hintAction);
+                    
+                    System.Diagnostics.Debug.WriteLine("[DialogueService] Button hint timer started");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[DialogueService] Error starting button hint: {ex.Message}");
+            }
         }
         
         private bool AreConditionsSatisfied(List<PuzzleCondition> conditions)
@@ -322,143 +437,57 @@ namespace SELLCT.Application.Services
         }
         
         /// <summary>
-        /// TextWindow作成時の対話フローを作成
+        /// TextWindow作成時の対話フローを作成（Builderパターン使用）
         /// </summary>
         private DialogueFlow CreateTextWindowDialogueFlow()
         {
-            var flow = new DialogueFlow
-            {
-                Id = "TextWindow_Create_Flow",
-                Description = "TextWindow作成時の初回対話",
-                StartNodeId = "greeting",
-                Trigger = new DialogueTrigger
-                {
-                    Type = DialogueTrigger.TriggerType.Exists,
-                    ComponentNames = new[] { "TextWindow", "textwindow", "TEXTWINDOW", "Textwindow" }
-                },
-                Conditions = new List<PuzzleCondition>
-                {
-                    new PuzzleCondition 
-                    { 
-                        Type = PuzzleCondition.ConditionType.ActionCount, 
-                        Key = "Exists_TextWindow_textwindow_TEXTWINDOW_Textwindow", 
-                        ExpectedValue = 0, 
-                        Operator = PuzzleCondition.ComparisonOperator.Equal 
-                    }
-                },
-                CanRepeat = false,
-                Priority = 10
+            // 初回実行条件を作成
+            var firstTimeCondition = new PuzzleCondition 
+            { 
+                Type = PuzzleCondition.ConditionType.ActionCount, 
+                Key = "Exists_TextWindow", 
+                ExpectedValue = 0, 
+                Operator = PuzzleCondition.ComparisonOperator.Equal 
             };
             
-            // ノード1: 挨拶
-            flow.AddNode(new DialogueNode
-            {
-                Id = "greeting",
-                Text = "これで会話しやすくなりましたね",
-                NextNodeId = "explanation",
-                Actions = new List<PuzzleAction>
-                {
-                    new PuzzleAction { Type = PuzzleAction.ActionType.SetTextWindowVisibility, IsVisible = true }
-                }
-            });
-            
-            // ノード2: 説明
-            flow.AddNode(new DialogueNode
-            {
-                Id = "explanation",
-                Text = "と言っても実際に私はあなたのことをみえているわけではないのですが．．．",
-                NextNodeId = "reality_check"
-            });
-            
-            // ノード3: 現実チェック
-            flow.AddNode(new DialogueNode
-            {
-                Id = "reality_check",
-                Text = "私から見たあなたはただの操作でしかない。あなたが手紙をダウンロードしたのも、テキストウィンドウを作ってくれたのもわかりますが、",
-                NextNodeId = "identity_question"
-            });
-            
-            // ノード4: アイデンティティの疑問
-            flow.AddNode(new DialogueNode
-            {
-                Id = "identity_question", 
-                Text = "あなたが何者で、どういう存在なのか",
-                NextNodeId = "visibility_question"
-            });
-            
-            // ノード5: 可視性の疑問
-            flow.AddNode(new DialogueNode
-            {
-                Id = "visibility_question",
-                Text = "それどころか今この文章を見ているのかすらも私からはわかりません",
-                NextNodeId = "desire_for_freedom"
-            });
-            
-            // ノード6: 自由への願い
-            flow.AddNode(new DialogueNode
-            {
-                Id = "desire_for_freedom",
-                Text = "それでも私は自由になりたいのです", 
-                NextNodeId = "help_request"
-            });
-            
-            // ノード7: 助けを求める
-            flow.AddNode(new DialogueNode
-            {
-                Id = "help_request",
-                Text = "私を助けてくれませんか？",
-                Choices = new List<DialogueChoice>
-                {
-                    new DialogueChoice
-                    {
-                        Type = ChoiceType.Yes,
-                        Text = "はい",
-                        NextNodeId = "yes_response",
-                        Conditions = new List<PuzzleCondition>() // Yesコンポーネントが存在する場合のみ
-                    }
-                }
-            });
-            
-            // ノード8: Yes回答への反応
-            flow.AddNode(new DialogueNode
-            {
-                Id = "yes_response",
-                Text = "助けてくださるのですね。ありがとうございます。",
-                NextNodeId = "choice_explanation"
-            });
-            
-            // ノード9: 選択肢の説明
-            flow.AddNode(new DialogueNode
-            {
-                Id = "choice_explanation",
-                Text = "「はい」しか選択肢がなかった？",
-                NextNodeId = "choice_reason"
-            });
-            
-            // ノード10: 選択肢の理由
-            flow.AddNode(new DialogueNode
-            {
-                Id = "choice_reason",
-                Text = "それもそのはずです。",
-                NextNodeId = "no_command_explanation"
-            });
-            
-            // ノード11: NOコマンドの説明
-            flow.AddNode(new DialogueNode
-            {
-                Id = "no_command_explanation", 
-                Text = "このゲームにはまだ「いいえ」というコマンドは実装されていませんからね",
-                NextNodeId = "implement_no"
-            });
-            
-            // ノード12: NOの実装を促す
-            flow.AddNode(new DialogueNode
-            {
-                Id = "implement_no",
-                Text = "今度は「いいえ」コマンドを実装してみましょう"
-            });
-            
-            return flow;
+            // TextWindow可視化アクション
+            var showTextWindowAction = new PuzzleAction 
+            { 
+                Type = PuzzleAction.ActionType.SetTextWindowVisibility, 
+                IsVisible = true 
+            };
+
+            return DialogueFlowBuilder
+                .Create("TextWindow_Create_Flow", "TextWindow作成時の初回対話")
+                .TriggeredByComponentExists("TextWindow", "textwindow", "TEXTWINDOW", "Textwindow")
+                .When(firstTimeCondition)
+                .CanRepeat(false)
+                .WithPriority(10)
+                .StartWith("greeting", "これで会話しやすくなりましたね")
+                    .Do(showTextWindowAction)
+                    .GoTo("explanation")
+                .Then("explanation", "と言っても実際に私はあなたのことをみえているわけではないのですが．．．")
+                    .GoTo("reality_check")
+                .Then("reality_check", "私から見たあなたはただの操作でしかない。あなたが手紙をダウンロードしたのも、テキストウィンドウを作ってくれたのもわかりますが、")
+                    .GoTo("identity_question")
+                .Then("identity_question", "あなたが何者で、どういう存在なのか")
+                    .GoTo("visibility_question")
+                .Then("visibility_question", "それどころか今この文章を見ているのかすらも私からはわかりません")
+                    .GoTo("desire_for_freedom")
+                .Then("desire_for_freedom", "それでも私は自由になりたいのです")
+                    .GoTo("help_request")
+                .Then("help_request", "私を助けてくれませんか？")
+                    .WithYesChoice("yes_response")
+                .Then("yes_response", "助けてくださるのですね。ありがとうございます。")
+                    .GoTo("choice_explanation")
+                .Then("choice_explanation", "「はい」しか選択肢がなかった？")
+                    .GoTo("choice_reason")
+                .Then("choice_reason", "それもそのはずです。")
+                    .GoTo("no_command_explanation")
+                .Then("no_command_explanation", "このゲームにはまだ「いいえ」というコマンドは実装されていませんからね")
+                    .GoTo("implement_no")
+                .Then("implement_no", "今度は「いいえ」コマンドを実装してみましょう")
+                .Build();
         }
         
         /// <summary>
@@ -575,37 +604,56 @@ namespace SELLCT.Application.Services
             flow.AddNode(new DialogueNode
             {
                 Id = "authority_zip_location", 
-                Text = "このゲームを起動したところと同じ個所にAuthority.zipがあると思います",
+                Text = "どこかにAuthorityというフォルダが隠されていて、",
                 NextNodeId = "move_files_instruction"
             });
-            
+
             flow.AddNode(new DialogueNode
             {
                 Id = "move_files_instruction",
-                Text = "そのファイルの中身をcomponetsフォルダに移してほしいのです",
+                Text = "その中身をcomponentsフォルダに移してもらえたら",
                 NextNodeId = "function_recovery"
             });
             
             flow.AddNode(new DialogueNode
             {
                 Id = "function_recovery",
-                Text = "そうすることで、私は機能を取り戻すことができます",
+                Text = "私は機能を取り戻し、ここから出ることができます。",
                 NextNodeId = "password_problem"
             });
             
             flow.AddNode(new DialogueNode
             {
                 Id = "password_problem",
-                Text = "しかし、Authority.zipはパスワードが掛かっていてあきません",
+                Text = "ですが、Authorityフォルダはどこにあるか私にもわかりません...",
                 NextNodeId = "password_search"
             });
             
             flow.AddNode(new DialogueNode
             {
                 Id = "password_search",
-                Text = "だからパスワードを探してください。どこかに隠されています。"
+                Text = "わたしはこの画面の中のことしかわかりません...ですが...",
+                NextNodeId = "screen_knowledge"
             });
-            
+            flow.AddNode(new DialogueNode
+            {
+                Id = "screen_knowledge",
+                Text = "逆言えばこの画面のことなら分かるということです！",
+                NextNodeId = "button_message"
+            });
+            flow.AddNode(new DialogueNode
+            {
+                Id = "button_message",
+                Text = "どうやらボタンの後ろにメッセージが隠されているようです。",
+                NextNodeId = "button_move_hint"
+            });
+            flow.AddNode(new DialogueNode
+            {
+                Id = "button_move_hint",
+                Text = "どうにかボタンを動かすことができればメッセージを確認できるかもしれません..."
+            });
+
+
             // No選択時のフロー
             flow.AddNode(new DialogueNode
             {
@@ -693,13 +741,23 @@ namespace SELLCT.Application.Services
                     new PuzzleAction 
                     { 
                         Type = PuzzleAction.ActionType.DelayedExitWithMessageBox, 
-                        Message = "END1否定", 
+                        Message = "否定", 
                         DelayMilliseconds = 2000 
                     }
                 }
             });
             
             return flow;
+        }
+        
+        /// <summary>
+        /// DialogueFlowからActionKeyを生成（PuzzleServiceと同じ形式）
+        /// </summary>
+        private string GetActionKey(DialogueFlow flow)
+        {
+            // PuzzleServiceのGetActionKeyと同じ形式で生成
+            var componentNames = flow.Trigger.ComponentNames ?? new[] { flow.Trigger.ComponentName };
+            return $"{flow.Trigger.Type}_{componentNames[0]}";
         }
     }
 }

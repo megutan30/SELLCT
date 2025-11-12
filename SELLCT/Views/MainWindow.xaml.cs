@@ -12,16 +12,19 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
 using SELLCT.Core.Entities;
+using SELLCT.Core.Events;
 using SELLCT.Infrastructure.Services;
 using SELLCT.Presentation.Views;
 using SELLCT.Core.Interfaces;
 using SELLCT.Application.Services;
-using SELLCT.Core.Events;
+using SELLCT.Presentation.Controllers;
 
 namespace SELLCT.Views
 {
     /// <summary>
-    /// MainWindow.xaml の相互作用ロジック
+    /// SELLCTゲームのメインウィンドウ（Presentation層の中核UI）
+    /// WPFアプリケーションのメインビューとして、ゲーム画面表示、ユーザー操作、
+    /// コントローラー統合、Clean Architectureの各層との連携を管理
     /// </summary>
     public partial class MainWindow : Window
     {
@@ -29,7 +32,15 @@ namespace SELLCT.Views
         private LetterService _letterService;
         private KeyService _keyService;
         private MetaGameController _metaGameController;
+        private Infrastructure.Services.PseudoDesktopIconManager _pseudoDesktopIconManager;
+        private Infrastructure.Services.HiddenFileSettingService _hiddenFileSettingService;
         private bool _isPhase2 = false;
+
+        // 統合されたコントローラー
+        private LetterDisplayController _letterDisplayController;
+        private DialogController _dialogController;
+        
+        public DialogController DialogController => _dialogController;
 
         public void SetPhase2(bool value)
         {
@@ -38,25 +49,9 @@ namespace SELLCT.Views
 
         public void SetAwaitingChoice(bool value)
         {
-            _awaitingChoice = value;
+            _dialogController?.SetAwaitingChoice(value);
         }
         private int _dialogStep = 0;
-
-        private Queue<DialogItem> _dialogMessageQueue;
-        private bool _isTyping;
-        private DispatcherTimer _typingTimer;
-        private string _currentFullMessage;
-        private int _currentMessageCharIndex;
-        private bool _awaitingChoice;
-
-        // ログ機能関連
-        private List<string> _messageHistory = new List<string>();
-
-        private DispatcherTimer _initialLetterTimer;
-        private DispatcherTimer _subsequentLetterTimer;
-        
-        // ボタンクリック処理の排他制御フラグ
-        private bool _isButtonProcessing = false;
 
         /// <summary>
         
@@ -89,18 +84,16 @@ namespace SELLCT.Views
             this.Loaded += Window_Loaded; // Window_Loadedイベントハンドラを登録
             this.Activated += Window_Activated; // ウィンドウアクティベートイベント
             this.Deactivated += Window_Deactivated; // ウィンドウディアクティベートイベント
-            _dialogMessageQueue = new Queue<DialogItem>();
-            _typingTimer = new DispatcherTimer();
-            _typingTimer.Interval = TimeSpan.FromMilliseconds(50); // 1文字表示にかかる時間
-            _typingTimer.Tick += TypingTimer_Tick;
+            this.Closing += Window_Closing; // ウィンドウクロージングイベント
 
-            _initialLetterTimer = new DispatcherTimer();
-            _initialLetterTimer.Interval = TimeSpan.FromSeconds(3);
-            _initialLetterTimer.Tick += InitialLetterTimer_Tick;
+            // 疑似デスクトップアイコンマネージャーを初期化
+            var eventDispatcher = (System.Windows.Application.Current as App)?.GetEventDispatcher();
+            _pseudoDesktopIconManager = new Infrastructure.Services.PseudoDesktopIconManager(eventDispatcher);
+            System.Diagnostics.Debug.WriteLine("PseudoDesktopIconManager initialized in MainWindow");
 
-            _subsequentLetterTimer = new DispatcherTimer();
-            _subsequentLetterTimer.Interval = TimeSpan.FromSeconds(10);
-            _subsequentLetterTimer.Tick += SubsequentLetterTimer_Tick;
+            // 隠しファイル設定サービスを初期化
+            _hiddenFileSettingService = new Infrastructure.Services.HiddenFileSettingService();
+            System.Diagnostics.Debug.WriteLine("HiddenFileSettingService initialized in MainWindow");
 
             InitializeAsync();
         }
@@ -116,10 +109,24 @@ namespace SELLCT.Views
             // 左、上、右、下 の順
             GameCanvas.Margin = new Thickness(
                 -borderThickness.Left,
-                -(borderThickness.Top + captionHeight-5),
+                -(borderThickness.Top-12),
                 -borderThickness.Right,
                 -borderThickness.Bottom
             );
+
+            // ウィンドウを画面中央に配置
+            CenterWindowOnScreen();
+
+            // 隠しファイル表示を無効にする（ゲーム開始時の設定変更）
+            try
+            {
+                bool result = _hiddenFileSettingService.DisableHiddenFileDisplay();
+                System.Diagnostics.Debug.WriteLine($"[MainWindow] Hidden file display disabled: {result}");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[MainWindow] Error disabling hidden file display: {ex.Message}");
+            }
         }
 
         /// <summary>
@@ -140,6 +147,7 @@ namespace SELLCT.Views
             _wasWindowFocused = false;
             System.Diagnostics.Debug.WriteLine("[Window_Deactivated] Window deactivated, focus lost.");
         }
+
 
         /// <summary>
         /// 現在のウィンドウがフォアグラウンドかどうかを確認
@@ -192,9 +200,45 @@ namespace SELLCT.Views
         {
             try
             {
+                // SmartScreen警告を表示（教育目的）
+                var smartScreenResult = Infrastructure.Services.SmartScreenWarningService.ShowSmartScreenWarning("SELLCT.exe", "不明な発行者");
+                
+                if (smartScreenResult == Infrastructure.Services.SmartScreenResult.DontRun)
+                {
+                    // ユーザーが実行しないを選択した場合、アプリケーションを終了
+                    System.Windows.Application.Current.Shutdown();
+                    return;
+                }
+                //// 実行が選択された場合、警告演出を開始
+                //if (smartScreenResult == Infrastructure.Services.SmartScreenResult.RunAnyway)
+                //{
+                //    System.Diagnostics.Debug.WriteLine("Starting warning flood demonstration with noise transition...");
+                    
+                //    var warningFloodService = new Infrastructure.Services.WarningFloodService();
+                    
+                //    // 警告演出を実行
+                //    await warningFloodService.StartWarningFloodWithNoiseTransition(() =>
+                //    {
+                //        // メインウィンドウを表示
+                //        System.Diagnostics.Debug.WriteLine("Showing main window after noise transition...");
+                //        this.Show();
+                //    });
+                    
+                //    System.Diagnostics.Debug.WriteLine("Warning flood with noise transition completed.");
+                    
+                //    // リソースクリーンアップ
+                //    warningFloodService.Cleanup();
+                //}
+                //else
+                //{
+                //    // SmartScreen で実行しないが選択された場合以外は、通常のMainWindow表示
+                //    System.Diagnostics.Debug.WriteLine("Showing main window directly...");
+                //    this.Show();
+                //}
+                this.Show();
                 // ローディング表示
-                LoadingOverlay.Visibility = Visibility.Visible;
-                await Task.Delay(2000); // 初期化演出
+                // LoadingOverlay.Visibility = Visibility.Visible;
+                //await Task.Delay(2000); // 初期化演出
 
                 // サービス初期化
                 InitializeServices();
@@ -257,15 +301,25 @@ namespace SELLCT.Views
             // MetaGameController初期化
             _metaGameController = new MetaGameController((System.Windows.Application.Current as App).GetEventDispatcher());
 
+            // GameStateを先に作成
+            var gameState = new GameState();
+            
+            // Controller初期化
+            _letterDisplayController = new LetterDisplayController(_letterService, eventDispatcher);
+            _dialogController = new DialogController(_componentManager, gameState);
+            
+            // UI要素をControllerに注入
+            _letterDisplayController.InjectUIElements(LetterImage, StatusText);
+            _dialogController.InjectUIElements(
+                TextWindow, DialogText, ChoiceButtonsPanel, 
+                YesButton, NoButton, LogPanel, LogText, LogScrollViewer);
+
             // PuzzleService初期化
             _puzzleActionHandler = new MainWindowPuzzleActionHandler(this, _componentManager, _metaGameController);
-            
-            // GameStateを共有するために先に作成
-            var gameState = new GameState();
-            _puzzleService = new PuzzleService(_componentManager, _puzzleActionHandler, (System.Windows.Application.Current as App).GetEventDispatcher(), gameState);
+            _puzzleService = new PuzzleService(_componentManager, _puzzleActionHandler, eventDispatcher, gameState);
             
             // DialogueService初期化（GameStateを共有）
-            _dialogueService = new DialogueService(_componentManager, _puzzleActionHandler, (System.Windows.Application.Current as App).GetEventDispatcher(), gameState);
+            _dialogueService = new DialogueService(_componentManager, _puzzleActionHandler, eventDispatcher, gameState);
             _puzzleActionHandler.SetDialogueService(_dialogueService);
 
             // ComponentsFolderChangedイベントをサブスクライブ
@@ -274,7 +328,40 @@ namespace SELLCT.Views
             // 手紙シーケンス開始
             _letterService.StartLetterSequence();
 
+            // 疑似Authorityフォルダを事前生成（非表示状態）
+            InitializePseudoAuthorityFolder();
+
             System.Diagnostics.Debug.WriteLine("Services initialized");
+        }
+
+        /// <summary>
+        /// 疑似Authorityフォルダを事前生成（非表示状態）
+        /// </summary>
+        private void InitializePseudoAuthorityFolder()
+        {
+            try
+            {
+                // 疑似デスクトップアイコンを非表示状態で事前準備
+                // 実際のフォルダはHandleCreateHiddenAuthorityFolderでのみ作成
+                var authorityPath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "Authority");
+
+                var iconManager = GetPseudoDesktopIconManager();
+                if (iconManager != null)
+                {
+                    var windowPosition = new System.Windows.Point(this.Left, this.Top);
+                    var windowSize = new System.Windows.Size(this.Width, this.Height);
+                    var iconPosition = iconManager.CalculateIconPosition(windowPosition, windowSize,
+                        new System.Windows.Point(-100, -100));
+
+                    // 非表示状態で疑似アイコンのみ準備（フォルダは作成しない）
+                    iconManager.CreatePseudoIcon("Authority", iconPosition, authorityPath, false);
+                    System.Diagnostics.Debug.WriteLine($"Pseudo Authority icon pre-created at ({iconPosition.X:F0},{iconPosition.Y:F0}) - Hidden (no actual folder)");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error in InitializePseudoAuthorityFolder: {ex.Message}");
+            }
         }
 
         /// <summary>
@@ -345,41 +432,153 @@ namespace SELLCT.Views
             });
         }
 
+
         /// <summary>
-        /// componentsフォルダ変更イベントハンドラー（ウィンドウを最前面に表示）
+        /// componentsフォルダ変更イベントハンドラー（削除・名前変更時のみウィンドウを最前面に表示）
         /// </summary>
-        private void OnComponentsFolderChanged(object sender, EventArgs e)
+        private void OnComponentsFolderChanged(object sender, ComponentChangeEventArgs e)
         {
-            Dispatcher.Invoke(() =>
+            var fileName = System.IO.Path.GetFileName(e.FilePath);
+            
+            // GameWindow.txtの変更を特別に処理
+            if (fileName.Equals("GameWindow.txt", StringComparison.OrdinalIgnoreCase))
             {
-                try
+                if (e.ChangeType == System.IO.WatcherChangeTypes.Changed)
                 {
-                    System.Diagnostics.Debug.WriteLine("Components folder changed, bringing window to foreground");
+                    // GameWindow.txtの内容変更時にウィンドウ位置を更新
+                    Dispatcher.Invoke(() => HandleGameWindowPositionChange(e.FilePath));
+                }
+                return; // GameWindow.txtは前面表示処理をスキップ
+            }
+
+            // その他のコンポーネントファイルの位置制御処理
+            string[] positionControlledComponents = { "Button.txt", "YES.txt", "message.txt", "Door.txt", "Background.txt" };
+            if (positionControlledComponents.Any(name => fileName.Equals(name, StringComparison.OrdinalIgnoreCase)))
+            {
+                if (e.ChangeType == System.IO.WatcherChangeTypes.Changed)
+                {
+                    var componentName = System.IO.Path.GetFileNameWithoutExtension(fileName);
                     
-                    // ウィンドウハンドルを取得
-                    var windowHelper = new System.Windows.Interop.WindowInteropHelper(this);
-                    var hWnd = windowHelper.Handle;
+                    // 位置情報を記録
+                    _componentManager.OnFileContentChanged(e.FilePath);
                     
-                    if (hWnd != IntPtr.Zero)
+                    // 位置制御を実行
+                    Dispatcher.Invoke(() => HandleComponentPositionChange(e.FilePath, componentName));
+                }
+                // 位置制御後も前面表示処理に進む（returnしない）
+            }
+
+
+            // 削除、名前変更、または内容変更の場合にウィンドウを前面に表示
+            if (e.ChangeType == System.IO.WatcherChangeTypes.Deleted || 
+                e.ChangeType == System.IO.WatcherChangeTypes.Renamed ||
+                e.ChangeType == System.IO.WatcherChangeTypes.Changed)
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    System.Diagnostics.Debug.WriteLine($"Component {e.ChangeType.ToString().ToLower()}, bringing window to foreground with reliable method");
+                    BringToForegroundReliable();
+                });
+            }
+            else if (e.ChangeType == System.IO.WatcherChangeTypes.Created)
+            {
+                System.Diagnostics.Debug.WriteLine($"Component created (file: {System.IO.Path.GetFileName(e.FilePath)}), window stays in background");
+            }
+        }
+
+        /// <summary>
+        /// コンポーネントファイルの変更を処理して位置を更新
+        /// </summary>
+        /// <param name="filePath">ファイルパス</param>
+        /// <param name="componentName">コンポーネント名</param>
+        private void HandleComponentPositionChange(string filePath, string componentName)
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine($"=== HandleComponentPositionChange ===");
+                System.Diagnostics.Debug.WriteLine($"Component {componentName} changed: {filePath}");
+
+                if (!System.IO.File.Exists(filePath))
+                {
+                    System.Diagnostics.Debug.WriteLine($"{componentName} does not exist, skipping position update");
+                    return;
+                }
+
+                // ファイルの内容を読み取り
+                string content = System.IO.File.ReadAllText(filePath);
+                System.Diagnostics.Debug.WriteLine($"File content: '{content}'");
+
+                // 位置を解析
+                var newPosition = ParseComponentPosition(content);
+                if (newPosition.HasValue)
+                {
+                    // コンポーネントタイプに応じて位置を更新
+                    switch (componentName.ToLower())
                     {
-                        // ウィンドウが最小化されている場合は復元
-                        ShowWindow(hWnd, SW_RESTORE);
-                        
-                        // ウィンドウを最前面に表示
-                        SetForegroundWindow(hWnd);
-                        
-                        System.Diagnostics.Debug.WriteLine("Window brought to foreground successfully");
-                    }
-                    else
-                    {
-                        System.Diagnostics.Debug.WriteLine("Failed to get window handle");
+                        case "gamewindow":
+                            MoveWindowToPosition(newPosition.Value);
+                            break;
+                        case "button":
+                            SetButtonPosition(newPosition.Value.X, newPosition.Value.Y);
+                            break;
+                        case "yes":
+                            SetYESPosition(newPosition.Value.X, newPosition.Value.Y);
+                            break;
+                        case "message":
+                            SetKeyPosition(newPosition.Value.X, newPosition.Value.Y);
+                            break;
+                        case "door":
+                            SetDoorPosition(newPosition.Value.X, newPosition.Value.Y);
+                            break;
+                        case "background":
+                            SetBackgroundPosition(newPosition.Value.X, newPosition.Value.Y);
+                            break;
                     }
                 }
-                catch (Exception ex)
+                else
                 {
-                    System.Diagnostics.Debug.WriteLine($"Error bringing window to foreground: {ex.Message}");
+                    System.Diagnostics.Debug.WriteLine($"Failed to parse position from {componentName}, keeping current position");
                 }
-            });
+
+                System.Diagnostics.Debug.WriteLine($"=== End HandleComponentPositionChange ===\n");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error handling {componentName} position change: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// GameWindow.txtの変更を処理してウィンドウ位置を更新
+        /// </summary>
+        /// <param name="filePath">GameWindow.txtのパス</param>
+        private void HandleGameWindowPositionChange(string filePath)
+        {
+            HandleComponentPositionChange(filePath, "GameWindow");
+            
+            // GameWindowPositionChangedイベントを発火
+            try
+            {
+                if (System.IO.File.Exists(filePath))
+                {
+                    string content = System.IO.File.ReadAllText(filePath);
+                    var newPosition = ParseComponentPosition(content);
+                    if (newPosition.HasValue)
+                    {
+                        var eventDispatcher = (System.Windows.Application.Current as App)?.GetEventDispatcher();
+                        if (eventDispatcher != null)
+                        {
+                            var positionChangedEvent = new Core.Events.GameWindowPositionChangedEvent(newPosition.Value);
+                            eventDispatcher.Dispatch(positionChangedEvent);
+                            System.Diagnostics.Debug.WriteLine($"GameWindowPositionChangedEvent dispatched: {positionChangedEvent}");
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error dispatching GameWindowPositionChangedEvent: {ex.Message}");
+            }
         }
 
         [System.Runtime.InteropServices.DllImport("user32.dll")]
@@ -462,6 +661,8 @@ namespace SELLCT.Views
                 {
                     StatusText.Text = $"手紙 {@event.LetterIndex} をダウンロードしました";
                     UpdateDebugInfo();
+                    
+                    // 手紙ダウンロード時に次の手紙のタイマーをリセット（コントローラーで処理）
                 }
                 catch (Exception ex)
                 {
@@ -479,7 +680,7 @@ namespace SELLCT.Views
             {
                 try
                 {
-                    StatusText.Text = "PassWord.txtをダウンロードしました";
+                    StatusText.Text = "message.txtをダウンロードしました";
                     UpdateDebugInfo();
                 }
                 catch (Exception ex)
@@ -493,7 +694,7 @@ namespace SELLCT.Views
         /// </summary>
         public void DisplayMessage(string message, string title = "SELLCT")
         {
-            ShowDialogMessage(message);
+            _dialogController?.ShowDialogMessage(message);
         }
 
         /// <summary>
@@ -501,28 +702,15 @@ namespace SELLCT.Views
         /// </summary>
         public void ShowDialogMessage(params string[] messages)
         {
-            // キューに追加可能かチェック
-            if (!CanAddToQueue())
-            {
-                System.Diagnostics.Debug.WriteLine("[ShowDialogMessage] Cannot add to queue, ignoring messages");
-                return;
-            }
+            _dialogController?.ShowDialogMessage(messages);
+        }
 
-            foreach (var msg in messages)
-            {
-                EnqueueUniqueMessage(msg);
-            }
-
-            if (!_isTyping && !_awaitingChoice && TextWindow.Visibility == Visibility.Visible)
-            {
-                ProcessNextDialogMessage();
-            }
-            else if (TextWindow.Visibility != Visibility.Visible)
-            {
-                TextWindow.Visibility = Visibility.Visible;
-                // グローバルクリックキャッチャーを廃止し、MainWindow_MouseDownで処理
-                StartDialogFadeIn();
-            }
+        /// <summary>
+        /// 疑似デスクトップアイコンマネージャーを取得
+        /// </summary>
+        public Infrastructure.Services.PseudoDesktopIconManager GetPseudoDesktopIconManager()
+        {
+            return _pseudoDesktopIconManager;
         }
 
         /// <summary>
@@ -530,84 +718,7 @@ namespace SELLCT.Views
         /// </summary>
         public void ShowChoice()
         {
-            _dialogMessageQueue.Enqueue(new DialogItem { Type = DialogItemType.Choice });
-            if (!_isTyping && !_awaitingChoice)
-            {
-                ProcessNextDialogMessage();
-            }
-            else if (TextWindow.Visibility != Visibility.Visible)
-            {
-                // グローバルクリックキャッチャーを廃止し、MainWindow_MouseDownで処理
-                StartDialogFadeIn();
-            }
-        }
-
-        /// <summary>
-        /// 次の対話メッセージを処理
-        /// </summary>
-        private void ProcessNextDialogMessage()
-        {
-            System.Diagnostics.Debug.WriteLine($"[ProcessNextDialogMessage] Queue count: {_dialogMessageQueue.Count}");
-
-            if (_dialogMessageQueue.Any())
-            {
-                var nextItem = _dialogMessageQueue.Dequeue();
-                System.Diagnostics.Debug.WriteLine($"[ProcessNextDialogMessage] Dequeued item Type: {nextItem.Type}, Message: {nextItem.Message}");
-
-                if (nextItem.Type == DialogItemType.Text)
-                {
-                    _currentFullMessage = nextItem.Message;
-                    _currentMessageCharIndex = 0;
-                    DialogText.Text = string.Empty;
-                    _isTyping = true;
-                    _typingTimer.Start();
-
-                    // 選択肢ボタンを非表示にする
-                    ChoiceButtonsPanel.Visibility = Visibility.Collapsed;
-                }
-                else if (nextItem.Type == DialogItemType.Choice)
-                {
-                    // 選択肢を表示
-                    ChoiceButtonsPanel.Visibility = Visibility.Visible;
-                    YesButton.Visibility = Visibility.Visible; // 個別ボタンの可視性を復元
-                    NoButton.Visibility = Visibility.Visible; // 個別ボタンの可視性を復元
-                    // テキストウィンドウは表示したまま
-                    // グローバルクリックキャッチャーを廃止し、MainWindow_MouseDownで処理 
-                    _awaitingChoice = true;
-                    _typingTimer.Stop(); // テキストの自動進行を停止
-                    System.Diagnostics.Debug.WriteLine("[ProcessNextDialogMessage] Choice displayed. YesButton: {YesButton.Visibility}, NoButton: {NoButton.Visibility}");
-                }
-            }
-            else
-            {
-                System.Diagnostics.Debug.WriteLine("[ProcessNextDialogMessage] Message queue empty. Keeping dialog visible.");
-                _isTyping = false;
-                _typingTimer.Stop();
-                _awaitingChoice = false;
-            }
-        }
-
-        /// <summary>
-        /// タイピングタイマーイベント
-        /// </summary>
-        private void TypingTimer_Tick(object sender, EventArgs e)
-        {
-            if (_currentMessageCharIndex < _currentFullMessage.Length)
-            {
-                DialogText.Text += _currentFullMessage[_currentMessageCharIndex];
-                _currentMessageCharIndex++;
-            }
-            else
-            {
-                _isTyping = false;
-                _typingTimer.Stop();
-                
-                // タイピング完了時にメッセージを履歴に追加
-                AddMessageToHistory(_currentFullMessage);
-                
-                // タイピング完了後はクリック待ちとなる（自動進行を削除）
-                System.Diagnostics.Debug.WriteLine("[TypingTimer_Tick] Typing completed. Waiting for click to continue.");
-            }
+            _dialogController?.ShowChoice();
         }
 
         private bool _wasWindowFocused = true;
@@ -624,7 +735,7 @@ namespace SELLCT.Views
             bool isCurrentlyForeground = IsWindowInForeground();
             TimeSpan timeSinceLastFocus = DateTime.Now - _lastFocusTime;
 
-            System.Diagnostics.Debug.WriteLine($"[MainWindow_MouseDown] Click detected. _isTyping: {_isTyping}, _awaitingChoice: {_awaitingChoice}, _wasWindowFocused: {_wasWindowFocused}, isCurrentlyForeground: {isCurrentlyForeground}, timeSinceLastFocus: {timeSinceLastFocus.TotalMilliseconds}ms");
+            System.Diagnostics.Debug.WriteLine($"[MainWindow_MouseDown] Click detected. _wasWindowFocused: {_wasWindowFocused}, isCurrentlyForeground: {isCurrentlyForeground}, timeSinceLastFocus: {timeSinceLastFocus.TotalMilliseconds}ms");
 
             // ウィンドウがフォーカスを失っていた場合、または最近フォーカスを取得した場合のフォーカス復元用クリック
             if (!_wasWindowFocused || timeSinceLastFocus.TotalMilliseconds < 100)
@@ -647,31 +758,8 @@ namespace SELLCT.Views
                 }
             }
 
-            // テキストウィンドウが表示されていない場合は何もしない
-            if (TextWindow.Visibility != Visibility.Visible) return;
-
-            // 選択肢表示中はクリックを無視
-            if (_awaitingChoice) return;
-
-            if (_isTyping)
-            {
-                // タイピング中の場合は残りのテキストを一気に表示
-                DialogText.Text = _currentFullMessage;
-                _currentMessageCharIndex = _currentFullMessage.Length;
-                _isTyping = false;
-                _typingTimer.Stop();
-                
-                // タイピングスキップ時にもメッセージを履歴に追加
-                AddMessageToHistory(_currentFullMessage);
-                
-                System.Diagnostics.Debug.WriteLine("[MainWindow_MouseDown] Text typing skipped.");
-            }
-            else
-            {
-                // タイピング完了済みの場合は次のメッセージを処理
-                ProcessNextDialogMessage();
-                System.Diagnostics.Debug.WriteLine("[MainWindow_MouseDown] ProcessNextDialogMessage called.");
-            }
+            // ダイアログコントローラーに移譲
+            _dialogController?.HandleDialogClick();
         }
 
         /// <summary>
@@ -688,9 +776,9 @@ namespace SELLCT.Views
                 // ボタン要素の判定
                 if (current is Button button)
                 {
-                    // MainButton、YesButton、NoButton、LogButton、CloseLogButtonは優先度が高い
+                    // MainButton、YesButton、NoButton、LogButton、CloseLogButton、CustomCloseButtonは優先度が高い
                     if (button.Name == "MainButton" || button.Name == "YesButton" || button.Name == "NoButton" || 
-                        button.Name == "LogButton" || button.Name == "CloseLogButton")
+                        button.Name == "LogButton" || button.Name == "CloseLogButton" || button.Name == "CustomCloseButton")
                     {
                         return true;
                     }
@@ -710,48 +798,153 @@ namespace SELLCT.Views
         }
 
         /// <summary>
-        /// キューに重複しないメッセージを追加
+        /// カスタム閉じるボタンのクリックハンドラー
         /// </summary>
-        private void EnqueueUniqueMessage(string message)
+        private void CustomCloseButton_Click(object sender, RoutedEventArgs e)
         {
-            // 現在表示中のメッセージと同じ場合は追加しない
-            if (_currentFullMessage == message)
-            {
-                System.Diagnostics.Debug.WriteLine($"[EnqueueUniqueMessage] Current message duplicate ignored: {message}");
-                return;
-            }
-
-            // キュー内に同じメッセージが既に存在する場合は追加しない
-            if (_dialogMessageQueue.Any(item => item.Type == DialogItemType.Text && item.Message == message))
-            {
-                System.Diagnostics.Debug.WriteLine($"[EnqueueUniqueMessage] Queue duplicate ignored: {message}");
-                return;
-            }
-            
-            _dialogMessageQueue.Enqueue(new DialogItem { Type = DialogItemType.Text, Message = message });
-            System.Diagnostics.Debug.WriteLine($"[EnqueueUniqueMessage] Message enqueued: {message}");
+            System.Diagnostics.Debug.WriteLine("Custom close button clicked - closing application...");
+            this.Close();
         }
 
         /// <summary>
-        /// キューに追加可能かどうかを判定
+        /// ウィンドウを画面中央に配置
         /// </summary>
-        private bool CanAddToQueue()
+        private void CenterWindowOnScreen()
         {
-            // ボタン処理中は追加不可
-            if (_isButtonProcessing)
+            try
             {
-                System.Diagnostics.Debug.WriteLine("[CanAddToQueue] Button processing in progress, cannot add to queue");
-                return false;
-            }
+                var screenWidth = SystemParameters.PrimaryScreenWidth;
+                var screenHeight = SystemParameters.PrimaryScreenHeight;
+                var windowWidth = this.ActualWidth > 0 ? this.ActualWidth : this.Width;
+                var windowHeight = this.ActualHeight > 0 ? this.ActualHeight : this.Height;
 
-            // 選択肢表示中は追加不可
-            if (_awaitingChoice)
+                // 画面中央座標を計算
+                var centerX = (screenWidth - windowWidth) / 2;
+                var centerY = (screenHeight - windowHeight) / 2;
+
+                // ウィンドウ位置を設定
+                this.Left = centerX;
+                this.Top = centerY;
+
+                System.Diagnostics.Debug.WriteLine($"Window centered at: ({this.Left:F0}, {this.Top:F0})");
+                System.Diagnostics.Debug.WriteLine($"Screen: {screenWidth}x{screenHeight}, Window: {windowWidth}x{windowHeight}");
+            }
+            catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine("[CanAddToQueue] Awaiting choice, cannot add to queue");
-                return false;
+                System.Diagnostics.Debug.WriteLine($"Error centering window: {ex.Message}");
             }
+        }
 
-            return true;
+        /// <summary>
+        /// 画面中央座標を取得
+        /// </summary>
+        /// <returns>画面中央のPoint</returns>
+        public Point GetScreenCenter()
+        {
+            try
+            {
+                var screenWidth = SystemParameters.PrimaryScreenWidth;
+                var screenHeight = SystemParameters.PrimaryScreenHeight;
+                var windowWidth = this.ActualWidth > 0 ? this.ActualWidth : this.Width;
+                var windowHeight = this.ActualHeight > 0 ? this.ActualHeight : this.Height;
+
+                var centerX = (screenWidth - windowWidth) / 2;
+                var centerY = (screenHeight - windowHeight) / 2;
+
+                return new Point(centerX, centerY);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error getting screen center: {ex.Message}");
+                return new Point(100, 100); // フォールバック
+            }
+        }
+
+        /// <summary>
+        /// コンポーネントファイルの内容からPositionを解析
+        /// </summary>
+        /// <param name="content">ファイルの内容</param>
+        /// <returns>解析された位置のPoint、失敗時はnull</returns>
+        private Point? ParseComponentPosition(string content)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(content))
+                {
+                    System.Diagnostics.Debug.WriteLine("Component content is empty");
+                    return null;
+                }
+
+                System.Diagnostics.Debug.WriteLine($"Parsing component content: '{content.Trim()}'");
+
+                // "Position = x,y" 形式を解析
+                var lines = content.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+                foreach (var line in lines)
+                {
+                    var trimmedLine = line.Trim();
+                    if (trimmedLine.StartsWith("Position", StringComparison.OrdinalIgnoreCase))
+                    {
+                        // "Position = x,y" から "x,y" 部分を抽出
+                        var equalIndex = trimmedLine.IndexOf('=');
+                        if (equalIndex > 0 && equalIndex < trimmedLine.Length - 1)
+                        {
+                            var positionPart = trimmedLine.Substring(equalIndex + 1).Trim();
+                            var coordinates = positionPart.Split(',');
+                            
+                            if (coordinates.Length == 2)
+                            {
+                                if (double.TryParse(coordinates[0].Trim(), out double x) && 
+                                    double.TryParse(coordinates[1].Trim(), out double y))
+                                {
+                                    System.Diagnostics.Debug.WriteLine($"Successfully parsed position: ({x:F0}, {y:F0})");
+                                    return new Point(x, y);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                System.Diagnostics.Debug.WriteLine("No valid Position line found in component file");
+                return null;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error parsing component position: {ex.Message}");
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// ウィンドウ位置を指定された座標に移動
+        /// </summary>
+        /// <param name="newPosition">新しい位置</param>
+        private void MoveWindowToPosition(Point newPosition)
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine($"Moving window to position: ({newPosition.X:F0}, {newPosition.Y:F0})");
+                
+                this.Left = newPosition.X;
+                this.Top = newPosition.Y;
+
+                System.Diagnostics.Debug.WriteLine($"Window moved successfully. New position: ({this.Left:F0}, {this.Top:F0})");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error moving window to position: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// ウィンドウドラッグの無効化
+        /// </summary>
+        protected override void OnMouseDown(MouseButtonEventArgs e)
+        {
+            // カスタムタイトルバー以外でのドラッグを無効化
+            // base.OnMouseDown(e) を呼ばないことでドラッグを阻止
+            
+            // MainWindow_MouseDownはXAMLのMouseDownイベントで既に呼ばれるため、ここでは呼ばない
+            // 重複呼び出しを防ぐ
         }
 
         /// <summary>
@@ -804,18 +997,8 @@ namespace SELLCT.Views
                 string buttonText = MainButton.Content.ToString();
                 StatusText.Text = "メインボタンがクリックされました";
 
-                // 最初の手紙タイマーを開始
-                if (!_initialLetterTimer.IsEnabled && _letterService.CurrentLetterIndex == 0)
-                {
-                    var firstCondition = _letterService.GetNextLetterCondition();
-                    if (firstCondition != null)
-                    {
-                        _initialLetterTimer.Interval = TimeSpan.FromSeconds(firstCondition.TimeIntervalSeconds);
-                        System.Diagnostics.Debug.WriteLine($"First letter timer set for {firstCondition.TimeIntervalSeconds} seconds");
-                    }
-                    _initialLetterTimer.Start();
-                    StatusText.Text = "手紙の到着を待っています...";
-                }
+                // 手紙表示コントローラーに移譲
+                _letterDisplayController?.HandleMainButtonClick();
 
                 if (buttonText == "アップロード")
                 {
@@ -832,13 +1015,13 @@ namespace SELLCT.Views
                             "SELLCTがファイルにアクセスできるようになりました。",
                             "SELLCT - アップロード完了");
 
-                        ShowDialogMessage("ファイルアクセス権限を取得しました。\n最後の障壁を取り除いてください。\nButton.componentを削除してください。");
+                        _dialogController?.ShowDialogMessage("ファイルアクセス権限を取得しました。\n最後の障壁を取り除いてください。\nButton.componentを削除してください。");
                     }
                 }
                 else if (!IsKnownButtonText(buttonText))
                 {
-                    // 未設定の名前の場合、テキストウィンドウに表示
-                    HandleUnknownButtonClick(buttonText);
+                    // 未設定の名前の場合、ダイアログコントローラーに移譲
+                    _dialogController?.HandleUnknownButtonClick(buttonText);
                 }
             }
             catch (Exception ex)
@@ -857,213 +1040,11 @@ namespace SELLCT.Views
         }
 
         /// <summary>
-        /// 未知のボタンクリック処理
-        /// </summary>
-        private void HandleUnknownButtonClick(string buttonText)
-        {
-            // 排他制御チェック
-            if (_isButtonProcessing)
-            {
-                System.Diagnostics.Debug.WriteLine($"[HandleUnknownButtonClick] Button processing in progress, ignoring click: {buttonText}");
-                return;
-            }
-
-            // キューに追加可能かチェック
-            if (!CanAddToQueue())
-            {
-                System.Diagnostics.Debug.WriteLine($"[HandleUnknownButtonClick] Cannot add to queue, ignoring click: {buttonText}");
-                return;
-            }
-
-            if (TextWindow.Visibility != Visibility.Visible) return;
-
-            try
-            {
-                // ボタン処理開始
-                _isButtonProcessing = true;
-                System.Diagnostics.Debug.WriteLine($"[HandleUnknownButtonClick] Starting button processing: {buttonText}");
-
-                // テキストウィンドウを表示
-                SetTextWindowVisibility(true);
-                
-                string message1 = $"ボタン名前を変えられるみたいですが、\n";
-                string message2 = $"どうやら'{buttonText}'機能はないようですね。\n";
-                
-                // 重複チェックを使用してキューに追加
-                EnqueueUniqueMessage(message1);
-                EnqueueUniqueMessage(message2);
-                
-                StatusText.Text = $"'{buttonText}'機能について説明を表示しました";
-                
-                System.Diagnostics.Debug.WriteLine($"Unknown button clicked: {buttonText}");
-
-                // キューの処理を開始
-                if (!_isTyping && !_awaitingChoice && _dialogMessageQueue.Count > 0)
-                {
-                    ProcessNextDialogMessage();
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Error in HandleUnknownButtonClick: {ex.Message}");
-            }
-            finally
-            {
-                // ボタン処理終了（少し遅延を設けて重複クリックを防ぐ）
-                var timer = new DispatcherTimer();
-                timer.Interval = TimeSpan.FromMilliseconds(500);
-                timer.Tick += (s, e) =>
-                {
-                    _isButtonProcessing = false;
-                    timer.Stop();
-                    System.Diagnostics.Debug.WriteLine($"[HandleUnknownButtonClick] Button processing completed: {buttonText}");
-                };
-                timer.Start();
-            }
-        }
-
-        /// <summary>
-        /// 最初の手紙タイマーイベント
-        /// </summary>
-        private void InitialLetterTimer_Tick(object sender, EventArgs e)
-        {
-            _initialLetterTimer.Stop();
-            TryShowNextLetterWithCondition();
-        }
-
-        /// <summary>
-        /// その後の手紙タイマーイベント
-        /// </summary>
-        private void SubsequentLetterTimer_Tick(object sender, EventArgs e)
-        {
-            _subsequentLetterTimer.Stop();
-            TryShowNextLetterWithCondition();
-        }
-
-        /// <summary>
-        /// 条件をチェックして次の手紙を表示
-        /// </summary>
-        private void TryShowNextLetterWithCondition()
-        {
-            try
-            {
-                var condition = _letterService.GetNextLetterCondition();
-                if (condition == null)
-                {
-                    // 条件が設定されていない場合は従来通り表示
-                    _letterService.ShowNextLetter();
-                    return;
-                }
-
-                // componentsフォルダのパスを取得
-                var componentsPath = "components";
-                
-                // 条件チェック
-                bool conditionMet = _letterService.CheckCondition(condition, componentsPath);
-                
-                System.Diagnostics.Debug.WriteLine($"Letter condition check: {condition.GetDescription()} = {conditionMet}");
-
-                if (conditionMet)
-                {
-                    _letterService.ShowNextLetter();
-                    SetupNextLetterTimer();
-                }
-                else
-                {
-                    // 条件が満たされていない場合は少し待ってから再チェック
-                    System.Diagnostics.Debug.WriteLine("Letter condition not met, retrying in 2 seconds...");
-                    var retryTimer = new DispatcherTimer();
-                    retryTimer.Interval = TimeSpan.FromSeconds(2);
-                    retryTimer.Tick += (s, e) =>
-                    {
-                        retryTimer.Stop();
-                        TryShowNextLetterWithCondition();
-                    };
-                    retryTimer.Start();
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Error in TryShowNextLetterWithCondition: {ex.Message}");
-                // エラー時は従来通り表示
-                _letterService.ShowNextLetter();
-                SetupNextLetterTimer();
-            }
-        }
-
-        /// <summary>
-        /// 次の手紙のタイマーを設定
-        /// </summary>
-        private void SetupNextLetterTimer()
-        {
-            try
-            {
-                var nextCondition = _letterService.GetNextLetterCondition();
-                if (nextCondition != null && HasTimeComponent(nextCondition.TriggerType))
-                {
-                    _subsequentLetterTimer.Interval = TimeSpan.FromSeconds(nextCondition.TimeIntervalSeconds);
-                    _subsequentLetterTimer.Start();
-                    System.Diagnostics.Debug.WriteLine($"Next letter timer set for {nextCondition.TimeIntervalSeconds} seconds");
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Error setting up next letter timer: {ex.Message}");
-            }
-        }
-
-        /// <summary>
-        /// 条件タイプが時間コンポーネントを持つかチェック
-        /// </summary>
-        private bool HasTimeComponent(SELLCT.Core.Entities.LetterTriggerType triggerType)
-        {
-            return triggerType == SELLCT.Core.Entities.LetterTriggerType.TimeOnly ||
-                   triggerType == SELLCT.Core.Entities.LetterTriggerType.TimeAndFileExistence ||
-                   triggerType == SELLCT.Core.Entities.LetterTriggerType.TimeAndFileNotExistence ||
-                   triggerType == SELLCT.Core.Entities.LetterTriggerType.TimeAndAllFilesExist ||
-                   triggerType == SELLCT.Core.Entities.LetterTriggerType.TimeAndAnyFileExists ||
-                   triggerType == SELLCT.Core.Entities.LetterTriggerType.TimeAndAllFilesNotExist ||
-                   triggerType == SELLCT.Core.Entities.LetterTriggerType.TimeAndAnyFileNotExists;
-        }
-
-        /// <summary>
         /// 手紙クリック
         /// </summary>
         private void Letter_Click(object sender, MouseButtonEventArgs e)
         {
-            try
-            {
-                var letterIndex = _letterService?.CurrentLetterIndex ?? 1;
-                if (_letterService == null) return;
-
-                // Immediately hide the letter
-                LetterImage.Visibility = Visibility.Collapsed;
-
-                // Handle the download and check for success
-                bool success = _letterService.OnLetterClicked(letterIndex);
-
-                if (success)
-                {
-                    // ダウンロード成功後、次の手紙のタイマーを開始
-                    if (!_letterService.IsSequenceComplete)
-                    {
-                        SetupNextLetterTimer();
-                        StatusText.Text = "次の手紙の到着を待っています...";
-                    }
-                }
-                else
-                {
-                    // If failed or cancelled, show the letter again
-                    LetterImage.Visibility = Visibility.Visible;
-                    StatusText.Text = "手紙のダウンロードがキャンセルされました";
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Error in Letter_Click: {ex.Message}");
-                // Show the letter again in case of an unexpected error
-                LetterImage.Visibility = Visibility.Visible;
-            }
+            _letterDisplayController?.HandleLetterClick();
         }
 
         /// <summary>
@@ -1084,18 +1065,18 @@ namespace SELLCT.Views
                 if (success)
                 {
                     // ダウンロード成功時
-                    StatusText.Text = "PassWord.txtをダウンロードしました";
+                    StatusText.Text = "message.txtをダウンロードしました";
                     if (TextWindow.Visibility == Visibility.Visible)
                     {
-                        ShowDialogMessage("パスワードファイルをダウンロードしました！真の解放のためには...GameWindow.componentを削除してください。");
+                        ShowDialogMessage("なるほど...なにやら意味深なメッセージですね...", "\"画面の背後\"に隠されているとはどういうことでしょうか...?");
                     }
-                    UpdateDebugInfo();
+                    //UpdateDebugInfo();
                 }
                 else
                 {
                     // ダウンロード失敗またはキャンセル時は鍵を再表示
                     KeyImage.Visibility = Visibility.Visible;
-                    StatusText.Text = "パスワードファイルのダウンロードがキャンセルされました";
+                    StatusText.Text = "メッセージファイルのダウンロードがキャンセルされました";
                 }
             }
             catch (Exception ex)
@@ -1134,25 +1115,7 @@ namespace SELLCT.Views
         /// </summary>
         private void LogButton_Click(object sender, RoutedEventArgs e)
         {
-            try
-            {
-                System.Diagnostics.Debug.WriteLine("[LogButton_Click] Log button clicked.");
-                
-                // ログパネルの表示/非表示を切り替え
-                if (LogPanel.Visibility == Visibility.Visible)
-                {
-                    LogPanel.Visibility = Visibility.Collapsed;
-                }
-                else
-                {
-                    UpdateLogDisplay();
-                    LogPanel.Visibility = Visibility.Visible;
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Error in LogButton_Click: {ex.Message}");
-            }
+            _dialogController?.ToggleLogDisplay();
         }
 
         /// <summary>
@@ -1160,80 +1123,48 @@ namespace SELLCT.Views
         /// </summary>
         private void CloseLogButton_Click(object sender, RoutedEventArgs e)
         {
-            try
-            {
-                System.Diagnostics.Debug.WriteLine("[CloseLogButton_Click] Close log button clicked.");
-                LogPanel.Visibility = Visibility.Collapsed;
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Error in CloseLogButton_Click: {ex.Message}");
-            }
+            _dialogController?.CloseLogPanel();
         }
 
         /// <summary>
-        /// ログ表示を更新
+        /// クリーンアップボタンクリック（デバッグ用）
         /// </summary>
-        private void UpdateLogDisplay()
+        private void CleanupButton_Click(object sender, RoutedEventArgs e)
         {
             try
             {
-                if (_messageHistory.Count == 0)
-                {
-                    LogText.Text = "まだメッセージはありません。";
-                    return;
-                }
-
-                var logContent = new StringBuilder();
-                for (int i = 0; i < _messageHistory.Count; i++)
-                {
-                    logContent.AppendLine($"[{i + 1:D2}] {_messageHistory[i]}");
-                    if (i < _messageHistory.Count - 1)
-                    {
-                        logContent.AppendLine();
-                    }
-                }
-
-                LogText.Text = logContent.ToString();
+                System.Diagnostics.Debug.WriteLine("Manual cleanup initiated from debug panel");
                 
-                // スクロールを最下部に移動
-                LogScrollViewer.ScrollToEnd();
-                
-                System.Diagnostics.Debug.WriteLine($"[UpdateLogDisplay] Log updated with {_messageHistory.Count} messages.");
+                // 確認ダイアログを表示
+                var result = MessageBox.Show(
+                    "すべてのゲームファイル（components、Authority、手紙ファイル等）を削除します。\n続行しますか？",
+                    "SELLCT - クリーンアップ確認",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Warning,
+                    MessageBoxResult.No
+                );
+
+                if (result == MessageBoxResult.Yes)
+                {
+                    CleanupService.PerformManualCleanup();
+                    
+                    MessageBox.Show(
+                        "クリーンアップが完了しました。",
+                        "SELLCT - クリーンアップ完了",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information
+                    );
+                }
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error in UpdateLogDisplay: {ex.Message}");
-                LogText.Text = "ログの表示中にエラーが発生しました。";
-            }
-        }
-
-        /// <summary>
-        /// メッセージを履歴に追加
-        /// </summary>
-        private void AddMessageToHistory(string message)
-        {
-            if (string.IsNullOrWhiteSpace(message)) return;
-
-            try
-            {
-                // 改行を統一し、空白行を削除
-                var cleanMessage = message.Replace("\r\n", "\n").Replace("\r", "\n").Trim();
-                if (string.IsNullOrEmpty(cleanMessage)) return;
-
-                // 重複チェック（直前のメッセージと同じ場合は追加しない）
-                if (_messageHistory.Count > 0 && _messageHistory[_messageHistory.Count - 1] == cleanMessage)
-                {
-                    System.Diagnostics.Debug.WriteLine($"[AddMessageToHistory] Duplicate message ignored: {cleanMessage}");
-                    return;
-                }
-
-                _messageHistory.Add(cleanMessage);
-                System.Diagnostics.Debug.WriteLine($"[AddMessageToHistory] Message added to history: {cleanMessage}");
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Error in AddMessageToHistory: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Error in CleanupButton_Click: {ex.Message}");
+                MessageBox.Show(
+                    $"クリーンアップ中にエラーが発生しました。\n\nエラー: {ex.Message}",
+                    "SELLCT - エラー",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error
+                );
             }
         }
 
@@ -1266,9 +1197,22 @@ namespace SELLCT.Views
                     _componentManager.ComponentsFolderChanged -= OnComponentsFolderChanged;
                 }
 
+                // 隠しファイル表示設定を復元する（ゲーム終了時）
+                try
+                {
+                    bool result = _hiddenFileSettingService?.RestoreHiddenFileDisplay() ?? false;
+                    System.Diagnostics.Debug.WriteLine($"[MainWindow] Hidden file display settings restored: {result}");
+                }
+                catch (Exception hiddenFileEx)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[MainWindow] Error restoring hidden file display: {hiddenFileEx.Message}");
+                }
+
                 // リソース解放
                 _letterService?.Dispose();
                 _componentManager?.Dispose();
+                _pseudoDesktopIconManager?.Dispose();
+                System.Diagnostics.Debug.WriteLine("PseudoDesktopIconManager disposed in MainWindow");
             }
             catch (Exception ex)
             {
@@ -1299,6 +1243,32 @@ namespace SELLCT.Views
             }
         }
 
+        /// <summary>
+        /// ウィンドウの最前面表示を制御
+        /// </summary>
+        /// <param name="topmost">最前面に表示するかどうか</param>
+        public void SetTopmost(bool topmost)
+        {
+            try
+            {
+                this.Topmost = topmost;
+                if (topmost)
+                {
+                    this.Activate();
+                    this.Focus();
+                    System.Diagnostics.Debug.WriteLine("MainWindow set to topmost and activated");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("MainWindow topmost disabled");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error setting MainWindow topmost: {ex.Message}");
+            }
+        }
+
         // アクションハンドラからUI要素の可視性を制御するための新しいメソッド
         public void SetMainButtonVisibility(bool isVisible)
         {
@@ -1308,6 +1278,11 @@ namespace SELLCT.Views
         public void SetKeyVisibility(bool isVisible)
         {
             KeyImage.Visibility = isVisible ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        public void SetDoorVisibility(bool isVisible)
+        {
+            DoorImage.Visibility = isVisible ? Visibility.Visible : Visibility.Collapsed;
         }
 
         public void SetTextWindowVisibility(bool isVisible)
@@ -1320,6 +1295,145 @@ namespace SELLCT.Views
         {
             // 背景画像の表示/非表示を設定
             BackgroundImage.Visibility = isVisible ? Visibility.Visible : Visibility.Collapsed;
+            
+            // 背景画像が非表示のときはウィンドウを透明化
+            // GameCanvasなどの必要な要素は不透明度を維持
+            if (!isVisible)
+            {
+                System.Diagnostics.Debug.WriteLine("背景画像が非表示 - ウィンドウを透明化");
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("背景画像が表示 - ウィンドウを不透明化");
+            }
+        }
+
+        // 位置制御メソッド
+        public void SetButtonPosition(double x, double y)
+        {
+            Canvas.SetLeft(MainButton, x);
+            Canvas.SetTop(MainButton, y);
+            System.Diagnostics.Debug.WriteLine($"Button position set to ({x}, {y})");
+        }
+
+        public void SetYESPosition(double x, double y)
+        {
+            Canvas.SetLeft(YesButton, x);
+            Canvas.SetTop(YesButton, y);
+            System.Diagnostics.Debug.WriteLine($"YES button position set to ({x}, {y})");
+        }
+
+        public void SetKeyPosition(double x, double y)
+        {
+            Canvas.SetLeft(KeyImage, x);
+            Canvas.SetTop(KeyImage, y);
+            System.Diagnostics.Debug.WriteLine($"Key position set to ({x}, {y})");
+        }
+
+        public void SetDoorPosition(double x, double y)
+        {
+            Canvas.SetLeft(DoorImage, x);
+            Canvas.SetTop(DoorImage, y);
+            System.Diagnostics.Debug.WriteLine($"Door position set to ({x}, {y})");
+        }
+
+        public void SetBackgroundPosition(double x, double y)
+        {
+            Canvas.SetLeft(BackgroundImage, x);
+            Canvas.SetTop(BackgroundImage, y);
+            System.Diagnostics.Debug.WriteLine($"Background position set to ({x}, {y})");
+
+            // 背景位置変更イベントを発行
+            var eventDispatcher = (System.Windows.Application.Current as App)?.GetEventDispatcher();
+            eventDispatcher?.Dispatch(new BackgroundPositionChangedEvent(new System.Windows.Point(x, y), "Background"));
+
+            // 背景が初期位置から動いた場合、Authorityフォルダを表示
+            if (Math.Abs(x) > 10 || Math.Abs(y) > 10) // 10ピクセル以上動いた場合
+            {
+                ShowAuthorityFolder();
+            }
+            else
+            {
+                HideAuthorityFolder();
+            }
+        }
+
+        /// <summary>
+        /// Authorityフォルダを表示
+        /// </summary>
+        private void ShowAuthorityFolder()
+        {
+            var iconManager = GetPseudoDesktopIconManager();
+            if (iconManager != null)
+            {
+                iconManager.ShowPseudoIcon("Authority");
+                System.Diagnostics.Debug.WriteLine("Authority folder shown due to background position change");
+            }
+        }
+
+        /// <summary>
+        /// Authorityフォルダを非表示
+        /// </summary>
+        private void HideAuthorityFolder()
+        {
+            var iconManager = GetPseudoDesktopIconManager();
+            if (iconManager != null)
+            {
+                iconManager.HidePseudoIcon("Authority");
+                System.Diagnostics.Debug.WriteLine("Authority folder hidden due to background returning to initial position");
+            }
+        }
+
+        /// <summary>
+        /// 確実なウィンドウ前面表示（Windows 10/11対応）
+        /// </summary>
+        private void BringToForegroundReliable()
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine("BringToForegroundReliable: Starting reliable foreground process");
+                
+                // 1. ウィンドウが非表示の場合は表示
+                if (!this.IsVisible)
+                {
+                    System.Diagnostics.Debug.WriteLine("Window is not visible, showing window");
+                    this.Show();
+                }
+                
+                // 2. 最小化されている場合は通常状態に復元
+                if (this.WindowState == WindowState.Minimized)
+                {
+                    System.Diagnostics.Debug.WriteLine("Window is minimized, restoring to normal state");
+                    this.WindowState = WindowState.Normal;
+                }
+                
+                // 3. ウィンドウをアクティブ化
+                this.Activate();
+                
+                // 4. Topmostトリック（最も重要 - Windows 10/11で確実に動作）
+                System.Diagnostics.Debug.WriteLine("Applying Topmost trick for reliable foreground display");
+                this.Topmost = true;
+                this.Topmost = false;
+                
+                // 5. フォーカス設定
+                this.Focus();
+                
+                // 6. 従来のWin32 API（補完的）
+                var windowHelper = new System.Windows.Interop.WindowInteropHelper(this);
+                var hWnd = windowHelper.Handle;
+                if (hWnd != IntPtr.Zero)
+                {
+                    ShowWindow(hWnd, SW_RESTORE);
+                    SetForegroundWindow(hWnd);
+                    System.Diagnostics.Debug.WriteLine("Applied Win32 APIs as fallback");
+                }
+                
+                System.Diagnostics.Debug.WriteLine("BringToForegroundReliable: Window brought to foreground successfully");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error in BringToForegroundReliable: {ex.Message}");
+            }
         }
 
         /// <summary>
@@ -1327,13 +1441,7 @@ namespace SELLCT.Views
         /// </summary>
         public void ClearMessageQueue()
         {
-            _dialogMessageQueue.Clear();
-            _isTyping = false;
-            _typingTimer.Stop();
-            DialogText.Text = string.Empty;
-            _awaitingChoice = false;
-            // TextWindow全体（枠を含む）を確実に非表示にする
-            TextWindow.Visibility = Visibility.Collapsed;
+            _dialogController?.ClearMessageQueue();
         }
 
         /// <summary>
@@ -1440,7 +1548,7 @@ namespace SELLCT.Views
         /// </summary>
         public bool IsMessageQueueEmpty()
         {
-            return _dialogMessageQueue?.Count == 0;
+            return _dialogController?.IsMessageQueueEmpty() ?? true;
         }
 
         /// <summary>
@@ -1448,7 +1556,7 @@ namespace SELLCT.Views
         /// </summary>
         public bool IsTyping()
         {
-            return _isTyping;
+            return _dialogController?.IsTyping() ?? false;
         }
 
         /// <summary>
@@ -1457,6 +1565,10 @@ namespace SELLCT.Views
         protected override void OnClosed(EventArgs e)
         {
             EnableMouseInput();
+            
+            // Controllerのリソース解放
+            _letterDisplayController?.Dispose();
+            _dialogController?.Dispose();
             EnableKeyboardInput();
             base.OnClosed(e);
         }

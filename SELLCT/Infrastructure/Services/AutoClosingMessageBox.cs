@@ -5,18 +5,49 @@ using System.Windows.Threading;
 
 namespace SELLCT.Infrastructure.Services
 {
+    /// <summary>
+    /// 自動閉鎖メッセージボックスクラス
+    /// 標準のMessageBoxに加えて、指定時間後に自動的に閉じる機能を提供
+    /// 社会工学デモンストレーションで強制的な通知表示に使用
+    /// Clean ArchitectureのInfrastructure層に配置されたユーティリティサービス
+    /// 非同期処理にも対応し、UI応答性を維持
+    /// </summary>
     public static class AutoClosingMessageBox
     {
+        /// <summary>
+        /// メッセージボックスを表示する（自動閉鎖オプション付き）
+        /// タイムアウト時間が指定されている場合は自動閉鎖機能を有効にする
+        /// タイムアウト時間が0以下の場合は標準のMessageBoxと同じ動作
+        /// </summary>
+        /// <param name="messageBoxText">表示するメッセージテキスト</param>
+        /// <param name="caption">ウィンドウのタイトル</param>
+        /// <param name="button">表示するボタンの種類</param>
+        /// <param name="icon">表示するアイコンの種類</param>
+        /// <param name="autoCloseTimeoutMs">自動閉鎖までの時間（ミリ秒）、0以下の場合は無効</param>
+        /// <returns>ユーザーの選択またはタイムアウト時のデフォルト結果</returns>
         public static MessageBoxResult Show(string messageBoxText, string caption = "", MessageBoxButton button = MessageBoxButton.OK, MessageBoxImage icon = MessageBoxImage.None, int autoCloseTimeoutMs = 0)
         {
+            // タイムアウトが設定されていない場合は標準のMessageBoxを使用
             if (autoCloseTimeoutMs <= 0)
             {
                 return MessageBox.Show(messageBoxText, caption, button, icon);
             }
 
+            // 自動閉鎖機能付きのメッセージボックスを表示
             return ShowAutoClosing(messageBoxText, caption, button, icon, autoCloseTimeoutMs);
         }
 
+        /// <summary>
+        /// 自動閉鎖機能付きメッセージボックスを表示する内部メソッド
+        /// DispatcherTimerを使用して指定時間後に自動的にウィンドウを閉じる
+        /// ユーザーが手動で閉じた場合とタイムアウトの両方に対応
+        /// </summary>
+        /// <param name="messageBoxText">表示するメッセージ</param>
+        /// <param name="caption">ウィンドウタイトル</param>
+        /// <param name="button">ボタンの種類</param>
+        /// <param name="icon">アイコンの種類</param>
+        /// <param name="timeoutMs">タイムアウト時間（ミリ秒）</param>
+        /// <returns>ユーザーの選択またはデフォルト結果</returns>
         private static MessageBoxResult ShowAutoClosing(string messageBoxText, string caption, MessageBoxButton button, MessageBoxImage icon, int timeoutMs)
         {
             var result = MessageBoxResult.None;
@@ -149,6 +180,17 @@ namespace SELLCT.Infrastructure.Services
             }
         }
 
+        /// <summary>
+        /// メッセージボックスを非同期で表示する
+        /// UIスレッドをブロックせずにメッセージボックスを表示可能
+        /// 長時間の処理中やタイムアウト待機中のUI応答性を維持
+        /// </summary>
+        /// <param name="messageBoxText">表示するメッセージテキスト</param>
+        /// <param name="caption">ウィンドウのタイトル</param>
+        /// <param name="button">表示するボタンの種類</param>
+        /// <param name="icon">表示するアイコンの種類</param>
+        /// <param name="autoCloseTimeoutMs">自動閉鎖までの時間（ミリ秒）</param>
+        /// <returns>ユーザーの選択またはタイムアウト時のデフォルト結果を返すTask</returns>
         public static async Task<MessageBoxResult> ShowAsync(string messageBoxText, string caption = "", MessageBoxButton button = MessageBoxButton.OK, MessageBoxImage icon = MessageBoxImage.None, int autoCloseTimeoutMs = 0)
         {
             return await Task.Run(() => Show(messageBoxText, caption, button, icon, autoCloseTimeoutMs));

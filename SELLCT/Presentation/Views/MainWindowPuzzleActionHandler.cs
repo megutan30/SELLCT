@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Animation;
@@ -10,6 +11,11 @@ using System.Threading.Tasks;
 
 namespace SELLCT.Presentation.Views
 {
+    /// <summary>
+    /// MainWindow用のパズルアクション実行ハンドラー（Presentation層）
+    /// IPuzzleActionHandlerの実装として、UI操作、システム制御、フェーズ遷移を管理
+    /// パズルゲームのアクション実行とUIレスポンスの中核的な処理を担当
+    /// </summary>
     public class MainWindowPuzzleActionHandler : IPuzzleActionHandler
     {
         private readonly MainWindow _mainWindow;
@@ -88,6 +94,9 @@ namespace SELLCT.Presentation.Views
                         case PuzzleAction.ActionType.SetKeyVisibility:
                             _mainWindow.SetKeyVisibility(action.IsVisible);
                             break;
+                        case PuzzleAction.ActionType.SetDoorVisibility:
+                            _mainWindow.SetDoorVisibility(action.IsVisible);
+                            break;
                         case PuzzleAction.ActionType.SetTextWindowVisibility:
                             _mainWindow.SetTextWindowVisibility(action.IsVisible);
                             break;
@@ -135,6 +144,67 @@ namespace SELLCT.Presentation.Views
                             break;
                         case PuzzleAction.ActionType.BetrayalEnding:
                             HandleBetrayalEnding(action);
+                            break;
+                        case PuzzleAction.ActionType.ShowPseudoDesktopIcon:
+                            HandleShowPseudoDesktopIcon(action);
+                            break;
+                        case PuzzleAction.ActionType.HidePseudoDesktopIcon:
+                            HandleHidePseudoDesktopIcon(action);
+                            break;
+                        case PuzzleAction.ActionType.UpdatePseudoIconPosition:
+                            HandleUpdatePseudoIconPosition(action);
+                            break;
+                        case PuzzleAction.ActionType.CreateHiddenAuthorityFolder:
+                            HandleCreateHiddenAuthorityFolder(action);
+                            break;
+
+                        // 位置制御アクション
+                        case PuzzleAction.ActionType.SetButtonPosition:
+                            _mainWindow.SetButtonPosition(action.IconX, action.IconY);
+                            break;
+
+                        case PuzzleAction.ActionType.SetYESPosition:
+                            _mainWindow.SetYESPosition(action.IconX, action.IconY);
+                            break;
+
+                        case PuzzleAction.ActionType.SetKeyPosition:
+                            _mainWindow.SetKeyPosition(action.IconX, action.IconY);
+                            break;
+
+                        case PuzzleAction.ActionType.SetDoorPosition:
+                            _mainWindow.SetDoorPosition(action.IconX, action.IconY);
+                            break;
+
+                        case PuzzleAction.ActionType.SetBackgroundPosition:
+                            _mainWindow.SetBackgroundPosition(action.IconX, action.IconY);
+                            break;
+
+                        case PuzzleAction.ActionType.RecreateComponentWithPosition:
+                            if (!string.IsNullOrEmpty(action.TargetComponent))
+                            {
+                                _componentManager.RecreateComponent(action.TargetComponent);
+                                System.Diagnostics.Debug.WriteLine($"Component {action.TargetComponent} recreated with Position");
+                            }
+                            break;
+                            
+                        case PuzzleAction.ActionType.StartButtonHint:
+                            _mainWindow.DialogController?.StartButtonHint(action.DelayMilliseconds / 1000);
+                            System.Diagnostics.Debug.WriteLine($"Button hint started with {action.DelayMilliseconds}ms delay");
+                            break;
+                            
+                        case PuzzleAction.ActionType.CancelButtonHint:
+                            _mainWindow.DialogController?.CancelButtonHint();
+                            System.Diagnostics.Debug.WriteLine("Button hint cancelled");
+                            break;
+                            
+                        case PuzzleAction.ActionType.StartAuthorityHints:
+                            _mainWindow.DialogController?.StartAuthorityHints(action.DelayMilliseconds / 1000);
+                            System.Diagnostics.Debug.WriteLine($"Authority hints started with {action.DelayMilliseconds}ms delay");
+                            break;
+                            
+                        case PuzzleAction.ActionType.CancelAuthorityHints:
+                            _mainWindow.DialogController?.CancelAuthorityHints();
+                            System.Diagnostics.Debug.WriteLine("Authority hints cancelled");
                             break;
                     }
 
@@ -418,10 +488,284 @@ namespace SELLCT.Presentation.Views
             }
         }
 
+        /// <summary>
+        /// 疑似デスクトップアイコンを表示
+        /// </summary>
+        private void HandleShowPseudoDesktopIcon(PuzzleAction action)
+        {
+            try
+            {
+                var iconManager = _mainWindow.GetPseudoDesktopIconManager();
+                if (iconManager == null)
+                {
+                    System.Diagnostics.Debug.WriteLine("⚠️ PseudoDesktopIconManager is null");
+                    return;
+                }
+
+                var iconName = action.IconName ?? "Authority";
+                var folderPath = action.FolderPath;
+
+                // アイコン位置を計算（指定されていない場合は画面中央）
+                System.Windows.Point position;
+                if (action.IconX != 0 || action.IconY != 0)
+                {
+                    position = new System.Windows.Point(action.IconX, action.IconY);
+                }
+                else
+                {
+                    // メインウィンドウの位置とサイズを取得してアイコン位置を計算
+                    var windowPosition = new System.Windows.Point(_mainWindow.Left, _mainWindow.Top);
+                    var windowSize = new System.Windows.Size(_mainWindow.Width, _mainWindow.Height);
+                    position = iconManager.CalculateIconPosition(windowPosition, windowSize, 
+                        new System.Windows.Point(-100, -100)); // 少しオフセット
+                }
+
+                var success = iconManager.CreatePseudoIcon(iconName, position, folderPath);
+                
+                System.Diagnostics.Debug.WriteLine($"ShowPseudoDesktopIcon: {iconName} at ({position.X:F0},{position.Y:F0}) - Success: {success}");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error in HandleShowPseudoDesktopIcon: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// 疑似デスクトップアイコンを非表示
+        /// </summary>
+        private void HandleHidePseudoDesktopIcon(PuzzleAction action)
+        {
+            try
+            {
+                var iconManager = _mainWindow.GetPseudoDesktopIconManager();
+                if (iconManager == null)
+                {
+                    System.Diagnostics.Debug.WriteLine("⚠️ PseudoDesktopIconManager is null");
+                    return;
+                }
+
+                var iconName = action.IconName ?? "Authority";
+                
+                if (string.IsNullOrEmpty(iconName))
+                {
+                    // アイコン名が指定されていない場合は全て非表示
+                    iconManager.SetAllIconsVisibility(false);
+                    System.Diagnostics.Debug.WriteLine("HidePseudoDesktopIcon: All icons hidden");
+                }
+                else
+                {
+                    var success = iconManager.SetIconVisibility(iconName, false);
+                    System.Diagnostics.Debug.WriteLine($"HidePseudoDesktopIcon: {iconName} - Success: {success}");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error in HandleHidePseudoDesktopIcon: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// 疑似デスクトップアイコンの位置を更新
+        /// </summary>
+        private void HandleUpdatePseudoIconPosition(PuzzleAction action)
+        {
+            try
+            {
+                var iconManager = _mainWindow.GetPseudoDesktopIconManager();
+                if (iconManager == null)
+                {
+                    System.Diagnostics.Debug.WriteLine("⚠️ PseudoDesktopIconManager is null");
+                    return;
+                }
+
+                var iconName = action.IconName ?? "Authority";
+                var newPosition = new System.Windows.Point(action.IconX, action.IconY);
+
+                var success = iconManager.UpdateIconPosition(iconName, newPosition);
+                System.Diagnostics.Debug.WriteLine($"UpdatePseudoIconPosition: {iconName} to ({newPosition.X:F0},{newPosition.Y:F0}) - Success: {success}");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error in HandleUpdatePseudoIconPosition: {ex.Message}");
+            }
+        }
+
+
         [System.Runtime.InteropServices.DllImport("user32.dll")]
         private static extern bool SetForegroundWindow(IntPtr hWnd);
 
         [System.Runtime.InteropServices.DllImport("user32.dll")]
         private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
+        /// <summary>
+        /// 非表示Authorityフォルダを作成
+        /// </summary>
+        private void HandleCreateHiddenAuthorityFolder(PuzzleAction action)
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine("=== HandleCreateHiddenAuthorityFolder ===");
+                
+                var desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+                var authorityFolderPath = System.IO.Path.Combine(desktopPath, "Authority");
+                
+                System.Diagnostics.Debug.WriteLine($"Creating Authority folder at: {authorityFolderPath}");
+
+                // フォルダが既に存在する場合は削除
+                if (System.IO.Directory.Exists(authorityFolderPath))
+                {
+                    System.IO.Directory.Delete(authorityFolderPath, true);
+                    System.Diagnostics.Debug.WriteLine("Deleted existing Authority folder");
+                }
+
+                // Authorityフォルダを作成
+                System.IO.Directory.CreateDirectory(authorityFolderPath);
+                System.Diagnostics.Debug.WriteLine("Authority folder created");
+
+                // 5つのtxtファイルを作成
+                CreateAuthorityFiles(authorityFolderPath);
+
+                // フォルダをスーパー隠しファイル化（System + Hidden属性）
+                MakeFolderSuperHidden(authorityFolderPath);
+
+                System.Diagnostics.Debug.WriteLine("✅ Hidden Authority folder created successfully");
+                System.Diagnostics.Debug.WriteLine("=== End HandleCreateHiddenAuthorityFolder ===\n");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error creating hidden Authority folder: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"   Stack trace: {ex.StackTrace}");
+            }
+        }
+
+        /// <summary>
+        /// Authorityフォルダ内にテキストファイルを作成
+        /// </summary>
+        private void CreateAuthorityFiles(string folderPath)
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine("Creating Authority files...");
+
+                var files = new Dictionary<string, string>
+                {
+                    ["AdminRights.txt"] = 
+                        "管理者権限 (Administrator Rights)\n" +
+                        "===================================\n\n" +
+                        "この権限により、システムの重要な設定を変更できます。\n" +
+                        "- システム設定の変更\n" +
+                        "- 重要なファイルへのアクセス\n" +
+                        "- 他のユーザーアカウントの管理\n\n" +
+                        "⚠️ 注意: 管理者権限を不正なソフトウェアに与えることは\n" +
+                        "システム全体を危険にさらす可能性があります。",
+
+                    ["FileAccess.txt"] = 
+                        "ファイルアクセス権限 (File Access Rights)\n" +
+                        "========================================\n\n" +
+                        "この権限により、ファイルシステムにアクセスできます。\n" +
+                        "- ファイルの作成・読み取り・変更・削除\n" +
+                        "- フォルダの作成・削除\n" +
+                        "- ファイル属性の変更\n\n" +
+                        "⚠️ 注意: ファイルアクセス権限は個人情報や\n" +
+                        "重要な文書への不正アクセスを可能にします。",
+
+                    ["SystemControl.txt"] = 
+                        "システム制御権限 (System Control Rights)\n" +
+                        "==========================================\n\n" +
+                        "この権限により、システムプロセスを制御できます。\n" +
+                        "- プロセスの開始・停止\n" +
+                        "- サービスの制御\n" +
+                        "- システム設定の変更\n\n" +
+                        "⚠️ 注意: システム制御権限により、悪意のあるソフトウェアは\n" +
+                        "セキュリティソフトを無効化したり、システムを乗っ取ったり\n" +
+                        "することができます。",
+
+                    ["NetworkAccess.txt"] = 
+                        "ネットワークアクセス権限 (Network Access Rights)\n" +
+                        "=================================================\n\n" +
+                        "この権限により、ネットワーク通信を行えます。\n" +
+                        "- インターネット接続\n" +
+                        "- 外部サーバーとの通信\n" +
+                        "- データの送受信\n\n" +
+                        "⚠️ 注意: ネットワーク権限により、悪意のあるソフトウェアは\n" +
+                        "個人情報を外部に送信したり、追加のマルウェアを\n" +
+                        "ダウンロードしたりする可能性があります。",
+
+                    ["ReadMe.txt"] =
+                        "[CLASSIFIED DOCUMENT]\n" +
+                        "機密レベル：極秘\n\n" +
+                        "警告 - これより先は危険区域\n\n\n\n" +
+                        "このファイルを閲覧している者へ\n" +
+                        "あなたは既に危険な領域に足を踏み入れている。\n\n" +
+                        "このフォルダには、あなたが知らず知らずのうちに\n" +
+                        "与えようとしている権限の詳細が記録されている。\n\n\n\n" +
+                        "これらの権限は以下の危険を伴う：\n\n" +
+                        "・AdminRights.txt：システムの完全制御\n" +
+                        "・FileAccess.txt：個人情報の完全暴露\n" +
+                        "・SystemControl.txt：セキュリティの完全無効化\n" +
+                        "・NetworkAccess.txt：外部への情報流出\n\n\n\n\n\n" +
+                        "これ以上の探索は推奨されない。\n\n\n\n\n\n" +
+                        "しかし、それでも続ける覚悟があるなら......\n\n\n\n\n\n" +
+                        "まだ引き返すことができる。\n" +
+                        "今すぐこのソフトウェアを終了せよ。\n\n" +
+                        "これは最後の警告だ。\n" +
+                        "この先には取り返しのつかない選択が待っている。"
+                };
+
+                foreach (var file in files)
+                {
+                    var filePath = System.IO.Path.Combine(folderPath, file.Key);
+                    System.IO.File.WriteAllText(filePath, file.Value);
+                    System.Diagnostics.Debug.WriteLine($"Created: {file.Key}");
+                }
+
+                System.Diagnostics.Debug.WriteLine($"✅ All 5 files created in Authority folder");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error creating Authority files: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// フォルダをスーパー隠しファイル化 (System + Hidden属性)
+        /// </summary>
+        private void MakeFolderSuperHidden(string folderPath)
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine($"Making folder super hidden: {folderPath}");
+
+                // attrib +s +h コマンドを実行してスーパー隠しファイル化
+                var processStartInfo = new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = "cmd.exe",
+                    Arguments = $"/c attrib +s +h \"{folderPath}\"",
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true
+                };
+
+                using (var process = System.Diagnostics.Process.Start(processStartInfo))
+                {
+                    process.WaitForExit();
+                    
+                    if (process.ExitCode == 0)
+                    {
+                        System.Diagnostics.Debug.WriteLine("✅ Folder successfully made super hidden (+s +h)");
+                    }
+                    else
+                    {
+                        var error = process.StandardError.ReadToEnd();
+                        System.Diagnostics.Debug.WriteLine($"⚠️ attrib command failed with exit code {process.ExitCode}: {error}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error making folder super hidden: {ex.Message}");
+            }
+        }
     }
 }
