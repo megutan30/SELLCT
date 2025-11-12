@@ -132,7 +132,7 @@ namespace SELLCT.Infrastructure.Services
              );
 
             AutoClosingMessageBox.Show(
-                "東京ゲームショウは楽しめていますか？",
+                "審査は楽しめていますか？",
                 "SELLCT",
                 MessageBoxButton.OK,
                 MessageBoxImage.Error,
@@ -164,7 +164,7 @@ namespace SELLCT.Infrastructure.Services
             );
 
             AutoClosingMessageBox.Show(
-                "あなたは、展示に使われているPCで",
+                "あなたは、審査に使われているPCで",
                 "SELLCT",
                 MessageBoxButton.OK,
                 MessageBoxImage.Information,
@@ -350,22 +350,6 @@ namespace SELLCT.Infrastructure.Services
 
             AutoClosingMessageBox.Show(
                 "あぁ、言い忘れていました。次の方のために必ず再起動して、“SELLCT”フォルダを開いてくださいね。",
-                "SELLCT",
-                MessageBoxButton.OK,
-                MessageBoxImage.None,
-                6000
-            );
-
-            AutoClosingMessageBox.Show(
-                "サインインにパスワードは不要なので、",
-                "SELLCT",
-                MessageBoxButton.OK,
-                MessageBoxImage.None,
-                6000
-            );
-
-            AutoClosingMessageBox.Show(
-                "サインイン画面で何も入力せずにエンターを押せば、開くようになっています。",
                 "SELLCT",
                 MessageBoxButton.OK,
                 MessageBoxImage.None,

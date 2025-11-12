@@ -414,7 +414,7 @@ Start-Sleep -Seconds 1
 
 Write-Host ''
 $Host.UI.RawUI.ForegroundColor = 'White'
-TypeWrite 'おかえりなさい。それでは 東京ゲームショウを楽しんで'
+TypeWrite 'おかえりなさい。'
 Start-Sleep -Seconds 1
 
 Write-Host ''
