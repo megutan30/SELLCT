@@ -110,7 +110,27 @@ namespace SELLCT.Core.Entities
             /// <summary>Authorityフォルダ探索ヒントを開始</summary>
             StartAuthorityHints,
             /// <summary>Authorityフォルダ探索ヒントをキャンセル</summary>
-            CancelAuthorityHints
+            CancelAuthorityHints,
+
+            // === オーディオ制御 ===
+            /// <summary>BGM音量を設定（ファイル内容から自動パース）</summary>
+            SetBgmVolume,
+            /// <summary>SE音量を設定（ファイル内容から自動パース）</summary>
+            SetSeVolume,
+            /// <summary>BGMを無効化（停止）</summary>
+            DisableBGM,
+            /// <summary>BGMを有効化（再開）</summary>
+            EnableBGM,
+            /// <summary>SEを無効化</summary>
+            DisableSE,
+            /// <summary>SEを有効化</summary>
+            EnableSE,
+            /// <summary>クリックSEを再生</summary>
+            PlayClickSound,
+            /// <summary>ドアSEを再生</summary>
+            PlayDoorSound,
+            /// <summary>コンポーネント操作SEを再生</summary>
+            PlayComponentSound
         }
 
         /// <summary>

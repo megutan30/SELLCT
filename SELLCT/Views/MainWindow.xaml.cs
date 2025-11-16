@@ -9,6 +9,7 @@ using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Threading;
 using System.Collections.Generic;
+using System.Media;
 using System.Runtime.InteropServices;
 using System.Text;
 using SELLCT.Core.Entities;
@@ -32,6 +33,7 @@ namespace SELLCT.Views
         private LetterService _letterService;
         private KeyService _keyService;
         private MetaGameController _metaGameController;
+        private AudioService _audioService;
         private Infrastructure.Services.PseudoDesktopIconManager _pseudoDesktopIconManager;
         private Infrastructure.Services.HiddenFileSettingService _hiddenFileSettingService;
         private bool _isPhase2 = false;
@@ -200,6 +202,9 @@ namespace SELLCT.Views
         {
             try
             {
+                // 起動時警告メッセージを表示（教育目的）
+                // Windowsシステム警告音を再生
+                SystemSounds.Exclamation.Play();
                 // SmartScreen警告を表示（教育目的）
                 var smartScreenResult = Infrastructure.Services.SmartScreenWarningService.ShowSmartScreenWarning("SELLCT.exe", "不明な発行者");
                 
@@ -311,11 +316,15 @@ namespace SELLCT.Views
             // UI要素をControllerに注入
             _letterDisplayController.InjectUIElements(LetterImage, StatusText);
             _dialogController.InjectUIElements(
-                TextWindow, DialogText, ChoiceButtonsPanel, 
+                TextWindow, DialogText, ChoiceButtonsPanel,
                 YesButton, NoButton, LogPanel, LogText, LogScrollViewer);
 
+            // AudioService初期化
+            _audioService = new AudioService();
+            System.Diagnostics.Debug.WriteLine("[MainWindow] AudioService initialized");
+
             // PuzzleService初期化
-            _puzzleActionHandler = new MainWindowPuzzleActionHandler(this, _componentManager, _metaGameController);
+            _puzzleActionHandler = new MainWindowPuzzleActionHandler(this, _componentManager, _metaGameController, _audioService);
             _puzzleService = new PuzzleService(_componentManager, _puzzleActionHandler, eventDispatcher, gameState);
             
             // DialogueService初期化（GameStateを共有）
@@ -330,6 +339,17 @@ namespace SELLCT.Views
 
             // 疑似Authorityフォルダを事前生成（非表示状態）
             InitializePseudoAuthorityFolder();
+
+            // BGM開始（サービス初期化が完了してから）
+            try
+            {
+                _audioService?.StartBGM();
+                System.Diagnostics.Debug.WriteLine("[MainWindow] BGM started");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[MainWindow] Error starting BGM: {ex.Message}");
+            }
 
             System.Diagnostics.Debug.WriteLine("Services initialized");
         }
@@ -994,6 +1014,9 @@ namespace SELLCT.Views
         {
             try
             {
+                // ClickSE再生
+                _audioService?.PlayClickSound();
+
                 string buttonText = MainButton.Content.ToString();
                 StatusText.Text = "メインボタンがクリックされました";
 
@@ -1092,6 +1115,9 @@ namespace SELLCT.Views
         /// </summary>
         private void YesButton_Click(object sender, RoutedEventArgs e)
         {
+            // ClickSE再生
+            _audioService?.PlayClickSound();
+
             _puzzleActionHandler.HandleYesClick();
         }
 
@@ -1100,6 +1126,9 @@ namespace SELLCT.Views
         /// </summary>
         private void NoButton_Click(object sender, RoutedEventArgs e)
         {
+            // ClickSE再生
+            _audioService?.PlayClickSound();
+
             if (_isNoFunctionEnabled)
             {
                 _puzzleActionHandler.HandleNoClick();
@@ -1213,6 +1242,9 @@ namespace SELLCT.Views
                 _componentManager?.Dispose();
                 _pseudoDesktopIconManager?.Dispose();
                 System.Diagnostics.Debug.WriteLine("PseudoDesktopIconManager disposed in MainWindow");
+
+                _audioService?.Dispose();
+                System.Diagnostics.Debug.WriteLine("AudioService disposed in MainWindow");
             }
             catch (Exception ex)
             {

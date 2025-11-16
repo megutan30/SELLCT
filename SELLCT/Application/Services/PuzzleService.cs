@@ -690,6 +690,110 @@ namespace SELLCT.Application.Services
                     },
                     CanRepeat = true,
                     Priority = 5
+                },
+
+                // === BGM/SE音量制御パズル ===
+                // BGM.txt内容変更時: 音量をパースして設定
+                new PuzzleDefinition
+                {
+                    Id = "BGM_VolumeChanged",
+                    Trigger = new PuzzleTrigger
+                    {
+                        Type = PuzzleTrigger.TriggerType.ContentChanged,
+                        ComponentNames = new[] { "BGM", "bgm" }
+                    },
+                    Actions = new List<PuzzleAction>
+                    {
+                        new PuzzleAction { Type = PuzzleAction.ActionType.SetBgmVolume }
+                    },
+                    CanRepeat = true,
+                    Priority = 10
+                },
+
+                // SE.txt内容変更時: 音量をパースして設定
+                new PuzzleDefinition
+                {
+                    Id = "SE_VolumeChanged",
+                    Trigger = new PuzzleTrigger
+                    {
+                        Type = PuzzleTrigger.TriggerType.ContentChanged,
+                        ComponentNames = new[] { "SE", "se" }
+                    },
+                    Actions = new List<PuzzleAction>
+                    {
+                        new PuzzleAction { Type = PuzzleAction.ActionType.SetSeVolume }
+                    },
+                    CanRepeat = true,
+                    Priority = 10
+                },
+
+                // === BGM/SE停止/再開パズル ===
+                // BGM.txt削除時: BGM完全停止
+                new PuzzleDefinition
+                {
+                    Id = "BGM_Deleted",
+                    Trigger = new PuzzleTrigger
+                    {
+                        Type = PuzzleTrigger.TriggerType.Deleted,
+                        ComponentNames = new[] { "BGM", "bgm" }
+                    },
+                    Actions = new List<PuzzleAction>
+                    {
+                        new PuzzleAction { Type = PuzzleAction.ActionType.DisableBGM }
+                    },
+                    CanRepeat = true,
+                    Priority = 10
+                },
+
+                // BGM.txt作成時: BGM再開
+                new PuzzleDefinition
+                {
+                    Id = "BGM_Created",
+                    Trigger = new PuzzleTrigger
+                    {
+                        Type = PuzzleTrigger.TriggerType.Created,
+                        ComponentNames = new[] { "BGM", "bgm" }
+                    },
+                    Actions = new List<PuzzleAction>
+                    {
+                        new PuzzleAction { Type = PuzzleAction.ActionType.EnableBGM }
+                    },
+                    CanRepeat = true,
+                    Priority = 10
+                },
+
+                // SE.txt削除時: SE無効化
+                new PuzzleDefinition
+                {
+                    Id = "SE_Deleted",
+                    Trigger = new PuzzleTrigger
+                    {
+                        Type = PuzzleTrigger.TriggerType.Deleted,
+                        ComponentNames = new[] { "SE", "se" }
+                    },
+                    Actions = new List<PuzzleAction>
+                    {
+                        new PuzzleAction { Type = PuzzleAction.ActionType.DisableSE }
+                    },
+                    CanRepeat = true,
+                    Priority = 10
+                },
+
+                // SE.txt作成時: SE有効化
+                new PuzzleDefinition
+                {
+                    Id = "SE_Created",
+                    Trigger = new PuzzleTrigger
+                    {
+                        Type = PuzzleTrigger.TriggerType.Created,
+                        ComponentNames = new[] { "SE", "se" }
+                    },
+                    Actions = new List<PuzzleAction>
+                    {
+                        new PuzzleAction { Type = PuzzleAction.ActionType.EnableSE }
+                    },
+                    CanRepeat = true,
+                    Priority = 10
                 }
             };
         }
@@ -697,6 +801,13 @@ namespace SELLCT.Application.Services
         private void CheckPuzzlesOnComponentCreated(ComponentCreatedEvent @event)
         {
             System.Diagnostics.Debug.WriteLine($"[PuzzleService] ComponentCreated event received: Name={@event.Component.Name}, Type={@event.Component.Type}");
+
+            // コンポーネント作成SEを再生（BGM/SE.txtは除外）
+            if (@event.Component.Name != "BGM" && @event.Component.Name != "SE" &&
+                @event.Component.Name != "bgm" && @event.Component.Name != "se")
+            {
+                _actionHandler.HandleAction(new PuzzleAction { Type = PuzzleAction.ActionType.PlayComponentSound });
+            }
 
             // Createdトリガーのパズルをチェック
             CheckPuzzles(p => p.Trigger.Type == PuzzleTrigger.TriggerType.Created &&
@@ -710,6 +821,15 @@ namespace SELLCT.Application.Services
 
         private void CheckPuzzlesOnComponentDeleted(ComponentDeletedEvent @event)
         {
+            System.Diagnostics.Debug.WriteLine($"[PuzzleService] ComponentDeleted event received: Name={@event.Component.Name}");
+
+            // コンポーネント削除SEを再生（BGM/SE.txtは除外）
+            if (@event.Component.Name != "BGM" && @event.Component.Name != "SE" &&
+                @event.Component.Name != "bgm" && @event.Component.Name != "se")
+            {
+                _actionHandler.HandleAction(new PuzzleAction { Type = PuzzleAction.ActionType.PlayComponentSound });
+            }
+
             CheckPuzzles(p => p.Trigger.Type == PuzzleTrigger.TriggerType.Deleted &&
                                p.Trigger.MatchesComponentName(@event.Component.Name));
         }

@@ -126,6 +126,10 @@ namespace SELLCT.Infrastructure.Services
                 CreateComponentFile("Door.txt", "Position = 367,221");
                 CreateComponentFile("message.txt", "Position = 128,491");
 
+                // オーディオ制御コンポーネント（初期音量100%）
+                CreateComponentFile("BGM.txt", "Volume = 100");
+                CreateComponentFile("SE.txt", "Volume = 100");
+
                 // 隠しファイル（.hidden拡張子）
                 //CreateHiddenFile("System/Mouse.txt", "");
                 //CreateHiddenFile("System/Keyboard.txt", "");

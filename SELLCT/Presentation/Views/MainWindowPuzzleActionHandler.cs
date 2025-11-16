@@ -21,14 +21,16 @@ namespace SELLCT.Presentation.Views
         private readonly MainWindow _mainWindow;
         private readonly ComponentManager _componentManager;
         private readonly MetaGameController _metaGameController;
+        private readonly AudioService _audioService;
         private PuzzleAction _currentChoiceAction; // 現在の選択肢アクションを保持
         private IDialogueService _dialogueService; // 対話サービス（後で設定）
 
-        public MainWindowPuzzleActionHandler(MainWindow mainWindow, ComponentManager componentManager, MetaGameController metaGameController)
+        public MainWindowPuzzleActionHandler(MainWindow mainWindow, ComponentManager componentManager, MetaGameController metaGameController, AudioService audioService)
         {
             _mainWindow = mainWindow;
             _componentManager = componentManager;
             _metaGameController = metaGameController;
+            _audioService = audioService;
         }
         
         /// <summary>
@@ -205,6 +207,47 @@ namespace SELLCT.Presentation.Views
                         case PuzzleAction.ActionType.CancelAuthorityHints:
                             _mainWindow.DialogController?.CancelAuthorityHints();
                             System.Diagnostics.Debug.WriteLine("Authority hints cancelled");
+                            break;
+
+                        // === オーディオ制御アクション ===
+                        case PuzzleAction.ActionType.SetBgmVolume:
+                            HandleSetBgmVolume();
+                            break;
+
+                        case PuzzleAction.ActionType.SetSeVolume:
+                            HandleSetSeVolume();
+                            break;
+
+                        case PuzzleAction.ActionType.DisableBGM:
+                            _audioService.DisableBGM();
+                            System.Diagnostics.Debug.WriteLine("[AudioAction] BGM disabled");
+                            break;
+
+                        case PuzzleAction.ActionType.EnableBGM:
+                            _audioService.EnableBGM();
+                            System.Diagnostics.Debug.WriteLine("[AudioAction] BGM enabled");
+                            break;
+
+                        case PuzzleAction.ActionType.DisableSE:
+                            _audioService.DisableSE();
+                            System.Diagnostics.Debug.WriteLine("[AudioAction] SE disabled");
+                            break;
+
+                        case PuzzleAction.ActionType.EnableSE:
+                            _audioService.EnableSE();
+                            System.Diagnostics.Debug.WriteLine("[AudioAction] SE enabled");
+                            break;
+
+                        case PuzzleAction.ActionType.PlayClickSound:
+                            _audioService.PlayClickSound();
+                            break;
+
+                        case PuzzleAction.ActionType.PlayDoorSound:
+                            _audioService.PlayDoorSound();
+                            break;
+
+                        case PuzzleAction.ActionType.PlayComponentSound:
+                            _audioService.PlayComponentSound();
                             break;
                     }
 
@@ -766,6 +809,104 @@ namespace SELLCT.Presentation.Views
             {
                 System.Diagnostics.Debug.WriteLine($"❌ Error making folder super hidden: {ex.Message}");
             }
+        }
+
+        /// <summary>
+        /// BGM.txtファイルから音量をパースしてAudioServiceに設定
+        /// </summary>
+        private void HandleSetBgmVolume()
+        {
+            try
+            {
+                var component = _componentManager.GetComponent("BGM");
+                if (component != null && System.IO.File.Exists(component.FilePath))
+                {
+                    var content = System.IO.File.ReadAllText(component.FilePath);
+                    var volume = ParseVolumeFromContent(content);
+
+                    if (volume.HasValue)
+                    {
+                        _audioService.SetBgmVolume(volume.Value);
+                        System.Diagnostics.Debug.WriteLine($"[AudioAction] BGM volume set to {volume.Value}%");
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[AudioAction] Failed to parse BGM volume from content: '{content}'");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[AudioAction] Error setting BGM volume: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// SE.txtファイルから音量をパースしてAudioServiceに設定
+        /// </summary>
+        private void HandleSetSeVolume()
+        {
+            try
+            {
+                var component = _componentManager.GetComponent("SE");
+                if (component != null && System.IO.File.Exists(component.FilePath))
+                {
+                    var content = System.IO.File.ReadAllText(component.FilePath);
+                    var volume = ParseVolumeFromContent(content);
+
+                    if (volume.HasValue)
+                    {
+                        _audioService.SetSeVolume(volume.Value);
+                        System.Diagnostics.Debug.WriteLine($"[AudioAction] SE volume set to {volume.Value}%");
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[AudioAction] Failed to parse SE volume from content: '{content}'");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[AudioAction] Error setting SE volume: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// ファイル内容から音量値をパース
+        /// "Volume = 100" や "Volume=100%" などの形式に対応
+        /// </summary>
+        /// <param name="content">ファイル内容</param>
+        /// <returns>音量パーセント値（0-200、パース失敗時はnull）</returns>
+        private int? ParseVolumeFromContent(string content)
+        {
+            if (string.IsNullOrWhiteSpace(content))
+            {
+                return null;
+            }
+
+            // 正規表現: "Volume" の後に "=" があり、その後に数字（オプションで%記号）
+            var match = System.Text.RegularExpressions.Regex.Match(
+                content,
+                @"Volume\s*=\s*(\d+)%?",
+                System.Text.RegularExpressions.RegexOptions.IgnoreCase
+            );
+
+            if (match.Success && int.TryParse(match.Groups[1].Value, out int volume))
+            {
+                // 0-200%の範囲チェック（AudioServiceでもクランプされるが、ここでも確認）
+                if (volume < 0)
+                {
+                    return 0;
+                }
+                if (volume > 200)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[AudioAction] Volume {volume}% exceeds max, will be clamped to 200%");
+                }
+
+                return volume;
+            }
+
+            return null;
         }
     }
 }

@@ -2,6 +2,8 @@
 using Application = System.Windows.Application;
 using System;
 using System.IO;
+using System.Media;
+using System.Threading;
 using SELLCT.Infrastructure.Services;
 using SELLCT.Views;
 using SELLCT.Core.Interfaces;
@@ -17,9 +19,12 @@ namespace SELLCT
     {
         /// <summary>コンポーネント管理（ファイル監視・イベント処理）のインスタンス</summary>
         private ComponentManager _componentManager;
-        
+
         /// <summary>ドメインイベントの配信を管理するディスパッチャー</summary>
         private IEventDispatcher _eventDispatcher;
+
+        /// <summary>二重起動防止用Mutex</summary>
+        private Mutex _mutex;
 
         /// <summary>
         /// アプリケーションのコンストラクタ
@@ -98,10 +103,27 @@ namespace SELLCT
         {
             base.OnStartup(e);
 
+            // 二重起動チェック
+            bool createdNew;
+            _mutex = new Mutex(true, "SELLCT_SingleInstance_Mutex_8F3A9B2C", out createdNew);
+
+            if (!createdNew)
+            {
+                // 既に起動している場合
+                SystemSounds.Asterisk.Play();
+
+                // アプリケーションを終了
+                this.Shutdown();
+                return;
+            }
+
             // 起動時クリーンアップを実行（前回の実行時の残留ファイル等を削除）
             CleanupService.PerformStartupCleanup();
 
-            // 起動時警告メッセージを表示（現在はコメントアウト - 教育目的での設定調整用）
+            //// 起動時警告メッセージを表示（教育目的）
+            //// Windowsシステム警告音を再生
+            //SystemSounds.Exclamation.Play();
+
             //var warningResult = MessageBox.Show(
             //    "認識されないアプリの実行を確認しました。\n" +
             //    "このソフトウェアを実行すると、PCが危険にさらされる可能性があります。\n" +
@@ -115,6 +137,10 @@ namespace SELLCT
             //// ユーザーが「いいえ」を選択した場合、アプリケーションを完全に終了
             //if (warningResult != MessageBoxResult.Yes)
             //{
+            //    // Mutexを解放
+            //    _mutex?.ReleaseMutex();
+            //    _mutex?.Dispose();
+
             //    // アプリケーションを完全に終了
             //    Environment.Exit(0);
             //    return;
@@ -137,11 +163,23 @@ namespace SELLCT
         {
             try
             {
-                // 終了時クリーンアップを実行（レジストリエントリ削除、一時ファイル削除等）
-                CleanupService.PerformExitCleanup();
+                // リソースを初期化したインスタンスのみクリーンアップを実行
+                // 二重起動時、2つ目のインスタンスは_componentManagerがnullのためクリーンアップをスキップ
+                if (_componentManager != null)
+                {
+                    // 終了時クリーンアップを実行（レジストリエントリ削除、一時ファイル削除等）
+                    CleanupService.PerformExitCleanup();
 
-                // ComponentManagerリソースの解放（ファイル監視停止、イベントハンドラー解除）
-                _componentManager?.Dispose();
+                    // ComponentManagerリソースの解放（ファイル監視停止、イベントハンドラー解除）
+                    _componentManager.Dispose();
+                }
+
+                // Mutexは常にクリーンアップ
+                if (_mutex != null)
+                {
+                    _mutex.ReleaseMutex();
+                    _mutex.Dispose();
+                }
             }
             catch (Exception ex)
             {
