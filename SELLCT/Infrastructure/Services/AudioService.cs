@@ -20,8 +20,8 @@ namespace SELLCT.Infrastructure.Services
         private readonly List<MediaPlayer> _sePlayers;
         private readonly object _sePlayersLock = new object();
 
-        private double _bgmVolume = 1.0;  // 0.0 - 2.0 (0% - 200%)
-        private double _seVolume = 1.0;   // 0.0 - 2.0 (0% - 200%)
+        private double _bgmVolume = 0.2;  // 0.0 - 1.0 (0% - 100%)、初期値20%
+        private double _seVolume = 1.0;   // 0.0 - 1.0 (0% - 100%)
 
         private bool _bgmEnabled = true;
         private bool _seEnabled = true;
@@ -96,19 +96,19 @@ namespace SELLCT.Infrastructure.Services
         }
 
         /// <summary>
-        /// BGM音量を設定（0-200%）
+        /// BGM音量を設定（0-100%）
         /// BGM.txtの内容変更時に呼び出される
         /// </summary>
-        /// <param name="volumePercent">音量（0-200の範囲、200を超える場合は200に制限）</param>
+        /// <param name="volumePercent">音量（0-100の範囲、100を超える場合は100に制限）</param>
         public void SetBgmVolume(int volumePercent)
         {
             if (_disposed) return;
 
-            // 上限を200%に制限
-            if (volumePercent > 200)
+            // 上限を100%に制限
+            if (volumePercent > 100)
             {
-                volumePercent = 200;
-                System.Diagnostics.Debug.WriteLine("[AudioService] BGM volume clamped to 200%");
+                volumePercent = 100;
+                System.Diagnostics.Debug.WriteLine("[AudioService] BGM volume clamped to 100%");
             }
 
             _bgmVolume = volumePercent / 100.0;
@@ -216,19 +216,19 @@ namespace SELLCT.Infrastructure.Services
         }
 
         /// <summary>
-        /// SE音量を設定（0-200%）
+        /// SE音量を設定（0-100%）
         /// SE.txtの内容変更時に呼び出される
         /// </summary>
-        /// <param name="volumePercent">音量（0-200の範囲、200を超える場合は200に制限）</param>
+        /// <param name="volumePercent">音量（0-100の範囲、100を超える場合は100に制限）</param>
         public void SetSeVolume(int volumePercent)
         {
             if (_disposed) return;
 
-            // 上限を200%に制限
-            if (volumePercent > 200)
+            // 上限を100%に制限
+            if (volumePercent > 100)
             {
-                volumePercent = 200;
-                System.Diagnostics.Debug.WriteLine("[AudioService] SE volume clamped to 200%");
+                volumePercent = 100;
+                System.Diagnostics.Debug.WriteLine("[AudioService] SE volume clamped to 100%");
             }
 
             _seVolume = volumePercent / 100.0;

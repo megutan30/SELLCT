@@ -1111,6 +1111,16 @@ namespace SELLCT.Views
         }
 
         /// <summary>
+        /// ドアクリック
+        /// </summary>
+        private void DoorImage_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            // DoorKnockSE再生
+            _audioService?.PlayDoorSound();
+            System.Diagnostics.Debug.WriteLine("[MainWindow] Door clicked - DoorKnock SE played");
+        }
+
+        /// <summary>
         /// YESボタンクリック
         /// </summary>
         private void YesButton_Click(object sender, RoutedEventArgs e)
