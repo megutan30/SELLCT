@@ -1,4 +1,6 @@
 using System;
+using System.Media;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
@@ -14,6 +16,15 @@ namespace SELLCT.Infrastructure.Services
     /// </summary>
     public static class AutoClosingMessageBox
     {
+        // Win32 API for finding and closing MessageBox windows
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
+
+        [DllImport("user32.dll", CharSet = CharSet.Auto)]
+        private static extern IntPtr SendMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
+
+        private const uint WM_CLOSE = 0x0010;
+
         /// <summary>
         /// メッセージボックスを表示する（自動閉鎖オプション付き）
         /// タイムアウト時間が指定されている場合は自動閉鎖機能を有効にする
@@ -27,14 +38,46 @@ namespace SELLCT.Infrastructure.Services
         /// <returns>ユーザーの選択またはタイムアウト時のデフォルト結果</returns>
         public static MessageBoxResult Show(string messageBoxText, string caption = "", MessageBoxButton button = MessageBoxButton.OK, MessageBoxImage icon = MessageBoxImage.None, int autoCloseTimeoutMs = 0)
         {
+            // メッセージボックス表示時にシステム音を再生
+            SystemSounds.Exclamation.Play();
+
             // タイムアウトが設定されていない場合は標準のMessageBoxを使用
             if (autoCloseTimeoutMs <= 0)
             {
                 return MessageBox.Show(messageBoxText, caption, button, icon);
             }
 
-            // 自動閉鎖機能付きのメッセージボックスを表示
-            return ShowAutoClosing(messageBoxText, caption, button, icon, autoCloseTimeoutMs);
+            // 自動閉鎖機能付きの標準MessageBoxを表示
+            return ShowAutoClosingNative(messageBoxText, caption, button, icon, autoCloseTimeoutMs);
+        }
+
+        /// <summary>
+        /// 標準のMessageBoxを使用した自動閉鎖機能
+        /// タイマーで指定時間後にウィンドウを閉じる
+        /// </summary>
+        private static MessageBoxResult ShowAutoClosingNative(string messageBoxText, string caption, MessageBoxButton button, MessageBoxImage icon, int timeoutMs)
+        {
+            var timer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromMilliseconds(timeoutMs)
+            };
+
+            timer.Tick += (sender, e) =>
+            {
+                timer.Stop();
+                // MessageBoxウィンドウを検索して閉じる
+                IntPtr hWnd = FindWindow(null, caption);
+                if (hWnd != IntPtr.Zero)
+                {
+                    SendMessage(hWnd, WM_CLOSE, IntPtr.Zero, IntPtr.Zero);
+                }
+            };
+
+            timer.Start();
+            var result = MessageBox.Show(messageBoxText, caption, button, icon);
+            timer.Stop();
+
+            return result;
         }
 
         /// <summary>

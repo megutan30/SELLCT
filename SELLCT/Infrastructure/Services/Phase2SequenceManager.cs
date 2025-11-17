@@ -1,4 +1,5 @@
 using System;
+using System.Media;
 using System.Threading.Tasks;
 using System.Windows;
 using SELLCT.Views;
@@ -19,6 +20,9 @@ namespace SELLCT.Infrastructure.Services
 
         private void ShowMessageWithParent(string message, string caption, MessageBoxButton button, MessageBoxImage icon)
         {
+            // メッセージボックス表示時にシステム音を再生
+            SystemSounds.Exclamation.Play();
+
             if (_parentWindow != null)
             {
                 // 親ウィンドウを指定してMessageBoxを表示
@@ -135,7 +139,7 @@ namespace SELLCT.Infrastructure.Services
                 "審査は楽しめていますか？",
                 "SELLCT",
                 MessageBoxButton.OK,
-                MessageBoxImage.Error,
+                MessageBoxImage.Information,
                 5000
             );
 

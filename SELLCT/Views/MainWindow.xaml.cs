@@ -343,13 +343,16 @@ namespace SELLCT.Views
             // BGM開始（サービス初期化が完了してから）
             try
             {
-                _audioService?.StartBGM();
+                //_audioService?.StartBGM();
                 System.Diagnostics.Debug.WriteLine("[MainWindow] BGM started");
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"[MainWindow] Error starting BGM: {ex.Message}");
             }
+
+            // デバッグ用: フェーズ2を即座に開始（テスト後に削除すること）
+            _ = _metaGameController?.StartPhase2();
 
             System.Diagnostics.Debug.WriteLine("Services initialized");
         }
