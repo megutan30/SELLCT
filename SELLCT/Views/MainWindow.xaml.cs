@@ -507,7 +507,6 @@ namespace SELLCT.Views
                 // 位置制御後も前面表示処理に進む（returnしない）
             }
 
-
             // 削除、名前変更、または内容変更の場合にウィンドウを前面に表示
             if (e.ChangeType == System.IO.WatcherChangeTypes.Deleted || 
                 e.ChangeType == System.IO.WatcherChangeTypes.Renamed ||
@@ -570,7 +569,8 @@ namespace SELLCT.Views
                             SetDoorPosition(newPosition.Value.X, newPosition.Value.Y);
                             break;
                         case "background":
-                            SetBackgroundPosition(newPosition.Value.X, newPosition.Value.Y);
+                            // Y座標に-20のオフセットを適用
+                            SetBackgroundPosition(newPosition.Value.X, newPosition.Value.Y - 13);
                             break;
                     }
                 }
