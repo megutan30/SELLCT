@@ -36,6 +36,7 @@ namespace SELLCT.Views
         private AudioService _audioService;
         private Infrastructure.Services.PseudoDesktopIconManager _pseudoDesktopIconManager;
         private Infrastructure.Services.HiddenFileSettingService _hiddenFileSettingService;
+        private Infrastructure.Services.FileSystemSnapshotService _snapshotService;
         private bool _isPhase2 = false;
 
         // 統合されたコントローラー
@@ -97,6 +98,10 @@ namespace SELLCT.Views
             _hiddenFileSettingService = new Infrastructure.Services.HiddenFileSettingService();
             System.Diagnostics.Debug.WriteLine("HiddenFileSettingService initialized in MainWindow");
 
+            // ファイルシステムスナップショットサービスを初期化
+            _snapshotService = new Infrastructure.Services.FileSystemSnapshotService();
+            System.Diagnostics.Debug.WriteLine("FileSystemSnapshotService initialized in MainWindow");
+
             InitializeAsync();
         }
 
@@ -128,6 +133,17 @@ namespace SELLCT.Views
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"[MainWindow] Error disabling hidden file display: {ex.Message}");
+            }
+
+            // ファイルシステムのスナップショットを取得
+            try
+            {
+                _snapshotService.TakeSnapshot();
+                System.Diagnostics.Debug.WriteLine("[MainWindow] Filesystem snapshot taken");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[MainWindow] Error taking snapshot: {ex.Message}");
             }
         }
 
@@ -352,7 +368,7 @@ namespace SELLCT.Views
             }
 
             // デバッグ用: フェーズ2を即座に開始（テスト後に削除すること）
-            _ = _metaGameController?.StartPhase2();
+            //_ = _metaGameController?.StartPhase2();
 
             System.Diagnostics.Debug.WriteLine("Services initialized");
         }
@@ -1258,6 +1274,21 @@ namespace SELLCT.Views
 
                 _audioService?.Dispose();
                 System.Diagnostics.Debug.WriteLine("AudioService disposed in MainWindow");
+
+                // ファイルシステムのクリーンアップ（componentsフォルダ外のファイル削除）
+                CleanupService.PerformExitCleanup();
+                System.Diagnostics.Debug.WriteLine("Exit cleanup completed in MainWindow");
+
+                // スナップショット差分の削除（ゲーム中に作成されたすべてのファイルを削除）
+                try
+                {
+                    _snapshotService?.CleanupDifferences();
+                    System.Diagnostics.Debug.WriteLine("[MainWindow] Snapshot differences cleaned up");
+                }
+                catch (Exception snapshotEx)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[MainWindow] Error cleaning up snapshot differences: {snapshotEx.Message}");
+                }
             }
             catch (Exception ex)
             {
