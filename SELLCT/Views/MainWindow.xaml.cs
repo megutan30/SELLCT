@@ -720,6 +720,10 @@ namespace SELLCT.Views
                 try
                 {
                     StatusText.Text = "message.txtをダウンロードしました";
+
+                    // メッセージ取得済みフラグを設定
+                    _dialogController?.SetMessageRevealed();
+
                     UpdateDebugInfo();
                 }
                 catch (Exception ex)

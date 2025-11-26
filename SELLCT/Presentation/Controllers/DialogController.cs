@@ -497,6 +497,15 @@ namespace SELLCT.Presentation.Controllers
             }
         }
 
+        /// <summary>
+        /// メッセージ取得済みフラグを設定
+        /// </summary>
+        public void SetMessageRevealed()
+        {
+            _gameState.IsMessageRevealed = true;
+            System.Diagnostics.Debug.WriteLine("[DialogController] Message revealed flag set to true");
+        }
+
         public void Dispose()
         {
             if (!_disposed)
