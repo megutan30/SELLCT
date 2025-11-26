@@ -156,31 +156,24 @@ namespace SELLCT.Core.Entities
         /// <summary>
         /// 指定された位置がこのトリガーの位置条件を満たすかチェック
         /// PositionChangedタイプのトリガーでのみ使用
-        /// MinX、MaxX、MinY、MaxYの各条件を評価して総合判定
+        /// MinX、MaxX、MinY、MaxYのいずれか1つでも条件を満たせばtrueを返す（OR条件）
         /// </summary>
         /// <param name="x">チェック対象のX座標</param>
         /// <param name="y">チェック対象のY座標</param>
         /// <returns>true: 位置条件を満たす, false: 位置条件を満たさない</returns>
         public bool MatchesPositionCondition(double x, double y)
         {
-            // X座標の最小値チェック
-            if (MinX.HasValue && x < MinX.Value)
+            // 条件が1つも設定されていない場合はfalse
+            if (!MinX.HasValue && !MaxX.HasValue && !MinY.HasValue && !MaxY.HasValue)
                 return false;
 
-            // X座標の最大値チェック
-            if (MaxX.HasValue && x > MaxX.Value)
-                return false;
+            // いずれかの条件を満たせばtrue（OR条件）
+            bool matchesMinX = MinX.HasValue && x >= MinX.Value;
+            bool matchesMaxX = MaxX.HasValue && x <= MaxX.Value;
+            bool matchesMinY = MinY.HasValue && y >= MinY.Value;
+            bool matchesMaxY = MaxY.HasValue && y <= MaxY.Value;
 
-            // Y座標の最小値チェック
-            if (MinY.HasValue && y < MinY.Value)
-                return false;
-
-            // Y座標の最大値チェック
-            if (MaxY.HasValue && y > MaxY.Value)
-                return false;
-
-            // すべての条件を満たす場合はtrue
-            return true;
+            return matchesMinX || matchesMaxX || matchesMinY || matchesMaxY;
         }
     }
 }
