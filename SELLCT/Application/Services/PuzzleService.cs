@@ -588,7 +588,12 @@ namespace SELLCT.Application.Services
                         new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "それを動かすことができるかもしれません" },
                         new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "GameWindow.txtはcomponentsフォルダのどこかにあります。見えていないのならもしかしたら隠されているのかもしれません。" },
                         new PuzzleAction { Type = PuzzleAction.ActionType.CreateHiddenAuthorityFolder },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowPseudoDesktopIcon, IconName = "Authority" },
+                        new PuzzleAction
+                        {
+                            Type = PuzzleAction.ActionType.ShowPseudoDesktopIcon,
+                            IconName = "Authority",
+                            FolderPath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "Authority")
+                        },
                         new PuzzleAction
                         {
                             Type = PuzzleAction.ActionType.StartAuthorityHints,
