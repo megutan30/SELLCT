@@ -612,39 +612,18 @@ namespace SELLCT.Application.Services
                     Priority = 10
                 },
 
-                // Background位置変更でAuthority表示（X >= 290）
+                // Background位置変更でAuthority表示（4方向統合：X方向 ±290/-490、Y方向 ±170/-365）
                 new PuzzleDefinition
                 {
-                    Id = "Background_Position_Right_Authority",
+                    Id = "Background_Position_Authority",
                     Trigger = new PuzzleTrigger
                     {
                         Type = PuzzleTrigger.TriggerType.PositionChanged,
                         ComponentNames = new[] { "Background", "background", "BACKGROUND" },
-                        MinX = 290
-                    },
-                    Actions = new List<PuzzleAction>
-                    {
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "背景が消えて、デスクトップ上にAuthorityフォルダが見えています！！" },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "......" },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "どうやらゲーム画面の後ろにあって開けないようですね…" },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "ゲーム画面自体をButtonのようにどうにか動かせないでしょうか..." },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "私が調べる限り、coponentsフォルダの中にGameWindow.txtがあるようです..." },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "それを動かすことができるかもしれません" },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "GameWindow.txtはcomponentsフォルダのどこかにあります。見えていないのならもしかしたら隠されているのかもしれません。" }
-                    },
-                    CanRepeat = false, // 一度だけ実行
-                    Priority = 15
-                },
-
-                // Background位置変更でAuthority表示（X <= -490）
-                new PuzzleDefinition
-                {
-                    Id = "Background_Position_Left_Authority",
-                    Trigger = new PuzzleTrigger
-                    {
-                        Type = PuzzleTrigger.TriggerType.PositionChanged,
-                        ComponentNames = new[] { "Background", "background", "BACKGROUND" },
-                        MaxX = -490
+                        MinX = 290,    // 右方向
+                        MaxX = -490,   // 左方向
+                        MinY = 170,    // 上方向
+                        MaxY = -365    // 下方向
                     },
                     Actions = new List<PuzzleAction>
                     {
