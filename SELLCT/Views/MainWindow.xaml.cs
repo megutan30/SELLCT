@@ -1239,6 +1239,28 @@ namespace SELLCT.Views
             {
                 if (!_isPhase2)
                 {
+                    // 権限ファイルが全て揃っているかチェック
+                    bool hasAllPermissions = CheckAllPermissions();
+
+                    if (hasAllPermissions)
+                    {
+                        // フェーズ2へ移行
+                        e.Cancel = true; // クローズをキャンセル
+                        System.Diagnostics.Debug.WriteLine("[Window_Closing] All permissions granted, transitioning to Phase 2");
+
+                        // フェーズ2移行処理を実行
+                        var puzzleActionHandler = GetPuzzleActionHandler();
+                        if (puzzleActionHandler != null)
+                        {
+                            var phase2Action = new Core.Entities.PuzzleAction
+                            {
+                                Type = Core.Entities.PuzzleAction.ActionType.TransitionToPhase2
+                            };
+                            puzzleActionHandler.HandleAction(phase2Action);
+                        }
+                        return;
+                    }
+
                     //var result = MessageBox.Show(
                     //    "SELLCTを終了しますか？\n\n" +
                     //    "進行状況は保存されません。",
@@ -1640,12 +1662,38 @@ namespace SELLCT.Views
         }
 
         /// <summary>
+        /// 全ての権限ファイルが揃っているかチェック
+        /// </summary>
+        private bool CheckAllPermissions()
+        {
+            if (_componentManager == null)
+                return false;
+
+            bool hasAdminRights = _componentManager.GetComponent("AdminRights") != null;
+            bool hasFileAccess = _componentManager.GetComponent("FileAccess") != null;
+            bool hasNetworkAccess = _componentManager.GetComponent("NetworkAccess") != null;
+            bool hasSystemControl = _componentManager.GetComponent("SystemControl") != null;
+
+            System.Diagnostics.Debug.WriteLine($"[CheckAllPermissions] AdminRights: {hasAdminRights}, FileAccess: {hasFileAccess}, NetworkAccess: {hasNetworkAccess}, SystemControl: {hasSystemControl}");
+
+            return hasAdminRights && hasFileAccess && hasNetworkAccess && hasSystemControl;
+        }
+
+        /// <summary>
+        /// PuzzleActionHandlerを取得
+        /// </summary>
+        private Core.Interfaces.IPuzzleActionHandler GetPuzzleActionHandler()
+        {
+            return _puzzleActionHandler;
+        }
+
+        /// <summary>
         /// アプリケーション終了時のクリーンアップ
         /// </summary>
         protected override void OnClosed(EventArgs e)
         {
             EnableMouseInput();
-            
+
             // Controllerのリソース解放
             _letterDisplayController?.Dispose();
             _dialogController?.Dispose();

@@ -253,45 +253,46 @@ namespace SELLCT.Application.Services
                 },
 
 
-                // GameWindow.txt (複数パターン対応) - フェーズ2移行にはcomponentsフォルダ内の全権限コンポーネントが必要
-                new PuzzleDefinition
-                {
-                    Id = "GameWindow_Delete_Phase2",
-                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Deleted, ComponentNames = new[] { "GameWindow", "gamewindow", "GAMEWINDOW" } },
-                    Conditions = new List<PuzzleCondition>
-                    {
-                        new PuzzleCondition 
-                        { 
-                            Type = PuzzleCondition.ConditionType.ComponentExists, 
-                            Key = "AdminRights",
-                            ExpectedValue = true, 
-                            Operator = PuzzleCondition.ComparisonOperator.Equal 
-                        },
-                        new PuzzleCondition 
-                        { 
-                            Type = PuzzleCondition.ConditionType.ComponentExists, 
-                            Key = "FileAccess",
-                            ExpectedValue = true, 
-                            Operator = PuzzleCondition.ComparisonOperator.Equal 
-                        },
-                        new PuzzleCondition 
-                        { 
-                            Type = PuzzleCondition.ConditionType.ComponentExists, 
-                            Key = "NetworkAccess",
-                            ExpectedValue = true, 
-                            Operator = PuzzleCondition.ComparisonOperator.Equal 
-                        },
-                        new PuzzleCondition 
-                        { 
-                            Type = PuzzleCondition.ConditionType.ComponentExists, 
-                            Key = "SystemControl",
-                            ExpectedValue = true, 
-                            Operator = PuzzleCondition.ComparisonOperator.Equal 
-                        }
-                    },
-                    Actions = new List<PuzzleAction> { new PuzzleAction { Type = PuzzleAction.ActionType.TransitionToPhase2 } },
-                    Priority = 10
-                },
+                // GameWindow.txt 削除時のフェーズ2移行は無効化（ウィンドウ×ボタンで移行）
+                // 以下のパズルはコメントアウト - ウィンドウクローズ時に権限チェックして移行
+                //new PuzzleDefinition
+                //{
+                //    Id = "GameWindow_Delete_Phase2",
+                //    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Deleted, ComponentNames = new[] { "GameWindow", "gamewindow", "GAMEWINDOW" } },
+                //    Conditions = new List<PuzzleCondition>
+                //    {
+                //        new PuzzleCondition
+                //        {
+                //            Type = PuzzleCondition.ConditionType.ComponentExists,
+                //            Key = "AdminRights",
+                //            ExpectedValue = true,
+                //            Operator = PuzzleCondition.ComparisonOperator.Equal
+                //        },
+                //        new PuzzleCondition
+                //        {
+                //            Type = PuzzleCondition.ConditionType.ComponentExists,
+                //            Key = "FileAccess",
+                //            ExpectedValue = true,
+                //            Operator = PuzzleCondition.ComparisonOperator.Equal
+                //        },
+                //        new PuzzleCondition
+                //        {
+                //            Type = PuzzleCondition.ConditionType.ComponentExists,
+                //            Key = "NetworkAccess",
+                //            ExpectedValue = true,
+                //            Operator = PuzzleCondition.ComparisonOperator.Equal
+                //        },
+                //        new PuzzleCondition
+                //        {
+                //            Type = PuzzleCondition.ConditionType.ComponentExists,
+                //            Key = "SystemControl",
+                //            ExpectedValue = true,
+                //            Operator = PuzzleCondition.ComparisonOperator.Equal
+                //        }
+                //    },
+                //    Actions = new List<PuzzleAction> { new PuzzleAction { Type = PuzzleAction.ActionType.TransitionToPhase2 } },
+                //    Priority = 10
+                //},
                 // GameWindow削除時の権限不足でアプリケーション終了 - AdminRights不足
                 new PuzzleDefinition
                 {
