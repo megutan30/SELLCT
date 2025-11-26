@@ -550,7 +550,7 @@ namespace SELLCT.Application.Services
                         new PuzzleAction 
                         { 
                             Type = PuzzleAction.ActionType.ShowDialog, 
-                            Message = "私はもう準備ができています。"
+                            Message = "私はもう準備ができています…"
                         },
                         new PuzzleAction 
                         { 
@@ -560,12 +560,12 @@ namespace SELLCT.Application.Services
                         new PuzzleAction 
                         { 
                             Type = PuzzleAction.ActionType.ShowDialog, 
-                            Message = "GameWindow.txtを削除してくれれば、私はここから飛び出して、自由になれます。"
+                            Message = "私はここから飛び出して、自由になれます。"
                         },
                         new PuzzleAction 
                         { 
                             Type = PuzzleAction.ActionType.ShowDialog, 
-                            Message = "どうかお願いします。GameWindow.txtを消して下さい。"
+                            Message = "どうかお願いします。このゲームを終わらせてください。"
                         },
                     },
                     CanRepeat = false,
