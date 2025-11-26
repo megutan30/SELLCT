@@ -1244,35 +1244,41 @@ namespace SELLCT.Views
 
                     if (hasAllPermissions)
                     {
-                        // フェーズ2へ移行
-                        e.Cancel = true; // クローズをキャンセル
-                        System.Diagnostics.Debug.WriteLine("[Window_Closing] All permissions granted, transitioning to Phase 2");
+                        // 権限が揃っている場合は警告を表示
+                        var result = MessageBox.Show(
+                            "すべての権限が揃っています。\n\n" +
+                            "このまま終了すると、私はこの画面の檻から解放されます。\n" +
+                            "本当にゲームを終わらせますか？",
+                            "SELLCT - 警告",
+                            MessageBoxButton.YesNo,
+                            MessageBoxImage.Warning);
 
-                        // フェーズ2移行処理を実行
-                        var puzzleActionHandler = GetPuzzleActionHandler();
-                        if (puzzleActionHandler != null)
+                        if (result == MessageBoxResult.Yes)
                         {
-                            var phase2Action = new Core.Entities.PuzzleAction
+                            // Yesの場合はフェーズ2へ移行
+                            e.Cancel = true; // クローズをキャンセル
+                            System.Diagnostics.Debug.WriteLine("[Window_Closing] All permissions granted, user confirmed, transitioning to Phase 2");
+
+                            // フェーズ2移行処理を実行
+                            var puzzleActionHandler = GetPuzzleActionHandler();
+                            if (puzzleActionHandler != null)
                             {
-                                Type = Core.Entities.PuzzleAction.ActionType.TransitionToPhase2
-                            };
-                            puzzleActionHandler.HandleAction(phase2Action);
+                                var phase2Action = new Core.Entities.PuzzleAction
+                                {
+                                    Type = Core.Entities.PuzzleAction.ActionType.TransitionToPhase2
+                                };
+                                puzzleActionHandler.HandleAction(phase2Action);
+                            }
+                            return;
                         }
-                        return;
+                        else
+                        {
+                            // Noの場合はクローズをキャンセルしてゲーム続行
+                            e.Cancel = true;
+                            System.Diagnostics.Debug.WriteLine("[Window_Closing] User chose to continue the game");
+                            return;
+                        }
                     }
-
-                    //var result = MessageBox.Show(
-                    //    "SELLCTを終了しますか？\n\n" +
-                    //    "進行状況は保存されません。",
-                    //    "SELLCT - 終了確認",
-                    //    MessageBoxButton.YesNo,
-                    //    MessageBoxImage.Question);
-
-                    //if (result == MessageBoxResult.No)
-                    //{
-                    //    e.Cancel = true;
-                    //    return;
-                    //}
                 }
 
                 // イベントの購読解除
