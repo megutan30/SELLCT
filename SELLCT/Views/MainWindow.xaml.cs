@@ -221,7 +221,7 @@ namespace SELLCT.Views
                 // 起動時警告メッセージを表示（教育目的）
                 // Windowsシステム警告音を再生
                 SystemSounds.Exclamation.Play();
-                // SmartScreen警告を表示（教育目的）
+                // セキュリティ警告を表示（教育目的）
                 var smartScreenResult = Infrastructure.Services.SmartScreenWarningService.ShowSmartScreenWarning("SELLCT.exe", "不明な発行者");
                 
                 if (smartScreenResult == Infrastructure.Services.SmartScreenResult.DontRun)
@@ -252,7 +252,7 @@ namespace SELLCT.Views
                 //}
                 //else
                 //{
-                //    // SmartScreen で実行しないが選択された場合以外は、通常のMainWindow表示
+                //    // セキュリティ警告で実行しないが選択された場合以外は、通常のMainWindow表示
                 //    System.Diagnostics.Debug.WriteLine("Showing main window directly...");
                 //    this.Show();
                 //}
