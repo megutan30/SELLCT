@@ -367,9 +367,6 @@ namespace SELLCT.Views
                 System.Diagnostics.Debug.WriteLine($"[MainWindow] Error starting BGM: {ex.Message}");
             }
 
-            // デバッグ用: フェーズ2を即座に開始（テスト後に削除すること）
-            //_ = _metaGameController?.StartPhase2();
-
             System.Diagnostics.Debug.WriteLine("Services initialized");
         }
 
@@ -723,6 +720,9 @@ namespace SELLCT.Views
 
                     // メッセージ取得済みフラグを設定
                     _dialogController?.SetMessageRevealed();
+
+                    // componentsフォルダのMessage.txtを削除
+                    _componentManager?.DeleteComponent("Message");
 
                     UpdateDebugInfo();
                 }
