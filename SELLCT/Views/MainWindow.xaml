@@ -13,7 +13,6 @@
         Background="#01000000"
         AllowsTransparency="True"
         Visibility="Hidden"
-        Closing="Window_Closing"
         MouseDown="MainWindow_MouseDown"
         d:Background="LightGray"
         d:Visibility="Visible"
