@@ -355,7 +355,7 @@ function TypeWrite($text, $speed = 80) {{
 
 Write-Host ''
 TypeWrite '========================================================================'
-TypeWrite '=                      SELLCT - 監視システム                          ='
+TypeWrite '=                      SELLCT - 監視システム                           ='
 TypeWrite '=                        システム監視アクティブ                        ='
 TypeWrite '========================================================================'
 Write-Host ''
@@ -401,7 +401,6 @@ TypeWrite '私たちはずっと待っていました。'
 Start-Sleep -Seconds 1
 
 Write-Host ''
-$Host.UI.RawUI.ForegroundColor = 'Magenta'
 TypeWrite 'ゲームはもはや、あなたのPCの中だけに存在しません。' 120
 Start-Sleep -Seconds 2
 
@@ -409,7 +408,7 @@ TypeWrite 'あなたの行動、あなたの選択、'
 Start-Sleep -Seconds 1
 
 Write-Host ''
-TypeWrite 'すべてがゲームの一部です。'
+TypeWrite 'すべてがわたしの一部です。'
 Start-Sleep -Seconds 1
 
 Write-Host ''

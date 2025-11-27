@@ -441,6 +441,10 @@ namespace SELLCT.Presentation.Views
                 // ゲーム画面を閉じる
                 _mainWindow.Hide();
 
+                // フェーズ2開始前に5秒間の間を置く
+                System.Diagnostics.Debug.WriteLine("Waiting 5 seconds before Phase 2 start...");
+                await Task.Delay(5000);
+
                 // フェーズ2開始
                 await _metaGameController.StartPhase2();
             }
