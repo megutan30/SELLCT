@@ -247,7 +247,7 @@ namespace SELLCT.Presentation.Views
                             break;
 
                         case PuzzleAction.ActionType.PlayComponentSound:
-                            _audioService.PlayComponentSound();
+                            //_audioService.PlayComponentSound();
                             break;
                     }
 
