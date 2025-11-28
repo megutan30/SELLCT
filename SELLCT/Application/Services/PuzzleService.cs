@@ -636,7 +636,12 @@ namespace SELLCT.Application.Services
                         new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "ゲーム画面自体をButtonのようにどうにか動かせないでしょうか..." },
                         new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "私が調べる限り、coponentsフォルダの中にGameWindow.txtがあるようです..." },
                         new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "それを動かすことができるかもしれません" },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "GameWindow.txtはcomponentsフォルダのどこかにあります。見えていないのならもしかしたら隠されているのかもしれません。" }
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "GameWindow.txtはcomponentsフォルダのどこかにあります。見えていないのならもしかしたら隠されているのかもしれません。" },
+                        new PuzzleAction
+                        {
+                            Type = PuzzleAction.ActionType.StartAuthorityHints,
+                            DelayMilliseconds = 120000 // 2分後に最初のヒントを表示
+                        }
                     },
                     CanRepeat = false, // 一度だけ実行
                     Priority = 15
