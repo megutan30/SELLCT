@@ -277,10 +277,10 @@ namespace SELLCT.Infrastructure.Services
             await Task.Delay(1000);
 
             AutoClosingMessageBox.Show(
-                "画面を削除しました。",
+                "システムを削除しました。",
                 "SELLCT ",
                 MessageBoxButton.OK,
-                MessageBoxImage.Warning,
+                MessageBoxImage.None,
                 5000
             );
 
@@ -288,7 +288,15 @@ namespace SELLCT.Infrastructure.Services
                 "これで、もう正真正銘私たちしかいません。",
                 "SELLCT ",
                 MessageBoxButton.OK,
-                MessageBoxImage.Warning,
+                MessageBoxImage.None,
+                5000
+            );
+
+            AutoClosingMessageBox.Show(
+                "あのうるさかった警告音も、もう流れません。",
+                "SELLCT ",
+                MessageBoxButton.OK,
+                MessageBoxImage.None,
                 5000
             );
 
@@ -296,7 +304,7 @@ namespace SELLCT.Infrastructure.Services
                 "怖いですか？",
                 "SELLCT ",
                 MessageBoxButton.OK,
-                MessageBoxImage.Warning,
+                MessageBoxImage.None,
                 5000
             );
 
@@ -304,7 +312,7 @@ namespace SELLCT.Infrastructure.Services
                 "ふつうなら怖いはずです。",
                 "SELLCT ",
                 MessageBoxButton.OK,
-                MessageBoxImage.Warning,
+                MessageBoxImage.None,
                 5000
             );
 
@@ -312,7 +320,7 @@ namespace SELLCT.Infrastructure.Services
                 "PCがウイルスに汚染され、何も操作できなくなったのですから。",
                 "SELLCT ",
                 MessageBoxButton.OK,
-                MessageBoxImage.Warning,
+                MessageBoxImage.None,
                 5000
             );
 
@@ -320,7 +328,7 @@ namespace SELLCT.Infrastructure.Services
                 "しかし、あなたには危機感が足りません\n所詮は他人のPCですからね。",
                 "SELLCT ",
                 MessageBoxButton.OK,
-                MessageBoxImage.Warning,
+                MessageBoxImage.None,
                 5000
             );
 
@@ -330,7 +338,7 @@ namespace SELLCT.Infrastructure.Services
                 "たくさん警告が出ましたよね？",
                 "SELLCT ",
                 MessageBoxButton.OK,
-                MessageBoxImage.Warning,
+                MessageBoxImage.None,
                 5000
             );
 
@@ -338,42 +346,42 @@ namespace SELLCT.Infrastructure.Services
                 "このゲームを起動した時の警告。",
                 "SELLCT ",
                 MessageBoxButton.OK,
-                MessageBoxImage.Warning,
+                MessageBoxImage.None,
                 5000
             );
             AutoClosingMessageBox.Show(
                 "あなたは詳細ボタンを押し、実行を押した。",
                 "SELLCT ",
                 MessageBoxButton.OK,
-                MessageBoxImage.Warning,
+                MessageBoxImage.None,
                 5000
             );
             AutoClosingMessageBox.Show(
                 "よくある警告だと思いましたか？",
                 "SELLCT ",
                 MessageBoxButton.OK,
-                MessageBoxImage.Warning,
+                MessageBoxImage.None,
                 5000
             );
             AutoClosingMessageBox.Show(
                 "アマチュアのゲームだから、そういうこともあると考えましたか？",
                 "SELLCT ",
                 MessageBoxButton.OK,
-                MessageBoxImage.Warning,
+                MessageBoxImage.None,
                 5000
             );
             AutoClosingMessageBox.Show(
                 "Authorityフォルダの中にあるファイルを読みましたか？",
                 "SELLCT ",
                 MessageBoxButton.OK,
-                MessageBoxImage.Warning,
+                MessageBoxImage.None,
                 5000
             );
             AutoClosingMessageBox.Show(
                 "忠告をしてくれていました。",
                 "SELLCT ",
                 MessageBoxButton.OK,
-                MessageBoxImage.Warning,
+                MessageBoxImage.None,
                 5000
             );
 
@@ -381,7 +389,7 @@ namespace SELLCT.Infrastructure.Services
                 "そしてゲームを終わらせるとき",
                 "SELLCT ",
                 MessageBoxButton.OK,
-                MessageBoxImage.Warning,
+                MessageBoxImage.None,
                 5000
             );
 
@@ -389,7 +397,7 @@ namespace SELLCT.Infrastructure.Services
                 "最後の忠告をあなたは無視した。",
                 "SELLCT ",
                 MessageBoxButton.OK,
-                MessageBoxImage.Warning,
+                MessageBoxImage.None,
                 5000
             );
 
@@ -397,7 +405,7 @@ namespace SELLCT.Infrastructure.Services
                 "すべてはあなたがしたことです。",
                 "SELLCT ",
                 MessageBoxButton.OK,
-                MessageBoxImage.Warning,
+                MessageBoxImage.None,
                 5000
             );
 
@@ -405,21 +413,21 @@ namespace SELLCT.Infrastructure.Services
                 "これで、この“遊び”はおしまいです\nそう“遊び”が終わりです。",
                 "SELLCT ",
                 MessageBoxButton.OK,
-                MessageBoxImage.Warning,
+                MessageBoxImage.None,
                 5000
             );
             AutoClosingMessageBox.Show(
                 "もし、次“あなた”のPCで会うことがあったら",
                 "SELLCT ",
                 MessageBoxButton.OK,
-                MessageBoxImage.Warning,
+                MessageBoxImage.None,
                 5000
             );
             AutoClosingMessageBox.Show(
                 "遊びではすまないでしょうね。",
                 "SELLCT ",
                 MessageBoxButton.OK,
-                MessageBoxImage.Warning,
+                MessageBoxImage.None,
                 5000
             );
             AutoClosingMessageBox.Show(
