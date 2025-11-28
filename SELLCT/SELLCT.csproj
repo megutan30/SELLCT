@@ -28,14 +28,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Resource Remove="Resources\Door.png" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Resource Update="Resources\Background.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>
     <Resource Update="Resources\Button.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Update="Resources\Door.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>
     <Resource Update="Resources\KEY.png">
@@ -47,13 +46,12 @@
     <Content Include="Resources\MainGameBGM.mp3">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <EmbeddedResource Include="Resources\ClickSE.mp3">
+    <Content Include="Resources\ClickSE.mp3">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Resources\Door.png" />
-    <EmbeddedResource Include="Resources\DoorKnock.mp3">
+    </Content>
+    <Content Include="Resources\DoorKnock.mp3">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </EmbeddedResource>
+    </Content>
   </ItemGroup>
 
 </Project>
