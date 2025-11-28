@@ -124,10 +124,9 @@ namespace SELLCT.Infrastructure.Services
                 CreateComponentFile("YES.txt", "Position = 312,370"); // StackPanel想定位置
                 CreateComponentFile("Background.txt", "Position = 0,0");
                 CreateComponentFile("Door.txt", "Position = 367,221");
-                CreateComponentFile("message.txt", "Position = 128,491");
+                CreateComponentFile("Message.txt", "Position = 128,491");
 
                 // オーディオ制御コンポーネント（BGM初期音量20%、SE初期音量100%）
-                CreateComponentFile("BGM.txt", "Volume = 20");
                 CreateComponentFile("SE.txt", "Volume = 100");
 
                 // 隠しファイル（.hidden拡張子）

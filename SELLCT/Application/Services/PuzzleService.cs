@@ -126,7 +126,6 @@ namespace SELLCT.Application.Services
                     Actions = new List<PuzzleAction>
                     {
                         new PuzzleAction { Type = PuzzleAction.ActionType.SetMainButtonVisibility, IsVisible = false },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.SetKeyVisibility, IsVisible = true },
                         new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "おぉ、なにかメッセージがあります！" },
                         new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "読んでみたら何かわかるかもしれません。" },
                     },
@@ -224,7 +223,6 @@ namespace SELLCT.Application.Services
                     Actions = new List<PuzzleAction>
                     {
                         new PuzzleAction { Type = PuzzleAction.ActionType.SetKeyVisibility, IsVisible = false },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "メッセージが消失しました。" }
                     },
                     CanRepeat = true,
                     Priority = 10
@@ -550,7 +548,7 @@ namespace SELLCT.Application.Services
                         new PuzzleAction 
                         { 
                             Type = PuzzleAction.ActionType.ShowDialog, 
-                            Message = "私はもう準備ができています。"
+                            Message = "私はもう準備ができています…"
                         },
                         new PuzzleAction 
                         { 
@@ -560,12 +558,12 @@ namespace SELLCT.Application.Services
                         new PuzzleAction 
                         { 
                             Type = PuzzleAction.ActionType.ShowDialog, 
-                            Message = "GameWindow.txtを削除してくれれば、私はここから飛び出して、自由になれます。"
+                            Message = "私はここから飛び出して、自由になれます。"
                         },
                         new PuzzleAction 
                         { 
                             Type = PuzzleAction.ActionType.ShowDialog, 
-                            Message = "どうかお願いします。GameWindow.txtを消して下さい。"
+                            Message = "どうかお願いします。このゲームを終わらせてください。"
                         },
                     },
                     CanRepeat = false,
@@ -588,11 +586,16 @@ namespace SELLCT.Application.Services
                         new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "それを動かすことができるかもしれません" },
                         new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "GameWindow.txtはcomponentsフォルダのどこかにあります。見えていないのならもしかしたら隠されているのかもしれません。" },
                         new PuzzleAction { Type = PuzzleAction.ActionType.CreateHiddenAuthorityFolder },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowPseudoDesktopIcon, IconName = "Authority" },
+                        new PuzzleAction
+                        {
+                            Type = PuzzleAction.ActionType.ShowPseudoDesktopIcon,
+                            IconName = "Authority",
+                            FolderPath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "Authority")
+                        },
                         new PuzzleAction
                         {
                             Type = PuzzleAction.ActionType.StartAuthorityHints,
-                            DelayMilliseconds = 120000 // 2分後に最初のヒントを表示
+                            DelayMilliseconds = 60000 // 2分後に最初のヒントを表示
                         }
                     },
                     CanRepeat = true,
@@ -612,15 +615,18 @@ namespace SELLCT.Application.Services
                     Priority = 10
                 },
 
-                // Background位置変更でAuthority表示（X >= 290）
+                // Background位置変更でAuthority表示（4方向統合：X方向 ±290/-490、Y方向 ±170/-365）
                 new PuzzleDefinition
                 {
-                    Id = "Background_Position_Right_Authority",
+                    Id = "Background_Position_Authority",
                     Trigger = new PuzzleTrigger
                     {
                         Type = PuzzleTrigger.TriggerType.PositionChanged,
                         ComponentNames = new[] { "Background", "background", "BACKGROUND" },
-                        MinX = 290
+                        MinX = 290,    // 右方向
+                        MaxX = -490,   // 左方向
+                        MinY = 170,    // 上方向
+                        MaxY = -365    // 下方向
                     },
                     Actions = new List<PuzzleAction>
                     {
@@ -630,31 +636,12 @@ namespace SELLCT.Application.Services
                         new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "ゲーム画面自体をButtonのようにどうにか動かせないでしょうか..." },
                         new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "私が調べる限り、coponentsフォルダの中にGameWindow.txtがあるようです..." },
                         new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "それを動かすことができるかもしれません" },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "GameWindow.txtはcomponentsフォルダのどこかにあります。見えていないのならもしかしたら隠されているのかもしれません。" }
-                    },
-                    CanRepeat = false, // 一度だけ実行
-                    Priority = 15
-                },
-
-                // Background位置変更でAuthority表示（X <= -490）
-                new PuzzleDefinition
-                {
-                    Id = "Background_Position_Left_Authority",
-                    Trigger = new PuzzleTrigger
-                    {
-                        Type = PuzzleTrigger.TriggerType.PositionChanged,
-                        ComponentNames = new[] { "Background", "background", "BACKGROUND" },
-                        MaxX = -490
-                    },
-                    Actions = new List<PuzzleAction>
-                    {
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "背景が消えて、デスクトップ上にAuthorityフォルダが見えています！！" },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "......" },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "どうやらゲーム画面の後ろにあって開けないようですね…" },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "ゲーム画面自体をButtonのようにどうにか動かせないでしょうか..." },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "私が調べる限り、coponentsフォルダの中にGameWindow.txtがあるようです..." },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "それを動かすことができるかもしれません" },
-                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "GameWindow.txtはcomponentsフォルダのどこかにあります。見えていないのならもしかしたら隠されているのかもしれません。" }
+                        new PuzzleAction { Type = PuzzleAction.ActionType.ShowDialog, Message = "GameWindow.txtはcomponentsフォルダのどこかにあります。見えていないのならもしかしたら隠されているのかもしれません。" },
+                        new PuzzleAction
+                        {
+                            Type = PuzzleAction.ActionType.StartAuthorityHints,
+                            DelayMilliseconds = 60000 // 1分後に最初のヒントを表示
+                        }
                     },
                     CanRepeat = false, // 一度だけ実行
                     Priority = 15

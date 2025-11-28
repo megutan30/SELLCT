@@ -13,7 +13,6 @@
         Background="#01000000"
         AllowsTransparency="True"
         Visibility="Hidden"
-        Closing="Window_Closing"
         MouseDown="MainWindow_MouseDown"
         d:Background="LightGray"
         d:Visibility="Visible"
@@ -159,7 +158,7 @@
             </Grid.RowDefinitions>
 
             <!-- カスタムタイトルバー -->
-            <Border Grid.Row="0" Grid.ColumnSpan="3" Background="#F0F0F0" BorderBrush="#808080" BorderThickness="0,0,0,1">
+            <Border Grid.Row="0" Grid.ColumnSpan="3" Panel.ZIndex="100" Background="#F0F0F0" BorderBrush="#808080" BorderThickness="0,0,0,1">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
@@ -167,14 +166,14 @@
                     </Grid.ColumnDefinitions>
 
                     <!-- タイトル表示 -->
-                    <TextBlock Grid.Column="0" Text="SELLCT" 
+                    <TextBlock Grid.Column="0" Text="SELLCT"
                           FontSize="12" FontWeight="Bold"
-                          VerticalAlignment="Center" 
+                          VerticalAlignment="Center"
                           Margin="8,0,0,0"/>
 
                     <!-- 閉じるボタン -->
-                    <Button Grid.Column="1" Name="CustomCloseButton" 
-                       Content="×" 
+                    <Button Grid.Column="1" Name="CustomCloseButton"
+                       Content="×"
                        Style="{StaticResource CustomTitleBarButtonStyle}"
                        Click="CustomCloseButton_Click"
                        Margin="0,2,2,2"/>

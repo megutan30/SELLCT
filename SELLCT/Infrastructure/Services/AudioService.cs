@@ -158,7 +158,7 @@ namespace SELLCT.Infrastructure.Services
         /// </summary>
         public void PlayDoorSound()
         {
-            PlaySE(DOOR_SE_RESOURCE_PATH, "DoorKnockSE");
+            //PlaySE(DOOR_SE_RESOURCE_PATH, "DoorKnockSE");
         }
 
         /// <summary>

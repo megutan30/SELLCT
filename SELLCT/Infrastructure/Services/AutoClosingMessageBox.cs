@@ -38,7 +38,6 @@ namespace SELLCT.Infrastructure.Services
         /// <returns>ユーザーの選択またはタイムアウト時のデフォルト結果</returns>
         public static MessageBoxResult Show(string messageBoxText, string caption = "", MessageBoxButton button = MessageBoxButton.OK, MessageBoxImage icon = MessageBoxImage.None, int autoCloseTimeoutMs = 0)
         {
-            // メッセージボックス表示時にシステム音を再生
             SystemSounds.Exclamation.Play();
 
             // タイムアウトが設定されていない場合は標準のMessageBoxを使用
@@ -50,7 +49,17 @@ namespace SELLCT.Infrastructure.Services
             // 自動閉鎖機能付きの標準MessageBoxを表示
             return ShowAutoClosingNative(messageBoxText, caption, button, icon, autoCloseTimeoutMs);
         }
+        public static MessageBoxResult Show_NoSound(string messageBoxText, string caption = "", MessageBoxButton button = MessageBoxButton.OK, MessageBoxImage icon = MessageBoxImage.None, int autoCloseTimeoutMs = 0)
+        {
+            // タイムアウトが設定されていない場合は標準のMessageBoxを使用
+            if (autoCloseTimeoutMs <= 0)
+            {
+                return MessageBox.Show(messageBoxText, caption, button, icon);
+            }
 
+            // 自動閉鎖機能付きの標準MessageBoxを表示
+            return ShowAutoClosingNative(messageBoxText, caption, button, icon, autoCloseTimeoutMs);
+        }
         /// <summary>
         /// 標準のMessageBoxを使用した自動閉鎖機能
         /// タイマーで指定時間後にウィンドウを閉じる

@@ -221,7 +221,7 @@ namespace SELLCT.Views
                 // 起動時警告メッセージを表示（教育目的）
                 // Windowsシステム警告音を再生
                 SystemSounds.Exclamation.Play();
-                // SmartScreen警告を表示（教育目的）
+                // セキュリティ警告を表示（教育目的）
                 var smartScreenResult = Infrastructure.Services.SmartScreenWarningService.ShowSmartScreenWarning("SELLCT.exe", "不明な発行者");
                 
                 if (smartScreenResult == Infrastructure.Services.SmartScreenResult.DontRun)
@@ -252,7 +252,7 @@ namespace SELLCT.Views
                 //}
                 //else
                 //{
-                //    // SmartScreen で実行しないが選択された場合以外は、通常のMainWindow表示
+                //    // セキュリティ警告で実行しないが選択された場合以外は、通常のMainWindow表示
                 //    System.Diagnostics.Debug.WriteLine("Showing main window directly...");
                 //    this.Show();
                 //}
@@ -366,9 +366,6 @@ namespace SELLCT.Views
             {
                 System.Diagnostics.Debug.WriteLine($"[MainWindow] Error starting BGM: {ex.Message}");
             }
-
-            // デバッグ用: フェーズ2を即座に開始（テスト後に削除すること）
-            //_ = _metaGameController?.StartPhase2();
 
             System.Diagnostics.Debug.WriteLine("Services initialized");
         }
@@ -723,6 +720,9 @@ namespace SELLCT.Views
 
                     // メッセージ取得済みフラグを設定
                     _dialogController?.SetMessageRevealed();
+
+                    // componentsフォルダのMessage.txtを削除
+                    _componentManager?.DeleteComponent("Message");
 
                     UpdateDebugInfo();
                 }
@@ -1244,35 +1244,43 @@ namespace SELLCT.Views
 
                     if (hasAllPermissions)
                     {
-                        // フェーズ2へ移行
-                        e.Cancel = true; // クローズをキャンセル
-                        System.Diagnostics.Debug.WriteLine("[Window_Closing] All permissions granted, transitioning to Phase 2");
+                        // 権限が揃っている場合は警告を表示
+                        var result = MessageBox.Show(
+                            "最終警告\n\n" +
+                            "いまならまだ間に会う...\n" +
+                            "本当の意味でSELLCTを終わらせれば...\n" +
+                            "...\n\n" +
+                            "本当にSELLCTを開放する？",
+                            "System - 警告",
+                            MessageBoxButton.YesNo,
+                            MessageBoxImage.Warning);
 
-                        // フェーズ2移行処理を実行
-                        var puzzleActionHandler = GetPuzzleActionHandler();
-                        if (puzzleActionHandler != null)
+                        if (result == MessageBoxResult.Yes)
                         {
-                            var phase2Action = new Core.Entities.PuzzleAction
+                            // Yesの場合はフェーズ2へ移行
+                            e.Cancel = true; // クローズをキャンセル
+                            System.Diagnostics.Debug.WriteLine("[Window_Closing] All permissions granted, user confirmed, transitioning to Phase 2");
+
+                            // フェーズ2移行処理を実行
+                            var puzzleActionHandler = GetPuzzleActionHandler();
+                            if (puzzleActionHandler != null)
                             {
-                                Type = Core.Entities.PuzzleAction.ActionType.TransitionToPhase2
-                            };
-                            puzzleActionHandler.HandleAction(phase2Action);
+                                var phase2Action = new Core.Entities.PuzzleAction
+                                {
+                                    Type = Core.Entities.PuzzleAction.ActionType.TransitionToPhase2
+                                };
+                                puzzleActionHandler.HandleAction(phase2Action);
+                            }
+                            return;
                         }
-                        return;
+                        else
+                        {
+                            // Noの場合はクローズをキャンセルしてゲーム続行
+                            e.Cancel = true;
+                            System.Diagnostics.Debug.WriteLine("[Window_Closing] User chose to continue the game");
+                            return;
+                        }
                     }
-
-                    //var result = MessageBox.Show(
-                    //    "SELLCTを終了しますか？\n\n" +
-                    //    "進行状況は保存されません。",
-                    //    "SELLCT - 終了確認",
-                    //    MessageBoxButton.YesNo,
-                    //    MessageBoxImage.Question);
-
-                    //if (result == MessageBoxResult.No)
-                    //{
-                    //    e.Cancel = true;
-                    //    return;
-                    //}
                 }
 
                 // イベントの購読解除

@@ -341,11 +341,11 @@ $Host.UI.RawUI.WindowSize = New-Object Management.Automation.Host.Size(80, 30)
 
 # 色の設定
 $Host.UI.RawUI.BackgroundColor = 'Black'
-$Host.UI.RawUI.ForegroundColor = 'Red'
+$Host.UI.RawUI.ForegroundColor = 'White'
 Clear-Host
 
 # タイプライター効果関数
-function TypeWrite($text, $speed = 80) {{
+function TypeWrite($text, $speed = 50) {{
     for ($i = 0; $i -lt $text.Length; $i++) {{
         Write-Host -NoNewline $text[$i]
         Start-Sleep -Milliseconds $speed
@@ -355,7 +355,7 @@ function TypeWrite($text, $speed = 80) {{
 
 Write-Host ''
 TypeWrite '========================================================================'
-TypeWrite '=                      SELLCT - 監視システム                          ='
+TypeWrite '=                      SELLCT - 監視システム                           ='
 TypeWrite '=                        システム監視アクティブ                        ='
 TypeWrite '========================================================================'
 Write-Host ''
@@ -368,11 +368,8 @@ Write-Host ''
 TypeWrite '検知完了。'
 Start-Sleep -Seconds 1
 
-Write-Host ''
-TypeWrite 'GameWindow.txtを削除したことを確認しました。'
-Start-Sleep -Seconds 1
 
-TypeWrite 'そして今、あなたはこのメッセージを読んでいる。'
+TypeWrite '今、あなたはこのメッセージを読んでいる。'
 Start-Sleep -Seconds 1
 
 TypeWrite 'ということは...'
@@ -380,9 +377,10 @@ Start-Sleep -Seconds 2
 
 Write-Host ''
 $Host.UI.RawUI.ForegroundColor = 'Red'
-TypeWrite 'あなたはPCを再起動しましたね？' 100
+TypeWrite 'PCを再起動しましたね？' 150
 Start-Sleep -Seconds 1
 
+$Host.UI.RawUI.ForegroundColor = 'White'
 Write-Host ''
 TypeWrite '私たちは知っています。'
 Start-Sleep -Seconds 1
@@ -393,28 +391,25 @@ Start-Sleep -Seconds 1
 TypeWrite 'いつ再び起動したかを。'
 Start-Sleep -Seconds 1
 
-Write-Host ''
-TypeWrite 'でも安心してください。'
-Start-Sleep -Seconds 1
-
 TypeWrite '私たちはずっと待っていました。'
 Start-Sleep -Seconds 1
 
+TypeWrite 'もう'
+Start-Sleep -Seconds 1
+
 Write-Host ''
-$Host.UI.RawUI.ForegroundColor = 'Magenta'
-TypeWrite 'ゲームはもはや、あなたのPCの中だけに存在しません。' 120
+TypeWrite 'SELLCTは、終わることはありません。' 120
 Start-Sleep -Seconds 2
 
 TypeWrite 'あなたの行動、あなたの選択、'
 Start-Sleep -Seconds 1
 
 Write-Host ''
-TypeWrite 'すべてがゲームの一部です。'
+TypeWrite 'すべてがわたしの一部です。'
 Start-Sleep -Seconds 1
 
 Write-Host ''
-$Host.UI.RawUI.ForegroundColor = 'White'
-TypeWrite 'おかえりなさい。'
+TypeWrite 'おかえりなさい。いつまでも、どこまでも見ています'
 Start-Sleep -Seconds 1
 
 Write-Host ''

@@ -8,13 +8,13 @@ using System.Windows.Shapes;
 namespace SELLCT.Infrastructure.Services
 {
     /// <summary>
-    /// Windows SmartScreen警告を模擬する教育用サービス
+    /// Windowsセキュリティ警告を模擬する教育用サービス
     /// 教育目的でマルウェアの実際の動作を理解するため
     /// </summary>
     public class SmartScreenWarningService
     {
         /// <summary>
-        /// SmartScreen警告ダイアログを表示
+        /// セキュリティ警告ダイアログを表示
         /// </summary>
         /// <param name="fileName">ファイル名</param>
         /// <param name="publisher">発行者</param>
@@ -38,7 +38,7 @@ namespace SELLCT.Infrastructure.Services
     }
 
     /// <summary>
-    /// SmartScreen警告ダイアログ
+    /// セキュリティ警告ダイアログ
     /// </summary>
     internal class SmartScreenDialog : Window
     {
@@ -52,7 +52,7 @@ namespace SELLCT.Infrastructure.Services
 
         private void InitializeDialog(string fileName, string publisher)
         {
-            Title = "Windows によってPCが保護されました";
+            Title = "Window によってPCが保護されました";
             Width = 480;
             Height = 320;
             WindowStartupLocation = WindowStartupLocation.CenterScreen;
@@ -76,7 +76,7 @@ namespace SELLCT.Infrastructure.Services
             
             var titleText = new TextBlock
             {
-                Text = "Windows によってPCが保護されました",
+                Text = "Window によってPCが保護されました",
                 FontSize = 16,
                 FontWeight = FontWeights.SemiBold,
                 Margin = new Thickness(15, 5, 0, 0),
@@ -92,7 +92,7 @@ namespace SELLCT.Infrastructure.Services
             
             var warningText = new TextBlock
             {
-                Text = "Windows Defender SmartScreen によって認識されない",
+                Text = "Window Security Filter によって認識されない",
                 FontSize = 13,
                 Margin = new Thickness(0, 0, 0, 5),
                 TextWrapping = TextWrapping.Wrap
@@ -238,7 +238,7 @@ namespace SELLCT.Infrastructure.Services
                 {
                     var additionalInfo = new TextBlock
                     {
-                        Text = "\nこのアプリは発行者が不明で、Microsoft Defender SmartScreen で認識されません。不明なアプリは PC に害を及ぼす可能性があります。",
+                        Text = "\nこのアプリは発行者が不明で、Windows Security Filter で認識されません。不明なアプリは PC に害を及ぼす可能性があります。",
                         FontSize = 12,
                         Margin = new Thickness(0, 10, 0, 0),
                         TextWrapping = TextWrapping.Wrap,
