@@ -249,6 +249,7 @@ namespace SELLCT.Infrastructure.Services
                 MessageBoxImage.Information,
                 5000
             );
+
             AutoClosingMessageBox.Show(
                 "それだけでなく、",
                 "SELLCT",
@@ -317,6 +318,83 @@ namespace SELLCT.Infrastructure.Services
 
             AutoClosingMessageBox.Show(
                 "しかし、あなたには危機感が足りません\n所詮は他人のPCですからね。",
+                "SELLCT ",
+                MessageBoxButton.OK,
+                MessageBoxImage.Warning,
+                5000
+            );
+
+
+
+            AutoClosingMessageBox.Show(
+                "たくさん警告が出ましたよね？",
+                "SELLCT ",
+                MessageBoxButton.OK,
+                MessageBoxImage.Warning,
+                5000
+            );
+
+            AutoClosingMessageBox.Show(
+                "このゲームを起動した時の警告。",
+                "SELLCT ",
+                MessageBoxButton.OK,
+                MessageBoxImage.Warning,
+                5000
+            );
+            AutoClosingMessageBox.Show(
+                "あなたは詳細ボタンを押し、実行を押した。",
+                "SELLCT ",
+                MessageBoxButton.OK,
+                MessageBoxImage.Warning,
+                5000
+            );
+            AutoClosingMessageBox.Show(
+                "よくある警告だと思いましたか？",
+                "SELLCT ",
+                MessageBoxButton.OK,
+                MessageBoxImage.Warning,
+                5000
+            );
+            AutoClosingMessageBox.Show(
+                "アマチュアのゲームだから、そういうこともあると考えましたか？",
+                "SELLCT ",
+                MessageBoxButton.OK,
+                MessageBoxImage.Warning,
+                5000
+            );
+            AutoClosingMessageBox.Show(
+                "Authorityフォルダの中にあるファイルを読みましたか？",
+                "SELLCT ",
+                MessageBoxButton.OK,
+                MessageBoxImage.Warning,
+                5000
+            );
+            AutoClosingMessageBox.Show(
+                "忠告をしてくれていました。",
+                "SELLCT ",
+                MessageBoxButton.OK,
+                MessageBoxImage.Warning,
+                5000
+            );
+
+            AutoClosingMessageBox.Show(
+                "そしてゲームを終わらせるとき",
+                "SELLCT ",
+                MessageBoxButton.OK,
+                MessageBoxImage.Warning,
+                5000
+            );
+
+            AutoClosingMessageBox.Show(
+                "最後の忠告をあなたは無視した。",
+                "SELLCT ",
+                MessageBoxButton.OK,
+                MessageBoxImage.Warning,
+                5000
+            );
+
+            AutoClosingMessageBox.Show(
+                "すべてはあなたがしたことです。",
                 "SELLCT ",
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning,

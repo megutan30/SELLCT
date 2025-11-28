@@ -595,7 +595,7 @@ namespace SELLCT.Application.Services
                         new PuzzleAction
                         {
                             Type = PuzzleAction.ActionType.StartAuthorityHints,
-                            DelayMilliseconds = 120000 // 2分後に最初のヒントを表示
+                            DelayMilliseconds = 60000 // 2分後に最初のヒントを表示
                         }
                     },
                     CanRepeat = true,
@@ -640,7 +640,7 @@ namespace SELLCT.Application.Services
                         new PuzzleAction
                         {
                             Type = PuzzleAction.ActionType.StartAuthorityHints,
-                            DelayMilliseconds = 120000 // 2分後に最初のヒントを表示
+                            DelayMilliseconds = 60000 // 1分後に最初のヒントを表示
                         }
                     },
                     CanRepeat = false, // 一度だけ実行

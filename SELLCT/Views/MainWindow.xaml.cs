@@ -1246,10 +1246,12 @@ namespace SELLCT.Views
                     {
                         // 権限が揃っている場合は警告を表示
                         var result = MessageBox.Show(
-                            "すべての権限が揃っています。\n\n" +
-                            "このまま終了すると、私はこの画面の檻から解放されます。\n" +
-                            "本当にゲームを終わらせますか？",
-                            "SELLCT - 警告",
+                            "最終警告\n\n" +
+                            "いまならまだ間に会う...\n" +
+                            "本当の意味でSELLCTを終わらせれば...\n" +
+                            "...\n\n" +
+                            "本当にSELLCTを開放する？",
+                            "System - 警告",
                             MessageBoxButton.YesNo,
                             MessageBoxImage.Warning);
 
