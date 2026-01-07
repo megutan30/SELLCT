@@ -238,7 +238,7 @@ namespace SELLCT.Infrastructure.Services
                 {
                     var additionalInfo = new TextBlock
                     {
-                        Text = "\nこのアプリは発行者が不明で、Windows Security Filter で認識されません。不明なアプリは PC に害を及ぼす可能性があります。",
+                        Text = "\nこのアプリは発行者が不明で、Window Security Filter で認識されません。不明なアプリは PC に害を及ぼす可能性があります。",
                         FontSize = 12,
                         Margin = new Thickness(0, 10, 0, 0),
                         TextWrapping = TextWrapping.Wrap,

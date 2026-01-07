@@ -127,11 +127,11 @@ namespace SELLCT.Infrastructure.Services
             {
                 var desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
                 var componentsPath = Path.Combine(desktopPath, "components");
-                
+
                 if (Directory.Exists(componentsPath))
                 {
                     System.Diagnostics.Debug.WriteLine($"Deleting components folder: {componentsPath}");
-                    Directory.Delete(componentsPath, true);
+                    ForceDeleteDirectory(componentsPath);
                     System.Diagnostics.Debug.WriteLine("✅ Components folder deleted successfully");
                 }
                 else
@@ -142,6 +142,89 @@ namespace SELLCT.Infrastructure.Services
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"❌ Error deleting components folder: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
+            }
+        }
+
+        /// <summary>
+        /// ディレクトリを強制削除（属性クリア、リトライロジック付き）
+        /// </summary>
+        /// <param name="path">削除対象ディレクトリパス</param>
+        /// <param name="maxRetries">最大リトライ回数</param>
+        public static void ForceDeleteDirectory(string path, int maxRetries = 3)
+        {
+            for (int attempt = 1; attempt <= maxRetries; attempt++)
+            {
+                try
+                {
+                    if (!Directory.Exists(path))
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Directory does not exist: {path}");
+                        return;
+                    }
+
+                    // すべてのファイルの属性をクリア
+                    foreach (var file in Directory.GetFiles(path, "*", SearchOption.AllDirectories))
+                    {
+                        try
+                        {
+                            File.SetAttributes(file, FileAttributes.Normal);
+                        }
+                        catch (Exception fileEx)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"⚠️ Could not clear attributes for file {file}: {fileEx.Message}");
+                        }
+                    }
+
+                    // すべてのサブディレクトリの属性をクリア
+                    foreach (var dir in Directory.GetDirectories(path, "*", SearchOption.AllDirectories))
+                    {
+                        try
+                        {
+                            var dirInfo = new DirectoryInfo(dir);
+                            dirInfo.Attributes = FileAttributes.Normal;
+                        }
+                        catch (Exception dirEx)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"⚠️ Could not clear attributes for directory {dir}: {dirEx.Message}");
+                        }
+                    }
+
+                    // ルートディレクトリの属性もクリア
+                    try
+                    {
+                        var rootDirInfo = new DirectoryInfo(path);
+                        rootDirInfo.Attributes = FileAttributes.Normal;
+                    }
+                    catch (Exception rootEx)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"⚠️ Could not clear attributes for root directory: {rootEx.Message}");
+                    }
+
+                    // 削除実行
+                    Directory.Delete(path, true);
+
+                    System.Diagnostics.Debug.WriteLine($"✅ Directory deleted successfully on attempt {attempt}: {path}");
+                    return; // 成功したら終了
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"⚠️ Delete attempt {attempt}/{maxRetries} failed: {ex.Message}");
+
+                    if (attempt < maxRetries)
+                    {
+                        // リトライ前に待機（指数バックオフ）
+                        int delayMs = 100 * attempt;
+                        System.Diagnostics.Debug.WriteLine($"Waiting {delayMs}ms before retry...");
+                        System.Threading.Thread.Sleep(delayMs);
+                    }
+                    else
+                    {
+                        // 最終試行も失敗した場合は例外を再スロー
+                        System.Diagnostics.Debug.WriteLine($"❌ All {maxRetries} deletion attempts failed for: {path}");
+                        throw;
+                    }
+                }
             }
         }
 
@@ -154,23 +237,11 @@ namespace SELLCT.Infrastructure.Services
             {
                 var desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
                 var authorityPath = Path.Combine(desktopPath, "Authority");
-                
+
                 if (Directory.Exists(authorityPath))
                 {
                     System.Diagnostics.Debug.WriteLine($"Deleting Authority folder: {authorityPath}");
-                    
-                    // 隠し属性とシステム属性を解除してから削除
-                    var dirInfo = new DirectoryInfo(authorityPath);
-                    dirInfo.Attributes = FileAttributes.Normal;
-                    
-                    // 中のファイルの属性も解除
-                    foreach (var file in Directory.GetFiles(authorityPath))
-                    {
-                        var fileInfo = new FileInfo(file);
-                        fileInfo.Attributes = FileAttributes.Normal;
-                    }
-                    
-                    Directory.Delete(authorityPath, true);
+                    ForceDeleteDirectory(authorityPath);
                     System.Diagnostics.Debug.WriteLine("✅ Authority folder deleted successfully");
                 }
                 else
@@ -181,6 +252,7 @@ namespace SELLCT.Infrastructure.Services
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"❌ Error deleting Authority folder: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
             }
         }
 

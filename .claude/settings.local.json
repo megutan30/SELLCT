@@ -82,7 +82,8 @@
       "WebFetch(domain:docs.microsoft.com)",
       "WebSearch",
       "Bash(taskkill:*)",
-      "Bash(dotnet run:*)"
+      "Bash(dotnet run:*)",
+      "Bash(powershell -Command \"if \\(Test-Path ''$env:USERPROFILE\\\\Desktop\\\\components''\\) { Remove-Item -Path ''$env:USERPROFILE\\\\Desktop\\\\components'' -Recurse -Force; Write-Host ''componentsフォルダを削除しました'' } else { Write-Host ''componentsフォルダは存在しません'' }\")"
     ],
     "deny": []
   }

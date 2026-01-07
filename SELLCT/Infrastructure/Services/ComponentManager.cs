@@ -786,17 +786,18 @@ namespace SELLCT.Infrastructure.Services
             {
                 // 裏切りエンディングフラグをリセット
                 _betrayalEndingTriggered = false;
-                
+
                 // Clear current components
                 _components.Clear();
 
                 // Delete and recreate the components directory
                 if (Directory.Exists(_componentsPath))
                 {
-                    Directory.Delete(_componentsPath, true);
+                    System.Diagnostics.Debug.WriteLine($"Deleting existing components folder: {_componentsPath}");
+                    CleanupService.ForceDeleteDirectory(_componentsPath);
                     System.Diagnostics.Debug.WriteLine("Deleted existing components folder");
                 }
-                
+
                 CreateComponentsFolder();
                 CreateInitialComponents();
                 LoadExistingComponents();
@@ -806,6 +807,17 @@ namespace SELLCT.Infrastructure.Services
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Error resetting components folder on startup: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
+
+                // 致命的エラーの場合はユーザーに通知
+                System.Windows.MessageBox.Show(
+                    $"componentsフォルダの初期化に失敗しました。\n" +
+                    $"デスクトップの'components'フォルダを手動で削除してから再起動してください。\n\n" +
+                    $"エラー: {ex.Message}",
+                    "SELLCT - 初期化エラー",
+                    System.Windows.MessageBoxButton.OK,
+                    System.Windows.MessageBoxImage.Warning
+                );
             }
         }
 
@@ -816,9 +828,9 @@ namespace SELLCT.Infrastructure.Services
         {
             try
             {
-                // 裷切りエンディングフラグをリセット
+                // 裏切りエンディングフラグをリセット
                 _betrayalEndingTriggered = false;
-                
+
                 // 監視を一時停止
                 _watcherManager?.PauseWatching();
 
@@ -829,7 +841,9 @@ namespace SELLCT.Infrastructure.Services
                 // componentsディレクトリを削除して再作成
                 if (Directory.Exists(_componentsPath))
                 {
-                    Directory.Delete(_componentsPath, true);
+                    System.Diagnostics.Debug.WriteLine($"Deleting components folder for reset: {_componentsPath}");
+                    CleanupService.ForceDeleteDirectory(_componentsPath);
+                    System.Diagnostics.Debug.WriteLine("Components folder deleted for reset");
                 }
                 CreateComponentsFolder();
 
@@ -853,6 +867,16 @@ namespace SELLCT.Infrastructure.Services
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Error resetting game state: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
+
+                // エラーをユーザーに通知
+                System.Windows.MessageBox.Show(
+                    $"ゲームのリセットに失敗しました。\n\n" +
+                    $"エラー: {ex.Message}",
+                    "SELLCT - リセットエラー",
+                    System.Windows.MessageBoxButton.OK,
+                    System.Windows.MessageBoxImage.Error
+                );
             }
         }
 
