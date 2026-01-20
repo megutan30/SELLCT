@@ -291,77 +291,27 @@ namespace SELLCT.Application.Services
                 //    Actions = new List<PuzzleAction> { new PuzzleAction { Type = PuzzleAction.ActionType.TransitionToPhase2 } },
                 //    Priority = 10
                 //},
-                // GameWindow削除時の権限不足でアプリケーション終了 - AdminRights不足
+                // GameWindow削除時にウィンドウを透明化（常に実行）
                 new PuzzleDefinition
                 {
-                    Id = "GameWindow_Delete_NoAdminRights",
+                    Id = "GameWindow_Delete_HideWindow",
+                    Description = "GameWindow削除時にウィンドウを透明化",
                     Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Deleted, ComponentNames = new[] { "GameWindow", "gamewindow", "GAMEWINDOW" } },
-                    Conditions = new List<PuzzleCondition>
-                    {
-                        new PuzzleCondition 
-                        { 
-                            Type = PuzzleCondition.ConditionType.ComponentExists, 
-                            Key = "AdminRights",
-                            ExpectedValue = false, 
-                            Operator = PuzzleCondition.ComparisonOperator.Equal 
-                        }
-                    },
-                    Actions = new List<PuzzleAction> { new PuzzleAction { Type = PuzzleAction.ActionType.ExitApplication } },
-                    Priority = 5
+                    Conditions = new List<PuzzleCondition>(),  // 条件なし（常に実行）
+                    Actions = new List<PuzzleAction> { new PuzzleAction { Type = PuzzleAction.ActionType.HideGameWindow } },
+                    CanRepeat = true,
+                    Priority = 10
                 },
-                // GameWindow削除時の権限不足でアプリケーション終了 - FileAccess不足
+                // GameWindow作成時にウィンドウを表示に戻す
                 new PuzzleDefinition
                 {
-                    Id = "GameWindow_Delete_NoFileAccess",
-                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Deleted, ComponentNames = new[] { "GameWindow", "gamewindow", "GAMEWINDOW" } },
-                    Conditions = new List<PuzzleCondition>
-                    {
-                        new PuzzleCondition 
-                        { 
-                            Type = PuzzleCondition.ConditionType.ComponentExists, 
-                            Key = "FileAccess",
-                            ExpectedValue = false, 
-                            Operator = PuzzleCondition.ComparisonOperator.Equal 
-                        }
-                    },
-                    Actions = new List<PuzzleAction> { new PuzzleAction { Type = PuzzleAction.ActionType.ExitApplication } },
-                    Priority = 5
-                },
-                // GameWindow削除時の権限不足でアプリケーション終了 - NetworkAccess不足
-                new PuzzleDefinition
-                {
-                    Id = "GameWindow_Delete_NoNetworkAccess",
-                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Deleted, ComponentNames = new[] { "GameWindow", "gamewindow", "GAMEWINDOW" } },
-                    Conditions = new List<PuzzleCondition>
-                    {
-                        new PuzzleCondition 
-                        { 
-                            Type = PuzzleCondition.ConditionType.ComponentExists, 
-                            Key = "NetworkAccess",
-                            ExpectedValue = false, 
-                            Operator = PuzzleCondition.ComparisonOperator.Equal 
-                        }
-                    },
-                    Actions = new List<PuzzleAction> { new PuzzleAction { Type = PuzzleAction.ActionType.ExitApplication } },
-                    Priority = 5
-                },
-                // GameWindow削除時の権限不足でアプリケーション終了 - SystemControl不足
-                new PuzzleDefinition
-                {
-                    Id = "GameWindow_Delete_NoSystemControl",
-                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Deleted, ComponentNames = new[] { "GameWindow", "gamewindow", "GAMEWINDOW" } },
-                    Conditions = new List<PuzzleCondition>
-                    {
-                        new PuzzleCondition 
-                        { 
-                            Type = PuzzleCondition.ConditionType.ComponentExists, 
-                            Key = "SystemControl",
-                            ExpectedValue = false, 
-                            Operator = PuzzleCondition.ComparisonOperator.Equal 
-                        }
-                    },
-                    Actions = new List<PuzzleAction> { new PuzzleAction { Type = PuzzleAction.ActionType.ExitApplication } },
-                    Priority = 5
+                    Id = "GameWindow_Created_ShowWindow",
+                    Description = "GameWindow作成時にウィンドウを表示に戻す",
+                    Trigger = new PuzzleTrigger { Type = PuzzleTrigger.TriggerType.Created, ComponentNames = new[] { "GameWindow", "gamewindow", "GAMEWINDOW", "GameWindow.txt", "gamewindow.txt" } },
+                    Conditions = new List<PuzzleCondition>(),  // 条件なし
+                    Actions = new List<PuzzleAction> { new PuzzleAction { Type = PuzzleAction.ActionType.ShowGameWindow } },
+                    CanRepeat = true,
+                    Priority = 10
                 },
 
                 // MESSAGE.txt (複数パターン対応)
