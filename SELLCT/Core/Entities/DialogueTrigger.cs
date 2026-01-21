@@ -91,21 +91,23 @@ namespace SELLCT.Core.Entities
             // 複数名前パターンが設定されている場合は優先的に使用
             if (ComponentNames != null)
             {
-                // 配列内のいずれかの名前と一致するかをチェック
+                // 配列内のいずれかの名前が部分一致するかをチェック
                 foreach (var name in ComponentNames)
                 {
-                    // 大文字・小文字を無視した文字列比較
-                    if (string.Equals(name, componentName, System.StringComparison.OrdinalIgnoreCase))
+                    // 大文字・小文字を無視した部分一致比較
+                    if (!string.IsNullOrEmpty(name) &&
+                        componentName.IndexOf(name, System.StringComparison.OrdinalIgnoreCase) >= 0)
                     {
                         return true;
                     }
                 }
-                // 配列内のどの名前とも一致しない場合
+                // 配列内のどの名前とも部分一致しない場合
                 return false;
             }
-            
-            // 単一名前パターンの場合の比較（大文字・小文字無視）
-            return string.Equals(ComponentName, componentName, System.StringComparison.OrdinalIgnoreCase);
+
+            // 単一名前パターンの場合の部分一致比較（大文字・小文字無視）
+            return !string.IsNullOrEmpty(ComponentName) &&
+                componentName.IndexOf(ComponentName, System.StringComparison.OrdinalIgnoreCase) >= 0;
         }
     }
 }

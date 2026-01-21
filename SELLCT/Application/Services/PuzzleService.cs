@@ -784,18 +784,18 @@ namespace SELLCT.Application.Services
 
         private void CheckPuzzlesOnComponentRenamed(ComponentRenamedEvent @event)
         {
-            // Button.txtが他の名前に変更された場合、MainButtonのテキストを更新
-            if (@event.OldName.Equals("Button", StringComparison.OrdinalIgnoreCase))
+            // Button.txtが他の名前に変更された場合、MainButtonのテキストを更新（部分一致）
+            if (@event.OldName.IndexOf("Button", StringComparison.OrdinalIgnoreCase) >= 0)
             {
                 HandleButtonRenamed(@event.NewName);
             }
 
-            // Renamedトリガーのパズルをチェック
+            // Renamedトリガーのパズルをチェック（部分一致）
             CheckPuzzles(p => p.Trigger.Type == PuzzleTrigger.TriggerType.Renamed &&
                                p.Trigger.OldComponentName != null &&
                                p.Trigger.ComponentName != null &&
-                               p.Trigger.OldComponentName.Equals(@event.OldName, StringComparison.OrdinalIgnoreCase) &&
-                               p.Trigger.ComponentName.Equals(@event.NewName, StringComparison.OrdinalIgnoreCase));
+                               @event.OldName.IndexOf(p.Trigger.OldComponentName, StringComparison.OrdinalIgnoreCase) >= 0 &&
+                               @event.NewName.IndexOf(p.Trigger.ComponentName, StringComparison.OrdinalIgnoreCase) >= 0);
 
             // Existsトリガーのパズルをチェック（リネーム後のコンポーネントが存在条件を満たす場合）
             CheckPuzzles(p => p.Trigger.Type == PuzzleTrigger.TriggerType.Exists &&

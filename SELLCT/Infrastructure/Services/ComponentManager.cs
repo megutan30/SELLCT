@@ -654,11 +654,20 @@ namespace SELLCT.Infrastructure.Services
         }
 
         /// <summary>
-        /// 構成要素取得
+        /// 構成要素取得（部分一致対応）
         /// </summary>
         public GameComponent GetComponent(string name)
         {
-            return _components.TryGetValue(name, out var component) ? component : null;
+            if (string.IsNullOrEmpty(name))
+                return null;
+
+            // まず完全一致を試みる（パフォーマンス最適化）
+            if (_components.TryGetValue(name, out var component))
+                return component;
+
+            // 部分一致検索（大文字小文字無視）
+            return _components.Values.FirstOrDefault(c =>
+                c.Name.IndexOf(name, StringComparison.OrdinalIgnoreCase) >= 0);
         }
 
         /// <summary>
@@ -751,30 +760,34 @@ namespace SELLCT.Infrastructure.Services
         }
 
         /// <summary>
-        /// Yesコンポーネントの存在確認
+        /// Yesコンポーネントの存在確認（部分一致対応）
         /// </summary>
         public bool HasYesComponent()
         {
-            var yesPatterns = new[] { "YES", "yes", "Yes", "はい" };
-            return yesPatterns.Any(pattern => _components.ContainsKey(pattern));
+            var yesPatterns = new[] { "YES", "はい" };
+            return _components.Values.Any(c =>
+                yesPatterns.Any(pattern =>
+                    c.Name.IndexOf(pattern, StringComparison.OrdinalIgnoreCase) >= 0));
         }
 
         /// <summary>
-        /// Noコンポーネントの存在確認
+        /// Noコンポーネントの存在確認（部分一致対応）
         /// </summary>
         public bool HasNoComponent()
         {
-            var noPatterns = new[] { "NO", "no", "No", "いいえ" };
-            return noPatterns.Any(pattern => _components.ContainsKey(pattern));
+            var noPatterns = new[] { "NO", "いいえ" };
+            return _components.Values.Any(c =>
+                noPatterns.Any(pattern =>
+                    c.Name.IndexOf(pattern, StringComparison.OrdinalIgnoreCase) >= 0));
         }
 
         /// <summary>
-        /// TextWindowコンポーネントの存在確認
+        /// TextWindowコンポーネントの存在確認（部分一致対応）
         /// </summary>
         public bool HasTextWindowComponent()
         {
-            var textWindowPatterns = new[] { "TextWindow", "textwindow", "TEXTWINDOW", "Textwindow" };
-            return textWindowPatterns.Any(pattern => _components.ContainsKey(pattern));
+            return _components.Values.Any(c =>
+                c.Name.IndexOf("TextWindow", StringComparison.OrdinalIgnoreCase) >= 0);
         }
 
         /// <summary>
