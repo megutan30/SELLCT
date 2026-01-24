@@ -1405,7 +1405,7 @@ namespace SELLCT.Views
         {
             // 背景画像の表示/非表示を設定
             BackgroundImage.Visibility = isVisible ? Visibility.Visible : Visibility.Collapsed;
-            
+
             // 背景画像が非表示のときはウィンドウを透明化
             // GameCanvasなどの必要な要素は不透明度を維持
             if (!isVisible)
@@ -1415,6 +1415,80 @@ namespace SELLCT.Views
             else
             {
                 System.Diagnostics.Debug.WriteLine("背景画像が表示 - ウィンドウを不透明化");
+            }
+        }
+
+        // ゲームウィンドウの表示状態を保持するフラグ
+        private bool _isGameWindowHidden = false;
+
+        /// <summary>
+        /// ゲームウィンドウの枠線とタイトルバーを非表示にする
+        /// GameWindow.txt削除時に呼び出される
+        /// 注意: ドアや背景などの他のコンポーネントは残る
+        /// </summary>
+        public void HideGameWindow()
+        {
+            if (_isGameWindowHidden) return;
+
+            try
+            {
+                System.Diagnostics.Debug.WriteLine("[MainWindow] Hiding game window frame (removing border and title bar only)");
+
+                // メインウィンドウの背景を完全に透明にする
+                this.Background = new System.Windows.Media.SolidColorBrush(
+                    System.Windows.Media.Color.FromArgb(0x00, 0x00, 0x00, 0x00));
+
+                // メインウィンドウ境界線を非表示
+                MainWindowBorder.BorderThickness = new Thickness(0);
+                MainWindowBorder.Background = System.Windows.Media.Brushes.Transparent;
+
+                // カスタムタイトルバーを非表示
+                CustomTitleBar.Visibility = Visibility.Collapsed;
+
+                // 注意: GameCanvasは非表示にしない（ドアや背景などは残す）
+
+                _isGameWindowHidden = true;
+                System.Diagnostics.Debug.WriteLine("[MainWindow] Game window frame hidden successfully");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[MainWindow] Error hiding game window frame: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// ゲームウィンドウの枠線とタイトルバーを表示する（元の状態に復元）
+        /// GameWindow.txt作成時に呼び出される
+        /// </summary>
+        public void ShowGameWindow()
+        {
+            if (!_isGameWindowHidden) return;
+
+            try
+            {
+                System.Diagnostics.Debug.WriteLine("[MainWindow] Showing game window frame (restoring border and title bar)");
+
+                // メインウィンドウの背景を元に戻す（ほぼ透明 #01000000）
+                this.Background = new System.Windows.Media.SolidColorBrush(
+                    System.Windows.Media.Color.FromArgb(0x01, 0x00, 0x00, 0x00));
+
+                // メインウィンドウ境界線を復元
+                MainWindowBorder.BorderThickness = new Thickness(1);
+                MainWindowBorder.BorderBrush = new System.Windows.Media.SolidColorBrush(
+                    (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#404040"));
+                MainWindowBorder.Background = System.Windows.Media.Brushes.Transparent;
+
+                // カスタムタイトルバーを表示
+                CustomTitleBar.Visibility = Visibility.Visible;
+
+                // 注意: GameCanvasは既に表示されているので操作不要
+
+                _isGameWindowHidden = false;
+                System.Diagnostics.Debug.WriteLine("[MainWindow] Game window frame shown successfully");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[MainWindow] Error showing game window frame: {ex.Message}");
             }
         }
 

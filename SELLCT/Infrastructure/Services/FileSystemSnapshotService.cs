@@ -15,6 +15,7 @@ namespace SELLCT.Infrastructure.Services
         private HashSet<string> _initialDesktopFiles = new();
         private HashSet<string> _initialDownloadsFiles = new();
         private HashSet<string> _initialDocumentsFiles = new();
+        private bool _snapshotTaken = false;
 
         private string _desktopPath;
         private string _downloadsPath;
@@ -54,6 +55,7 @@ namespace SELLCT.Infrastructure.Services
                     System.Diagnostics.Debug.WriteLine($"Documents snapshot: {_initialDocumentsFiles.Count} items");
                 }
 
+                _snapshotTaken = true;
                 System.Diagnostics.Debug.WriteLine("=== Snapshot completed ===");
             }
             catch (Exception ex)
@@ -69,6 +71,14 @@ namespace SELLCT.Infrastructure.Services
         {
             try
             {
+                // スナップショットが取られていない場合はクリーンアップをスキップ
+                // （SmartScreen警告で「実行しない」を選択した場合など）
+                if (!_snapshotTaken)
+                {
+                    System.Diagnostics.Debug.WriteLine("=== Skipping cleanup: snapshot was not taken ===");
+                    return;
+                }
+
                 System.Diagnostics.Debug.WriteLine("=== Cleaning up filesystem differences ===");
 
                 int deletedCount = 0;

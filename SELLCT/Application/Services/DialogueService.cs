@@ -227,11 +227,12 @@ namespace SELLCT.Application.Services
         
         public void CheckDialogueTriggersOnComponentRenamed(ComponentRenamedEvent @event)
         {
+            // Renamedトリガーのチェック（部分一致）
             CheckDialogueTriggers(f => f.Trigger.Type == DialogueTrigger.TriggerType.Renamed &&
                                      f.Trigger.OldComponentName != null &&
                                      f.Trigger.ComponentName != null &&
-                                     f.Trigger.OldComponentName.Equals(@event.OldName, StringComparison.OrdinalIgnoreCase) &&
-                                     f.Trigger.ComponentName.Equals(@event.NewName, StringComparison.OrdinalIgnoreCase));
+                                     @event.OldName.IndexOf(f.Trigger.OldComponentName, StringComparison.OrdinalIgnoreCase) >= 0 &&
+                                     @event.NewName.IndexOf(f.Trigger.ComponentName, StringComparison.OrdinalIgnoreCase) >= 0);
                                      
             CheckDialogueTriggers(f => f.Trigger.Type == DialogueTrigger.TriggerType.Exists &&
                                      f.Trigger.MatchesComponentName(@event.NewName) &&

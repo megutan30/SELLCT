@@ -145,12 +145,14 @@ namespace SELLCT.Core.Entities
             // 複数名前パターンが設定されている場合は優先的に使用
             if (ComponentNames != null && ComponentNames.Length > 0)
             {
-                // 配列内のいずれかの名前と一致するかチェック（大文字・小文字無視）
-                return ComponentNames.Any(n => n.Equals(name, StringComparison.OrdinalIgnoreCase));
+                // 配列内のいずれかの名前が部分一致するかチェック（大文字・小文字無視）
+                return ComponentNames.Any(n => !string.IsNullOrEmpty(n) &&
+                    name.IndexOf(n, StringComparison.OrdinalIgnoreCase) >= 0);
             }
-            
-            // 単一名前パターンの場合の比較（大文字・小文字無視）
-            return ComponentName != null && ComponentName.Equals(name, StringComparison.OrdinalIgnoreCase);
+
+            // 単一名前パターンの場合の部分一致比較（大文字・小文字無視）
+            return !string.IsNullOrEmpty(ComponentName) &&
+                name.IndexOf(ComponentName, StringComparison.OrdinalIgnoreCase) >= 0;
         }
 
         /// <summary>

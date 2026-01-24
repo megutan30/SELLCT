@@ -112,6 +112,12 @@ namespace SELLCT.Core.Entities
             /// <summary>Authorityフォルダ探索ヒントをキャンセル</summary>
             CancelAuthorityHints,
 
+            // === ウィンドウ制御 ===
+            /// <summary>ゲームウィンドウを非表示（透明化、枠線・タイトルバー削除）</summary>
+            HideGameWindow,
+            /// <summary>ゲームウィンドウを表示（元の状態に復元）</summary>
+            ShowGameWindow,
+
             // === オーディオ制御 ===
             /// <summary>BGM音量を設定（ファイル内容から自動パース）</summary>
             SetBgmVolume,

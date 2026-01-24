@@ -209,6 +209,17 @@ namespace SELLCT.Presentation.Views
                             System.Diagnostics.Debug.WriteLine("Authority hints cancelled");
                             break;
 
+                        // === ウィンドウ制御アクション ===
+                        case PuzzleAction.ActionType.HideGameWindow:
+                            _mainWindow.HideGameWindow();
+                            System.Diagnostics.Debug.WriteLine("[WindowAction] GameWindow hidden (transparent)");
+                            break;
+
+                        case PuzzleAction.ActionType.ShowGameWindow:
+                            _mainWindow.ShowGameWindow();
+                            System.Diagnostics.Debug.WriteLine("[WindowAction] GameWindow shown (restored)");
+                            break;
+
                         // === オーディオ制御アクション ===
                         case PuzzleAction.ActionType.SetBgmVolume:
                             HandleSetBgmVolume();
