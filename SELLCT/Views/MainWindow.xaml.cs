@@ -539,8 +539,13 @@ namespace SELLCT.Views
                     return;
                 }
 
-                // ファイルの内容を読み取り
-                string content = System.IO.File.ReadAllText(filePath);
+                // ファイルの内容を読み取り（ロック対応・リトライ付き）
+                string content = ReadFileWithRetry(filePath);
+                if (content == null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Failed to read {componentName} file after retries");
+                    return;
+                }
                 System.Diagnostics.Debug.WriteLine($"File content: '{content}'");
 
                 // 位置を解析
@@ -585,28 +590,63 @@ namespace SELLCT.Views
         }
 
         /// <summary>
+        /// ファイルをリトライ付きで読み取る（ロック対応）
+        /// </summary>
+        /// <param name="filePath">ファイルパス</param>
+        /// <param name="maxRetries">最大リトライ回数</param>
+        /// <param name="delayMs">リトライ間隔（ミリ秒）</param>
+        /// <returns>ファイル内容（失敗時はnull）</returns>
+        private string ReadFileWithRetry(string filePath, int maxRetries = 5, int delayMs = 50)
+        {
+            for (int i = 0; i < maxRetries; i++)
+            {
+                try
+                {
+                    // FileShare.ReadWriteでファイルを開くことで、他のプロセスがロックしていても読み取り可能
+                    using (var stream = new System.IO.FileStream(filePath, System.IO.FileMode.Open, System.IO.FileAccess.Read, System.IO.FileShare.ReadWrite))
+                    using (var reader = new System.IO.StreamReader(stream))
+                    {
+                        return reader.ReadToEnd();
+                    }
+                }
+                catch (System.IO.IOException ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Retry {i + 1}/{maxRetries} reading {filePath}: {ex.Message}");
+                    if (i < maxRetries - 1)
+                    {
+                        System.Threading.Thread.Sleep(delayMs);
+                    }
+                }
+            }
+            return null;
+        }
+
+        /// <summary>
         /// GameWindow.txtの変更を処理してウィンドウ位置を更新
         /// </summary>
         /// <param name="filePath">GameWindow.txtのパス</param>
         private void HandleGameWindowPositionChange(string filePath)
         {
             HandleComponentPositionChange(filePath, "GameWindow");
-            
+
             // GameWindowPositionChangedイベントを発火
             try
             {
                 if (System.IO.File.Exists(filePath))
                 {
-                    string content = System.IO.File.ReadAllText(filePath);
-                    var newPosition = ParseComponentPosition(content);
-                    if (newPosition.HasValue)
+                    string content = ReadFileWithRetry(filePath);
+                    if (content != null)
                     {
-                        var eventDispatcher = (System.Windows.Application.Current as App)?.GetEventDispatcher();
-                        if (eventDispatcher != null)
+                        var newPosition = ParseComponentPosition(content);
+                        if (newPosition.HasValue)
                         {
-                            var positionChangedEvent = new Core.Events.GameWindowPositionChangedEvent(newPosition.Value);
-                            eventDispatcher.Dispatch(positionChangedEvent);
-                            System.Diagnostics.Debug.WriteLine($"GameWindowPositionChangedEvent dispatched: {positionChangedEvent}");
+                            var eventDispatcher = (System.Windows.Application.Current as App)?.GetEventDispatcher();
+                            if (eventDispatcher != null)
+                            {
+                                var positionChangedEvent = new Core.Events.GameWindowPositionChangedEvent(newPosition.Value);
+                                eventDispatcher.Dispatch(positionChangedEvent);
+                                System.Diagnostics.Debug.WriteLine($"GameWindowPositionChangedEvent dispatched: {positionChangedEvent}");
+                            }
                         }
                     }
                 }

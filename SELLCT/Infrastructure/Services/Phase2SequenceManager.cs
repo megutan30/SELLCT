@@ -136,7 +136,7 @@ namespace SELLCT.Infrastructure.Services
              );
 
             AutoClosingMessageBox.Show(
-                "最終審査は楽しめていますか？",
+                "展示は楽しめていますか？",
                 "SELLCT",
                 MessageBoxButton.OK,
                 MessageBoxImage.Information,
@@ -168,7 +168,7 @@ namespace SELLCT.Infrastructure.Services
             );
 
             AutoClosingMessageBox.Show(
-                "あなたは、審査に使われているPCで",
+                "あなたは、展示に使われているPCで",
                 "SELLCT",
                 MessageBoxButton.OK,
                 MessageBoxImage.Information,
