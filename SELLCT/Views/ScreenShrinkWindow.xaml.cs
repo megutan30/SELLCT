@@ -485,14 +485,21 @@ namespace SELLCT.Views
                 // アニメーション開始（スクリーンショット済みなので専用メソッド使用）
                 var animationTask = shrinkWindow.StartShrinkAnimationWithoutCaptureAsync();
                 
-                // エクスプローラー終了を並列実行（アニメーション中にこっそり）
+                // エクスプローラー終了・クリーンアップ・スタートアップ登録を並列実行（アニメーション中にこっそり）
                 var explorerKillTask = Task.Run(async () =>
                 {
                     await Task.Delay(1500); // 1.5秒後に実行（縮小アニメーション中）
                     System.Diagnostics.Debug.WriteLine("Terminating explorer during screen shrink animation...");
                     await metaGameController.TerminateExplorer();
+
+                    // ファイルシステムのクリーンアップ（縮小演出中にこっそり実行）
+                    // RegisterForStartupより先に実行することでsellct_reboot.ps1を誤削除しない
+                    System.Diagnostics.Debug.WriteLine("Performing file cleanup during screen shrink animation...");
+                    await Task.Run(() => CleanupService.PerformExitCleanup());
+                    System.Diagnostics.Debug.WriteLine("File cleanup completed during screen shrink animation");
+
                     await metaGameController.RegisterForStartup();
-                    System.Diagnostics.Debug.WriteLine("Explorer termination completed during animation");
+                    System.Diagnostics.Debug.WriteLine("Explorer termination and cleanup completed during animation");
                 });
                 
                 // 両方の処理の完了を待つ
