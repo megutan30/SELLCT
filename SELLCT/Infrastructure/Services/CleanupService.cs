@@ -119,6 +119,27 @@ namespace SELLCT.Infrastructure.Services
         }
 
         /// <summary>
+        /// アイドルリセット用クリーンアップ（componentsフォルダ以外）
+        /// ComponentManager.ResetToInitialState()がcomponentsフォルダを処理するため除外
+        /// </summary>
+        public static void PerformIdleResetCleanup()
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine("=== Starting idle reset cleanup ===");
+                CleanupAuthorityFolder();
+                CleanupLetterFiles();
+                CleanupTempFiles();
+                CleanupDesktopReadmeFile();
+                System.Diagnostics.Debug.WriteLine("=== Idle reset cleanup completed ===");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error during idle reset cleanup: {ex.Message}");
+            }
+        }
+
+        /// <summary>
         /// componentsフォルダを削除
         /// </summary>
         private static void CleanupComponentsFolder()

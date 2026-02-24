@@ -32,5 +32,11 @@ namespace SELLCT.Core.Interfaces
         /// <typeparam name="TEvent">購読するイベントの型</typeparam>
         /// <param name="handler">イベント発生時に実行されるアクション</param>
         void Subscribe<TEvent>(Action<TEvent> handler);
+
+        /// <summary>
+        /// すべてのイベントハンドラーをクリアする
+        /// アイドルリセット時にイベント購読の蓄積を防ぐために使用
+        /// </summary>
+        void ClearAll();
     }
 }

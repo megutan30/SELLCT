@@ -39,6 +39,12 @@ namespace SELLCT.Views
         private Infrastructure.Services.FileSystemSnapshotService _snapshotService;
         private bool _isPhase2 = false;
 
+        // アイドルリセット関連
+        private DispatcherTimer _idleTimer;
+        private DateTime _lastActivityTime = DateTime.Now;
+        private const int IDLE_TIMEOUT_MINUTES = 5;
+        private const int IDLE_TIMEOUT_PHASE2_MINUTES = 10;
+
         // 統合されたコントローラー
         private LetterDisplayController _letterDisplayController;
         private DialogController _dialogController;
@@ -154,6 +160,7 @@ namespace SELLCT.Views
         {
             _wasWindowFocused = true;
             _lastFocusTime = DateTime.Now;
+            ResetActivityTimer();
             System.Diagnostics.Debug.WriteLine("[Window_Activated] Window activated, focus restored.");
         }
 
@@ -278,6 +285,9 @@ namespace SELLCT.Views
 
                 // 状態更新
                 StatusText.Text = "SELLCT 準備完了";
+
+                // アイドルタイマー開始
+                StartIdleTimer();
 
                 System.Diagnostics.Debug.WriteLine("MainWindow initialized successfully");
             }
@@ -474,6 +484,7 @@ namespace SELLCT.Views
         /// </summary>
         private void OnComponentsFolderChanged(object sender, ComponentChangeEventArgs e)
         {
+            ResetActivityTimer();
             var fileName = System.IO.Path.GetFileName(e.FilePath);
             
             // GameWindow.txtの変更を特別に処理
@@ -812,6 +823,7 @@ namespace SELLCT.Views
         /// </summary>
         private void MainWindow_MouseDown(object sender, MouseButtonEventArgs e)
         {
+            ResetActivityTimer();
             if (e.ChangedButton != MouseButton.Left) return;
 
             // より正確なフォーカス状態を確認
@@ -1075,6 +1087,7 @@ namespace SELLCT.Views
         /// </summary>
         private void MainButton_Click(object sender, RoutedEventArgs e)
         {
+            ResetActivityTimer();
             try
             {
                 // ClickSE再生
@@ -1130,6 +1143,7 @@ namespace SELLCT.Views
         /// </summary>
         private void Letter_Click(object sender, MouseButtonEventArgs e)
         {
+            ResetActivityTimer();
             _letterDisplayController?.HandleLetterClick();
         }
 
@@ -1138,6 +1152,7 @@ namespace SELLCT.Views
         /// </summary>
         private void Key_Click(object sender, MouseButtonEventArgs e)
         {
+            ResetActivityTimer();
             try
             {
                 if (_keyService == null) return;
@@ -1178,6 +1193,7 @@ namespace SELLCT.Views
         /// </summary>
         private void DoorImage_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
+            ResetActivityTimer();
             // DoorKnockSE再生
             _audioService?.PlayDoorSound();
             System.Diagnostics.Debug.WriteLine("[MainWindow] Door clicked - DoorKnock SE played");
@@ -1188,6 +1204,7 @@ namespace SELLCT.Views
         /// </summary>
         private void YesButton_Click(object sender, RoutedEventArgs e)
         {
+            ResetActivityTimer();
             // ClickSE再生
             _audioService?.PlayClickSound();
 
@@ -1199,6 +1216,7 @@ namespace SELLCT.Views
         /// </summary>
         private void NoButton_Click(object sender, RoutedEventArgs e)
         {
+            ResetActivityTimer();
             // ClickSE再生
             _audioService?.PlayClickSound();
 
@@ -1368,6 +1386,184 @@ namespace SELLCT.Views
             {
                 System.Diagnostics.Debug.WriteLine($"Error in Window_Closing: {ex.Message}");
             }
+        }
+
+        // ===== アイドルリセット関連 =====
+
+        /// <summary>
+        /// アクティビティタイマーをリセット（操作検知時に呼び出し）
+        /// </summary>
+        private void ResetActivityTimer()
+        {
+            _lastActivityTime = DateTime.Now;
+        }
+
+        /// <summary>
+        /// アイドルタイマーを開始
+        /// </summary>
+        private void StartIdleTimer()
+        {
+            _idleTimer = new DispatcherTimer { Interval = TimeSpan.FromMinutes(1) };
+            _idleTimer.Tick += (s, e) => CheckIdleTimeout();
+            _lastActivityTime = DateTime.Now;
+            _idleTimer.Start();
+            System.Diagnostics.Debug.WriteLine("[IdleTimer] Started (check interval: 1 min)");
+        }
+
+        /// <summary>
+        /// アイドルタイムアウトをチェック
+        /// </summary>
+        private void CheckIdleTimeout()
+        {
+            var elapsed = DateTime.Now - _lastActivityTime;
+            var timeoutMinutes = _isPhase2 ? IDLE_TIMEOUT_PHASE2_MINUTES : IDLE_TIMEOUT_MINUTES;
+
+            System.Diagnostics.Debug.WriteLine($"[IdleTimer] Check: elapsed={elapsed.TotalMinutes:F1}min, timeout={timeoutMinutes}min, phase2={_isPhase2}");
+
+            if (elapsed.TotalMinutes >= timeoutMinutes)
+            {
+                System.Diagnostics.Debug.WriteLine("[IdleTimer] Timeout reached, performing idle reset");
+                PerformIdleReset();
+            }
+        }
+
+        /// <summary>
+        /// アイドルタイムアウト時のフルリセット処理
+        /// </summary>
+        private void PerformIdleReset()
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine("=== PerformIdleReset START ===");
+
+                // 1. アイドルタイマー停止
+                _idleTimer?.Stop();
+
+                // 2. 旧サービスDispose
+                _letterService?.Dispose();
+                _keyService?.Dispose();
+                _letterDisplayController?.Dispose();
+                _dialogController?.Dispose();
+                System.Diagnostics.Debug.WriteLine("[IdleReset] Old services disposed");
+
+                // 3. ComponentsFolderChangedイベント解除
+                if (_componentManager != null)
+                {
+                    _componentManager.ComponentsFolderChanged -= OnComponentsFolderChanged;
+                }
+
+                // 4. 疑似アイコン削除
+                _pseudoDesktopIconManager?.RemoveAllPseudoIcons();
+                System.Diagnostics.Debug.WriteLine("[IdleReset] Pseudo icons removed");
+
+                // 5. EventDispatcher全クリア + ComponentManager再購読
+                var eventDispatcher = (System.Windows.Application.Current as App)?.GetEventDispatcher();
+                eventDispatcher?.ClearAll();
+                _componentManager?.ResubscribeEvents();
+                System.Diagnostics.Debug.WriteLine("[IdleReset] EventDispatcher cleared, ComponentManager resubscribed");
+
+                // 6. Authority/手紙ファイル等のクリーンアップ
+                CleanupService.PerformIdleResetCleanup();
+                System.Diagnostics.Debug.WriteLine("[IdleReset] Idle reset cleanup completed");
+
+                // 7. ComponentManager リセット（componentsフォルダ削除・再作成）
+                _componentManager?.ResetToInitialState();
+                System.Diagnostics.Debug.WriteLine("[IdleReset] ComponentManager reset to initial state");
+
+                // 8. サービス再初期化
+                InitializeServices();
+                System.Diagnostics.Debug.WriteLine("[IdleReset] Services reinitialized");
+
+                // 9. UI初期状態復元
+                ResetUIToInitialState();
+                System.Diagnostics.Debug.WriteLine("[IdleReset] UI reset to initial state");
+
+                // 10. 隠しファイル表示無効化を再実行
+                try
+                {
+                    _hiddenFileSettingService?.DisableHiddenFileDisplay();
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[IdleReset] Error disabling hidden file display: {ex.Message}");
+                }
+
+                // 11. タイマー再開
+                _lastActivityTime = DateTime.Now;
+                _idleTimer?.Start();
+
+                System.Diagnostics.Debug.WriteLine("=== PerformIdleReset COMPLETE ===");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[IdleReset] Error during idle reset: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[IdleReset] Stack trace: {ex.StackTrace}");
+
+                // リセット失敗時もタイマーを再開して再試行できるようにする
+                _lastActivityTime = DateTime.Now;
+                _idleTimer?.Start();
+            }
+        }
+
+        /// <summary>
+        /// UIを初期状態に復元
+        /// </summary>
+        private void ResetUIToInitialState()
+        {
+            // フラグリセット
+            _isPhase2 = false;
+            _isNoFunctionEnabled = false;
+            _dialogStep = 0;
+
+            // ボタン初期状態
+            MainButton.Content = "?";
+            MainButton.Visibility = Visibility.Visible;
+            Canvas.SetLeft(MainButton, 52);
+            Canvas.SetTop(MainButton, 478);
+
+            // YES/NO初期状態
+            Canvas.SetLeft(ChoiceButtonsPanel, 360);
+            Canvas.SetTop(ChoiceButtonsPanel, 262);
+            ChoiceButtonsPanel.Visibility = Visibility.Collapsed;
+            NoButton.Content = "はい";
+
+            // テキストウィンドウ初期状態
+            TextWindow.Visibility = Visibility.Collapsed;
+            DialogText.Text = "";
+
+            // ログパネル初期状態
+            LogPanel.Visibility = Visibility.Collapsed;
+            LogText.Text = "";
+
+            // 手紙画像初期状態
+            LetterImage.Visibility = Visibility.Collapsed;
+
+            // KEY画像初期状態
+            KeyImage.Visibility = Visibility.Visible;
+            Canvas.SetLeft(KeyImage, 128);
+            Canvas.SetTop(KeyImage, 491);
+
+            // ドア画像初期状態
+            DoorImage.Visibility = Visibility.Visible;
+            Canvas.SetLeft(DoorImage, 367);
+            Canvas.SetTop(DoorImage, 221);
+
+            // 背景画像初期状態
+            Canvas.SetLeft(BackgroundImage, 0);
+            Canvas.SetTop(BackgroundImage, -13);
+            BackgroundImage.Width = 800;
+            BackgroundImage.Height = 574;
+
+            // タイトルバー表示
+            CustomTitleBar.Visibility = Visibility.Visible;
+
+            // デバッグパネル非表示
+            DebugPanel.Visibility = Visibility.Collapsed;
+
+            // ウィンドウを画面中央に配置
+            CenterWindowOnScreen();
+
+            System.Diagnostics.Debug.WriteLine("[IdleReset] UI elements reset to initial state");
         }
 
         /// <summary>

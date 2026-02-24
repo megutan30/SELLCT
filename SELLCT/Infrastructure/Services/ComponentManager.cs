@@ -82,6 +82,17 @@ namespace SELLCT.Infrastructure.Services
         }
 
         /// <summary>
+        /// EventDispatcher.ClearAll()後にイベント購読を再登録する
+        /// </summary>
+        public void ResubscribeEvents()
+        {
+            _eventDispatcher.Subscribe<ComponentCreatedEvent>(OnComponentCreated);
+            _eventDispatcher.Subscribe<ComponentDeletedEvent>(OnComponentDeleted);
+            _eventDispatcher.Subscribe<ComponentRenamedEvent>(OnComponentRenamed);
+            System.Diagnostics.Debug.WriteLine("ComponentManager: Events resubscribed");
+        }
+
+        /// <summary>
         /// componentsフォルダ作成
         /// </summary>
         private void CreateComponentsFolder()

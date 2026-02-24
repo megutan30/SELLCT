@@ -76,5 +76,15 @@ namespace SELLCT.Infrastructure.Services
             // ハンドラーをリストに追加
             _handlers[eventType].Add(handler);
         }
+
+        /// <summary>
+        /// すべてのイベントハンドラーをクリアする
+        /// アイドルリセット時にイベント購読の蓄積を防ぐために使用
+        /// </summary>
+        public void ClearAll()
+        {
+            _handlers.Clear();
+            System.Diagnostics.Debug.WriteLine("EventDispatcher: All handlers cleared");
+        }
     }
 }
